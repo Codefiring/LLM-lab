@@ -8386,6 +8386,33 @@ relationships are the following: (:Chunk)-[:NEXT]-
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=cc10ef82">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [22]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">CYPHER_GENERATION_PROMPT</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>input_variables=['question', 'schema'] template="Task:Generate Cypher statement to \nquery a graph database.\nInstructions:\nUse only the provided relationship types and properties in the \nschema. Do not use any other relationship types or properties that \nare not provided.\nSchema:\n{schema}\nNote: Do not include any explanations or apologies in your responses.\nDo not respond to any questions that might ask anything else than \nfor you to construct a Cypher statement.\nDo not include any text except the generated Cypher statement.\nExamples: Here are a few examples of generated Cypher \nstatements for particular questions:\n\n# What investment firms are in San Francisco?\nMATCH (mgr:Manager)-[:LOCATED_AT]-&gt;(mgrAddress:Address)\n    WHERE mgrAddress.city = 'San Francisco'\nRETURN mgr.managerName\nThe question is:\n{question}"
+</pre>
+</div>
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=a8988b57-5cdd-4e33-8b95-9a2579273723">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -8401,6 +8428,33 @@ relationships are the following: (:Chunk)-[:NEXT]-
     <span class="n">cypher_prompt</span><span class="o">=</span><span class="n">CYPHER_GENERATION_PROMPT</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=72d56d07">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">cypherChain</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>verbose=True graph=&lt;langchain_community.graphs.neo4j_graph.Neo4jGraph object at 0x7fba20022590&gt; cypher_generation_chain=LLMChain(prompt=PromptTemplate(input_variables=['question', 'schema'], template="Task:Generate Cypher statement to \nquery a graph database.\nInstructions:\nUse only the provided relationship types and properties in the \nschema. Do not use any other relationship types or properties that \nare not provided.\nSchema:\n{schema}\nNote: Do not include any explanations or apologies in your responses.\nDo not respond to any questions that might ask anything else than \nfor you to construct a Cypher statement.\nDo not include any text except the generated Cypher statement.\nExamples: Here are a few examples of generated Cypher \nstatements for particular questions:\n\n# What investment firms are in San Francisco?\nMATCH (mgr:Manager)-[:LOCATED_AT]-&gt;(mgrAddress:Address)\n    WHERE mgrAddress.city = 'San Francisco'\nRETURN mgr.managerName\nThe question is:\n{question}"), llm=ChatOpenAI(client=&lt;openai.resources.chat.completions.Completions object at 0x7fba1c5f8f50&gt;, async_client=&lt;openai.resources.chat.completions.AsyncCompletions object at 0x7fba1c5df3d0&gt;, temperature=0.0, openai_api_key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcHAiLCJleHAiOjE3OTk5OTk5OTksInN1YiI6MTU1MjE1MywiYXVkIjoiV0VCIiwiaWF0IjoxNjk0MDc2ODUxfQ.D0Wv8wILxbZ58BLSZxzWNF51RSNPU1wHQbGebEJqco8', openai_api_base='http://jupyter-api-proxy.internal.dlai/rev-proxy', openai_proxy='')) qa_chain=LLMChain(prompt=PromptTemplate(input_variables=['context', 'question'], template="You are an assistant that helps to form nice and human understandable answers.\nThe information part contains the provided information that you must use to construct an answer.\nThe provided information is authoritative, you must never doubt it or try to use your internal knowledge to correct it.\nMake the answer sound as a response to the question. Do not mention that you based the result on the given information.\nIf the provided information is empty, say that you don't know the answer.\nInformation:\n{context}\n\nQuestion: {question}\nHelpful Answer:"), llm=ChatOpenAI(client=&lt;openai.resources.chat.completions.Completions object at 0x7fba1c5f8f50&gt;, async_client=&lt;openai.resources.chat.completions.AsyncCompletions object at 0x7fba1c5df3d0&gt;, temperature=0.0, openai_api_key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcHAiLCJleHAiOjE3OTk5OTk5OTksInN1YiI6MTU1MjE1MywiYXVkIjoiV0VCIiwiaWF0IjoxNjk0MDc2ODUxfQ.D0Wv8wILxbZ58BLSZxzWNF51RSNPU1wHQbGebEJqco8', openai_api_base='http://jupyter-api-proxy.internal.dlai/rev-proxy', openai_proxy='')) graph_schema='Node properties are the following:\nChunk {textEmbedding: LIST, f10kItem: STRING, chunkSeqId: INTEGER, text: STRING, cik: STRING, cusip6: STRING, names: LIST, formId: STRING, source: STRING, chunkId: STRING},Form {cusip6: STRING, names: LIST, formId: STRING, source: STRING},Company {location: POINT, cusip: STRING, names: LIST, companyAddress: STRING, companyName: STRING, cusip6: STRING},Manager {location: POINT, managerName: STRING, managerCik: STRING, managerAddress: STRING},Address {location: POINT, country: STRING, city: STRING, state: STRING}\nRelationship properties are the following:\nSECTION {f10kItem: STRING},OWNS_STOCK_IN {shares: INTEGER, reportCalendarOrQuarter: STRING, value: FLOAT}\nThe relationships are the following:\n(:Chunk)-[:NEXT]-&gt;(:Chunk),(:Chunk)-[:PART_OF]-&gt;(:Form),(:Form)-[:SECTION]-&gt;(:Chunk),(:Company)-[:FILED]-&gt;(:Form),(:Company)-[:LOCATED_AT]-&gt;(:Address),(:Manager)-[:LOCATED_AT]-&gt;(:Address),(:Manager)-[:OWNS_STOCK_IN]-&gt;(:Company)'
+</pre>
 </div>
 </div>
 </div>
@@ -8447,15 +8501,15 @@ relationships are the following: (:Chunk)-[:NEXT]-
 <span class="ansi-bold">&gt; Entering new GraphCypherQAChain chain...</span>
 Generated Cypher:
 <span class="ansi-green-intense-fg ansi-bold">MATCH (mgr:Manager)-[:LOCATED_AT]-&gt;(mgrAddress:Address)
-WHERE mgrAddress.city = 'San Francisco'
+    WHERE mgrAddress.city = 'San Francisco'
 RETURN mgr.managerName</span>
 Full Context:
 <span class="ansi-green-intense-fg ansi-bold">[{'mgr.managerName': 'PARNASSUS INVESTMENTS, LLC'}, {'mgr.managerName': 'SKBA CAPITAL MANAGEMENT LLC'}, {'mgr.managerName': 'ROSENBLUM SILVERMAN SUTTON S F INC /CA'}, {'mgr.managerName': 'CHARLES SCHWAB INVESTMENT MANAGEMENT INC'}, {'mgr.managerName': 'WELLS FARGO &amp; COMPANY/MN'}, {'mgr.managerName': 'Dodge &amp; Cox'}, {'mgr.managerName': 'Strait &amp; Sound Wealth Management LLC'}, {'mgr.managerName': 'Sonoma Private Wealth LLC'}, {'mgr.managerName': 'Fund Management at Engine No. 1 LLC'}, {'mgr.managerName': 'SELDON CAPITAL LP'}]</span>
 
 <span class="ansi-bold">&gt; Finished chain.</span>
-PARNASSUS INVESTMENTS, LLC, ROSENBLUM SILVERMAN SUTTON S F
-INC /CA, and Dodge &amp; Cox are investment firms located in San
-Francisco.
+PARNASSUS INVESTMENTS, LLC, SKBA CAPITAL MANAGEMENT LLC, and
+ROSENBLUM SILVERMAN SUTTON S F INC /CA are investment firms
+located in San Francisco.
 </pre>
 </div>
 </div>
@@ -8466,7 +8520,7 @@ Francisco.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [22]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [24]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What investment firms are in Menlo Park?"</span><span class="p">)</span>
@@ -8493,8 +8547,12 @@ Full Context:
 <span class="ansi-green-intense-fg ansi-bold">[{'mgr.managerName': 'Bordeaux Wealth Advisors LLC'}, {'mgr.managerName': 'Opes Wealth Management LLC'}, {'mgr.managerName': 'Solstein Capital, LLC'}, {'mgr.managerName': 'Stamos Capital Partners, L.P.'}, {'mgr.managerName': 'TIEMANN INVESTMENT ADVISORS, LLC'}, {'mgr.managerName': 'SCGE MANAGEMENT, L.P.'}, {'mgr.managerName': 'Nelson Capital Management, LLC'}, {'mgr.managerName': 'Jasper Ridge Partners, L.P.'}, {'mgr.managerName': 'CROSSLINK CAPITAL INC'}]</span>
 
 <span class="ansi-bold">&gt; Finished chain.</span>
-Jasper Ridge Partners, L.P. and CROSSLINK CAPITAL INC are
-investment firms located in Menlo Park.
+The investment firms in Menlo Park include Bordeaux Wealth
+Advisors LLC, Opes Wealth Management LLC, Solstein Capital,
+LLC, Stamos Capital Partners, L.P., TIEMANN INVESTMENT
+ADVISORS, LLC, SCGE MANAGEMENT, L.P., Nelson Capital
+Management, LLC, Jasper Ridge Partners, L.P., and CROSSLINK
+CAPITAL INC.
 </pre>
 </div>
 </div>
@@ -8505,7 +8563,7 @@ investment firms located in Menlo Park.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What companies are in Santa Clara?"</span><span class="p">)</span>
@@ -8532,8 +8590,8 @@ Full Context:
 <span class="ansi-green-intense-fg ansi-bold">[{'comp.companyName': 'PALO ALTO NETWORKS INC'}, {'comp.companyName': 'SEAGATE TECHNOLOGY'}, {'comp.companyName': 'ATLASSIAN CORP PLC'}]</span>
 
 <span class="ansi-bold">&gt; Finished chain.</span>
-The companies in Santa Clara are PALO ALTO NETWORKS INC,
-SEAGATE TECHNOLOGY, and ATLASSIAN CORP PLC.
+PALO ALTO NETWORKS INC, SEAGATE TECHNOLOGY, and ATLASSIAN
+CORP PLC are companies located in Santa Clara.
 </pre>
 </div>
 </div>
@@ -8544,7 +8602,7 @@ SEAGATE TECHNOLOGY, and ATLASSIAN CORP PLC.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [24]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [26]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What investment firms are near Santa Clara?"</span><span class="p">)</span>
@@ -8571,7 +8629,7 @@ Full Context:
 <span class="ansi-green-intense-fg ansi-bold">[]</span>
 
 <span class="ansi-bold">&gt; Finished chain.</span>
-I don't know the answer.
+I don't know the answer to that question.
 </pre>
 </div>
 </div>
@@ -8593,7 +8651,7 @@ I don't know the answer.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [27]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">CYPHER_GENERATION_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""Task:Generate Cypher statement to query a graph database.</span>
@@ -8646,7 +8704,7 @@ I don't know the answer.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [36]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [28]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">CYPHER_GENERATION_PROMPT</span> <span class="o">=</span> <span class="n">PromptTemplate</span><span class="p">(</span>
@@ -8670,7 +8728,7 @@ I don't know the answer.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [37]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [29]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What investment firms are near Santa Clara?"</span><span class="p">)</span>
@@ -8707,52 +8765,6 @@ WAY, SUITE 140, CAMPBELL, CA, 95008.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5b7fe2de">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [38]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What investment firms are near San Francisco?"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>
-
-<span class="ansi-bold">&gt; Entering new GraphCypherQAChain chain...</span>
-Generated Cypher:
-<span class="ansi-green-intense-fg ansi-bold">MATCH (address:Address)
-    WHERE address.city = "San Francisco"
-MATCH (mgr:Manager)-[:LOCATED_AT]-&gt;(managerAddress:Address)
-    WHERE point.distance(address.location, managerAddress.location) &lt; 10000
-RETURN mgr.managerName, mgr.managerAddress</span>
-Full Context:
-<span class="ansi-green-intense-fg ansi-bold">[{'mgr.managerName': 'PARNASSUS INVESTMENTS, LLC', 'mgr.managerAddress': '1 Market Street #1600, San Francisco, CA, 94105'}, {'mgr.managerName': 'SKBA CAPITAL MANAGEMENT LLC', 'mgr.managerAddress': '601 California Street, Suite 1500, San Francisco, CA, 94108'}, {'mgr.managerName': 'ROSENBLUM SILVERMAN SUTTON S F INC /CA', 'mgr.managerAddress': 'Rosenblum Silverman Sutton S F Inc/ca, 1388 Sutter Street Ste 725, San Francisco, CA, 94109'}, {'mgr.managerName': 'CHARLES SCHWAB INVESTMENT MANAGEMENT INC', 'mgr.managerAddress': '211 MAIN STREET, SAN FRANCISCO, CA, 94105'}, {'mgr.managerName': 'WELLS FARGO &amp; COMPANY/MN', 'mgr.managerAddress': '420 MONTGOMERY STREET, SAN FRANCISCO, CA, 94163'}, {'mgr.managerName': 'Dodge &amp; Cox', 'mgr.managerAddress': '555 California Street, 40th Floor, San Francisco, CA, 94104'}, {'mgr.managerName': 'Strait &amp; Sound Wealth Management LLC', 'mgr.managerAddress': 'P.O. BOX 22391, SAN FRANCISCO, CA, 94122'}, {'mgr.managerName': 'Sonoma Private Wealth LLC', 'mgr.managerAddress': '268 BUSH STREET, #3926, San Francisco, CA, 94104'}, {'mgr.managerName': 'Fund Management at Engine No. 1 LLC', 'mgr.managerAddress': '710 SANSOME STREET, SAN FRANCISCO, CA, 94111'}, {'mgr.managerName': 'SELDON CAPITAL LP', 'mgr.managerAddress': '345 CALIFORNIA STREET, SUITE 600, SAN FRANCISCO, CA, 94104'}]</span>
-
-<span class="ansi-bold">&gt; Finished chain.</span>
-Some investment firms near San Francisco include PARNASSUS
-INVESTMENTS, LLC, SKBA CAPITAL MANAGEMENT LLC, ROSENBLUM
-SILVERMAN SUTTON S F INC /CA, CHARLES SCHWAB INVESTMENT
-MANAGEMENT INC, Wells Fargo &amp; Company/MN, Dodge &amp; Cox,
-Strait &amp; Sound Wealth Management LLC, Sonoma Private Wealth
-LLC, Fund Management at Engine No. 1 LLC, and SELDON CAPITAL
-LP.
-</pre>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3001e746-1920-43fe-a205-6bc00974d3b8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -8769,7 +8781,7 @@ LP.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [28]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [30]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">CYPHER_GENERATION_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""Task:Generate Cypher statement to query a graph database.</span>
@@ -8819,7 +8831,7 @@ LP.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [29]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [31]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">CYPHER_GENERATION_PROMPT</span> <span class="o">=</span> <span class="n">PromptTemplate</span><span class="p">(</span>
@@ -8843,7 +8855,7 @@ LP.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [30]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [32]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What does Palo Alto Networks do?"</span><span class="p">)</span>
@@ -8863,28 +8875,16 @@ LP.
 
 <span class="ansi-bold">&gt; Entering new GraphCypherQAChain chain...</span>
 Generated Cypher:
-<span class="ansi-green-intense-fg ansi-bold">CALL db.index.fulltext.queryNodes(
-     "fullTextCompanyNames", 
-     "Palo Alto Networks"
-     ) YIELD node, score
-WITH node as com
-MATCH (com)-[:FILED]-&gt;(f:Form),
-  (f)-[s:SECTION]-&gt;(c:Chunk)
-WHERE s.f10kItem = "item1"
+<span class="ansi-green-intense-fg ansi-bold">MATCH (com:Company {companyName: "Palo Alto Networks"})-[:FILED]-&gt;(f:Form),
+    (f)-[:SECTION]-&gt;(c:Chunk)
 RETURN c.text</span>
 Full Context:
-<span class="ansi-green-intense-fg ansi-bold">[{'c.text': '&gt;Item 1. Business\nGeneral\nPalo Alto Networks, Inc. is a global cybersecurity provider with a vision of a world where each day is safer and more secure than the one before. We were incorporated in 2005 and are headquartered in Santa Clara, California.\nWe empower enterprises, organizations, service providers, and government entities to protect themselves against today’s most sophisticated cyber threats. Our cybersecurity platforms and services help secure enterprise users, networks, clouds, and endpoints by delivering comprehensive cybersecurity backed by industry-leading artificial intelligence and automation. We are a leading provider of zero trust solutions, starting with next-generation zero trust network access to secure today’s remote hybrid workforces and extending to securing all users, applications, and infrastructure with zero trust principles. Our security solutions are designed to reduce customers’ total cost of ownership by improving operational efficiency and eliminating the need for siloed point products. Our company focuses on delivering value in four fundamental areas:\nNetwork Security:\n•\nOur network security platform, designed to deliver complete zero trust solutions to our customers, includes our hardware and software ML-Powered Next-Generation Firewalls, as well as a cloud-delivered Secure Access Service Edge (“SASE”). Prisma\n®\n Access, our Security Services Edge (“SSE”) solution, when combined with Prisma SD-WAN, provides a comprehensive single-vendor SASE offering that is used to secure remote workforces and enable the cloud-delivered branch. We have been recognized as a leader in network firewalls, SSE, and SD-WAN. Our network security platform also includes our cloud-delivered security services, such as Advanced Threat Prevention, Advanced WildFire\n®\n, Advanced URL Filtering, DNS Security, IoT/OT Security, GlobalProtect\n®'}]</span>
+<span class="ansi-green-intense-fg ansi-bold">[]</span>
 
 <span class="ansi-bold">&gt; Finished chain.</span>
-Palo Alto Networks, Inc. is a global cybersecurity provider
-that empowers enterprises, organizations, service providers,
-and government entities to protect themselves against
-sophisticated cyber threats. They offer cybersecurity
-platforms and services to secure users, networks, clouds,
-and endpoints with industry-leading artificial intelligence
-and automation. Their focus is on delivering value in
-network security, including zero trust solutions for remote
-workforces and cloud-delivered branches.
+Palo Alto Networks is a cybersecurity company that
+specializes in providing advanced security solutions to
+protect organizations from cyber threats.
 </pre>
 </div>
 </div>
@@ -8911,7 +8911,7 @@ workforces and cloud-delivered branches.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [39]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [33]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Check the graph schema</span>
@@ -8957,7 +8957,7 @@ relationships are the following: (:Chunk)-[:NEXT]-
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [40]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [34]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">CYPHER_GENERATION_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""Task:Generate Cypher statement to query a graph database.</span>
@@ -9007,7 +9007,7 @@ relationships are the following: (:Chunk)-[:NEXT]-
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [41]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [35]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Update the prompt and reset the QA chain</span>
@@ -9032,7 +9032,7 @@ relationships are the following: (:Chunk)-[:NEXT]-
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [42]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [36]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">prettyCypherChain</span><span class="p">(</span><span class="s2">"What investment firms are near Santa Clara?"</span><span class="p">)</span>
@@ -9071,6 +9071,6 @@ WAY, SUITE 140, CAMPBELL, CA, 95008.
 </div>
 </div>
 </main>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8c147f353a8bd3d6","serverTiming":{"name":{"cfExtPri":true,"cfL4":true}},"version":"2024.8.0","token":"4c1c83ca2dd644dea02182b686a741bd"}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8cb0b0cbce1a9fc6","serverTiming":{"name":{"cfExtPri":true,"cfL4":true}},"version":"2024.8.0","token":"4c1c83ca2dd644dea02182b686a741bd"}' crossorigin="anonymous"></script>
 </body>
 </html>

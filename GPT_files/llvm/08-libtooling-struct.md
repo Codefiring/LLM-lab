@@ -476,3 +476,88 @@ tool_build/struct_nesting_tool -p build . -o struct_nesting.json
 ```
 
 如果你的系统包名不是 `llvm-config-14`（比如用的自编译或不同发行版），只要 `llvm-config` 在 PATH 里也没问题；上面的脚本会自动回退。需要我给你一个同时兼容 **Clang 13/15** 的变体吗？
+
+
+
+这是经典的**RTTI/链接**问题。`undefined reference to typeinfo for clang::ASTFrontendAction` 通常由以下几种原因之一导致：
+
+1. 没有启用 RTTI（被某处 `-fno-rtti` 关掉了）；
+2. 少链接了产生该类型 vtable/typeinfo 的库（主要是 **clangFrontend** 及其同伴库）；
+3. 使用静态库时，链接器顺序/循环依赖，导致符号没被拉进来。
+
+下面给你一个稳妥的**精简修复方案**（在你当前的精简版 CMake 基础上补几行即可）：
+
+---
+
+## CMake 修复片段
+
+把你的 `CMakeLists.txt` 里 `target_link_libraries` 和编译选项部分改成这样（关键新增点已注释）：
+
+```cmake
+# 1) 确保开启 RTTI（避免被全局 flags 关掉）
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  target_compile_options(struct_nesting_tool PRIVATE -Wall -Wextra -Wno-unused-parameter -frtti)
+elseif (MSVC)
+  target_compile_options(struct_nesting_tool PRIVATE /W4 /GR)  # /GR 打开 RTTI
+endif()
+
+# 2) Clang/LLVM 需要的库（补齐 Frontend 工具链相关）
+set(CLANG_LIBS
+  clangTooling
+  clangASTMatchers
+  clangAST
+  clangBasic
+  clangLex
+  clangSerialization
+  clangFrontend
+  clangFrontendTool      # ✅ 常见遗漏
+  clangDriver            # ✅ 常见遗漏
+  clangRewriteFrontend   # 可选，但很多工具会间接用到
+  clangRewrite           # 可选
+  clangEdit              # 可选
+)
+
+# 3) 如果你用的是静态构建的 LLVM/Clang，建议把库放进 --start-group/--end-group
+#    这样能解决循环依赖导致的“未定义引用”
+if (UNIX AND NOT APPLE)  # GNU ld
+  set(START_GROUP -Wl,--start-group)
+  set(END_GROUP   -Wl,--end-group)
+endif()
+
+# 4) 继续沿用你之前通过 llvm-config 拿到的 LLVM_LIBS（保持不变）
+#    假设变量 ${LLVM_LIBS} 已由前文 execute_process + separate_arguments 得到
+
+target_link_libraries(struct_nesting_tool
+  PRIVATE
+    ${START_GROUP}
+    ${CLANG_LIBS}
+    ${LLVM_LIBS}
+    ${END_GROUP}
+)
+```
+
+---
+
+## 额外检查清单
+
+* **确认没有 `-fno-rtti`**：检查你的全局 CXXFLAGS、工具链默认选项或公司模板 CMake；如果看到 `-fno-rtti`，删掉或在目标上用 `-frtti` 覆盖。
+* **确认包含头**：`#include "clang/Frontend/FrontendActions.h"`（注意是 **FrontendActions.h** 复数）；以及先前修正过的 `#include "llvm/Support/InitLLVM.h"` / `#include "llvm/Support/raw_ostream.h"`。
+* **库是否存在**：如果某些发行版把 `clangFrontendTool` 拆分得不一样，跑一遍
+
+  ```bash
+  llvm-config-14 --link-static --libs --system-libs
+  ```
+
+  或
+
+  ```bash
+  llvm-config-14 --libs all --system-libs
+  ```
+
+  看看是否需要改名/增减库。
+* **静态 vs 动态**：若你链接的是**静态** LLVM/Clang（常见于自编译），`--start-group/--end-group` 很关键；如果是动态库，通常不需要，但加上也无害。
+* **libstdc++/libc++**：尽量与 LLVM/Clang 的编译选项一致（两者都用 libstdc++ 或都用 libc++），避免 C++ ABI 不一致造成奇怪链接报错。
+
+---
+
+如果按上面改完仍报同样的错，把你的**完整链接命令行**（`cmake --build` 的 verbose 输出）贴我，我帮你定位具体是哪个库没进来或顺序问题。

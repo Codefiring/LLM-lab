@@ -282,3 +282,104 @@ struct A {
 * 若工程很大、跨 TU 重复很多，当前用 `std::set` 去重，输出稳定。
 
 需要我再给你一个最小示例工程（含示例代码与 `compile_commands.json`）用来快速验证吗？
+
+
+
+明白了 👍，这是典型的 **链接 LLVM 的方式不对** 的问题。
+
+在 LLVM/Clang 的 CMake 包里，**通常不会有一个单独的 `-lLLVM` 静态库**，而是拆成了几十个子库（`LLVMSupport`、`LLVMCore`、`LLVMOption` 等等）。所以你在 CMake 里写 `target_link_libraries(... LLVM)` 会报错 `-lLLVM no such file or directory`。
+
+---
+
+## 解决办法
+
+### ✅ 推荐：用 `llvm-config` 自动生成库列表
+
+你可以在 CMakeLists 里用 `llvm-config` 拿到正确的库集：
+
+```cmake
+execute_process(
+  COMMAND llvm-config-14 --libs --system-libs
+  OUTPUT_VARIABLE LLVM_LIBS
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+separate_arguments(LLVM_LIBS)
+```
+
+然后在 target 里加上：
+
+```cmake
+target_link_libraries(struct_nesting_tool
+  PRIVATE
+    clangTooling
+    clangASTMatchers
+    clangAST
+    clangBasic
+    clangFrontend
+    clangSerialization
+    clangLex
+    ${LLVM_LIBS}
+)
+```
+
+这样 CMake 会展开成一长串 `-lLLVMSupport -lLLVMCore -lLLVMOption ...`，不会出 `-lLLVM` 错误。
+
+---
+
+### 🚑 如果你坚持用 `find_package(LLVM REQUIRED CONFIG)`
+
+那就不要写 `LLVM` 这个目标。LLVM CMake 提供了 **IMPORTED targets**，比如 `LLVMSupport`、`LLVMCore` 等。你可以写：
+
+```cmake
+target_link_libraries(struct_nesting_tool
+  PRIVATE
+    clangTooling
+    clangASTMatchers
+    clangAST
+    clangBasic
+    clangFrontend
+    clangSerialization
+    clangLex
+    LLVMSupport
+    LLVMCore
+    LLVMOption
+    LLVMFrontendOpenMP      # 根据需要加
+)
+```
+
+通常最少要 `LLVMSupport`，否则连 `raw_ostream` 都用不了。
+
+---
+
+### ⚡ 小技巧
+
+在命令行里执行：
+
+```bash
+llvm-config-14 --libs core support option
+```
+
+可以看到需要哪些库。你也能用：
+
+```bash
+llvm-config-14 --libs all --system-libs
+```
+
+直接输出全套库名。
+
+---
+
+## 建议做法
+
+如果你只是写 **Clang Tooling 工具**，你大概率只需要：
+
+* `LLVMSupport`
+* `LLVMCore`
+* `LLVMOption`
+
+其余的由 Clang 库自己再拉。
+
+---
+
+要不要我给你改一个**精简版 CMakeLists.txt**，用 `llvm-config` 自动展开依赖，这样就不用手工维护 `-l` 列表了？

@@ -1,272 +1,284 @@
-没问题！下面给你一份**完整可运行的 libTooling 工具**，把“`struct` → 其直接嵌套（字段里出现的）struct 列表”导出为一个 JSON 对象：`{ "A": ["B","C"], ... }`。
-已处理：指针/引用/数组、typedef、elaborated/paren/attributed 包装类型，尽量还原到真正的 `RecordDecl`。未命名结构体会被跳过。
+可以！下面给你一套**基于 Clang 14 的完整 libTooling 工具**：读取 `compile_commands.json`，扫描工程里所有 **struct** 的字段类型，收集“结构体 A 的字段里用了哪些结构体 B”，并把结果写成 JSON（`{ "A": ["B", "C", ...], ... }`）。
+要点：去除 `typedef`/`ElaboratedType`/指针/引用/数组等“外衣”，解析出真正的 `RecordDecl`；去重；默认跳过自引用（如 `struct A { A* next; }`）。
 
 ---
 
 # 代码（单文件）
 
+**src/struct\_nesting\_tool.cpp**
+
 ```cpp
-// file: StructNesting2JSON.cpp
 #include <set>
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 #include <algorithm>
 
 #include "clang/AST/AST.h"
-#include "clang/AST/Decl.h"
 #include "clang/AST/Type.h"
-#include "clang/AST/TypeVisitor.h"
+#include "clang/AST/TypeLoc.h"
+#include "clang/AST/RecordLayout.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
 
-#include "llvm/Support/JSON.h"
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/JSON.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Support/RawOstream.h"
+#include "llvm/Support/FileSystem.h"
 
 using namespace clang;
 using namespace clang::tooling;
 using namespace clang::ast_matchers;
 
-static llvm::cl::OptionCategory ToolCat("struct-nesting2json options");
+namespace {
 
-// 全局依赖图：StructName -> { NestedStructNames... }
-static std::map<std::string, std::set<std::string>> DepGraph;
+llvm::cl::OptionCategory ToolCategory("struct-nesting options");
 
-// 把类型剥到最底层的 RecordDecl（如果有）
-static const RecordDecl* peelToRecordDecl(QualType QT) {
-  if (QT.isNull()) return nullptr;
-  QT = QT.getCanonicalType();
+llvm::cl::opt<std::string> OutputPath(
+    "o",
+    llvm::cl::desc("Output JSON file path"),
+    llvm::cl::init("struct_nesting.json"),
+    llvm::cl::cat(ToolCategory));
 
-  while (true) {
-    if (const auto *RT = llvm::dyn_cast<RecordType>(QT)) {
+// strip typedef/elaborated/pointer/reference/array etc. to find underlying RecordDecl
+const RecordDecl* peelToRecordDecl(QualType QT, ASTContext &Ctx) {
+  // Desugar first
+  QT = QT.getDesugaredType(Ctx);
+
+  // Defensive iteration limit
+  for (int i = 0; i < 16; ++i) {
+    if (const auto *RT = QT->getAs<RecordType>()) {
       return RT->getDecl();
     }
-    if (const auto *PT = llvm::dyn_cast<PointerType>(QT)) {
-      QT = PT->getPointeeType();
-      QT = QT.getCanonicalType();
+    if (const auto *ELT = dyn_cast<ElaboratedType>(QT)) {
+      QT = ELT->getNamedType().getDesugaredType(Ctx);
       continue;
     }
-    if (const auto *RTy = llvm::dyn_cast<ReferenceType>(QT)) {
-      QT = RTy->getPointeeType();
-      QT = QT.getCanonicalType();
+    if (const auto *TDT = dyn_cast<TypedefType>(QT)) {
+      QT = TDT->desugar().getDesugaredType(Ctx);
       continue;
     }
-    if (const auto *AT = llvm::dyn_cast<ArrayType>(QT)) {
-      QT = AT->getElementType();
-      QT = QT.getCanonicalType();
+    if (const auto *PT = QT->getAs<PointerType>()) {
+      QT = PT->getPointeeType().getDesugaredType(Ctx);
       continue;
     }
-    if (const auto *ET = llvm::dyn_cast<ElaboratedType>(QT)) {
-      QT = ET->getNamedType();
-      QT = QT.getCanonicalType();
+    if (const auto *RTy = QT->getAs<ReferenceType>()) {
+      QT = RTy->getPointeeType().getDesugaredType(Ctx);
       continue;
     }
-    if (const auto *TT = llvm::dyn_cast<TypedefType>(QT)) {
-      QT = TT->desugar();
-      QT = QT.getCanonicalType();
+    if (const auto *AT = Ctx.getAsArrayType(QT)) {
+      QT = AT->getElementType().getDesugaredType(Ctx);
       continue;
     }
-    if (const auto *ATy = llvm::dyn_cast<AttributedType>(QT)) {
-      QT = ATy->getModifiedType();
-      QT = QT.getCanonicalType();
-      continue;
-    }
-    if (const auto *PTy = llvm::dyn_cast<ParenType>(QT)) {
-      QT = PTy->getInnerType();
-      QT = QT.getCanonicalType();
-      continue;
-    }
-    // 模板类（如 struct S<T>）的情况：若其是 RecordType，前面已捕获；
-    // 若是 TemplateSpecializationType，但底层是记录类型，Clang 通常也会给 RecordType。
     break;
   }
   return nullptr;
 }
 
-class StructCollector : public MatchFinder::MatchCallback {
-public:
+struct Collector : public MatchFinder::MatchCallback {
+  std::map<std::string, std::set<std::string>> &Graph;
+
+  explicit Collector(std::map<std::string, std::set<std::string>> &G) : Graph(G) {}
+
   void run(const MatchFinder::MatchResult &Result) override {
     const auto *RD = Result.Nodes.getNodeAs<RecordDecl>("structDecl");
-    if (!RD) return;
-    if (!RD->isStruct()) return;
-    if (!RD->isThisDeclarationADefinition()) return;
-
-    // 当前结构体名称
-    std::string owner = RD->getNameAsString();
-    if (owner.empty()) {
-      // 匿名 struct：跳过
+    if (!RD || !RD->isStruct() || !RD->isThisDeclarationADefinition())
       return;
-    }
 
-    // 确保图里有 key
-    auto &depSet = DepGraph[owner];
+    // 只针对命名的 struct
+    std::string owner = RD->getQualifiedNameAsString();
+    if (owner.empty()) return;
 
-    // 遍历字段，收集字段里出现的其他 struct
+    // 初始化节点
+    Graph.emplace(owner, std::set<std::string>{});
+
+    // 遍历字段
     for (const FieldDecl *F : RD->fields()) {
       QualType FT = F->getType();
-      const RecordDecl *FRD = peelToRecordDecl(FT);
+      const RecordDecl *FRD = peelToRecordDecl(FT, *Result.Context);
       if (!FRD) continue;
 
-      // 仅记录 struct（不含 class/union；如需包含可移除 isStruct 判断）
-      if (!FRD->isStruct()) continue;
+      if (!FRD->isStruct()) continue;               // 只关心 struct（类/联合可按需放开）
+      std::string used = FRD->getQualifiedNameAsString();
+      if (used.empty()) continue;
+      if (used == owner) continue;                  // 跳过自引用（如 A* next）
 
-      std::string used = FRD->getNameAsString();
-      if (used.empty()) continue;         // 匿名的跳过
-      if (used == owner) continue;        // 自引用跳过（如自指针）
-
-      depSet.insert(used);
+      Graph[owner].insert(used);
     }
   }
 };
 
+} // namespace
+
 int main(int argc, const char **argv) {
-  // 解析命令行（支持 compile_commands.json）
-  auto ExpectedParser = CommonOptionsParser::create(argc, argv, ToolCat);
-  if (!ExpectedParser) {
-    llvm::errs() << ExpectedParser.takeError();
+  llvm::InitLLVM X(argc, argv);
+
+  auto ExpParser = CommonOptionsParser::create(argc, argv, ToolCategory);
+  if (!ExpParser) {
+    llvm::errs() << ExpParser.takeError();
     return 1;
   }
-  CommonOptionsParser &OptionsParser = ExpectedParser.get();
-  ClangTool Tool(OptionsParser.getCompilations(), OptionsParser.getSourcePathList());
+  CommonOptionsParser &OptionsParser = ExpParser.get();
 
-  StructCollector Collector;
-  MatchFinder Finder;
-  // 只匹配 struct 的定义
-  Finder.addMatcher(recordDecl(isStruct(), isDefinition()).bind("structDecl"), &Collector);
+  ClangTool Tool(OptionsParser.getCompilations(),
+                 OptionsParser.getSourcePathList());
 
-  int rc = Tool.run(newFrontendActionFactory(&Finder).get());
+  std::map<std::string, std::set<std::string>> graph;
+
+  Collector collector(graph);
+  MatchFinder finder;
+  finder.addMatcher(recordDecl(isStruct(), isDefinition()).bind("structDecl"), &collector);
+
+  int rc = Tool.run(newFrontendActionFactory(&finder).get());
   if (rc != 0) return rc;
 
-  // 输出 JSON：key 为 struct 名字，value 为按字典序排序的 list
+  // 转成 JSON
   llvm::json::Object root;
-  for (auto &kv : DepGraph) {
-    const std::string &owner = kv.first;
-    std::vector<std::string> deps(kv.second.begin(), kv.second.end());
-    std::sort(deps.begin(), deps.end());
-    llvm::json::Array arr;
-    for (auto &s : deps) arr.push_back(s);
-    root[owner] = std::move(arr);
+  for (auto &kv : graph) {
+    std::vector<llvm::json::Value> arr;
+    arr.reserve(kv.second.size());
+    std::vector<std::string> sorted(kv.second.begin(), kv.second.end());
+    std::sort(sorted.begin(), sorted.end());
+    for (auto &s : sorted) arr.emplace_back(llvm::json::Value(s));
+    root.insert({kv.first, llvm::json::Array(std::move(arr))});
   }
 
-  llvm::json::Value v(std::move(root));
-  // 漂亮打印（2 空格缩进）
-  llvm::outs() << llvm::formatv("{0:2}\n", v);
+  // 输出文件
+  std::error_code EC;
+  llvm::raw_fd_ostream OS(OutputPath, EC, llvm::sys::fs::OF_Text);
+  if (EC) {
+    llvm::errs() << "Failed to open " << OutputPath << ": " << EC.message() << "\n";
+    return 2;
+  }
+  OS << llvm::formatv("{0:2}", llvm::json::Value(std::move(root))) << "\n";
+  OS.flush();
+
   return 0;
 }
 ```
 
 ---
 
-# 用法
+# CMake（Clang/LLVM 14）
 
-## 方式一：CMake（推荐）
-
-`CMakeLists.txt`：
+**CMakeLists.txt**
 
 ```cmake
-cmake_minimum_required(VERSION 3.13)
-project(struct_nesting2json CXX)
+cmake_minimum_required(VERSION 3.16)
+project(struct_nesting_tool CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(LLVM REQUIRED CONFIG)
-find_package(Clang REQUIRED CONFIG)
+# 如果你的 LLVM/Clang 安装不在默认路径，设置：
+#   -DLLVM_DIR=/path/to/llvm-14/lib/cmake/llvm
+#   -DClang_DIR=/path/to/llvm-14/lib/cmake/clang
+find_package(LLVM 14 REQUIRED CONFIG)
+find_package(Clang 14 REQUIRED CONFIG)
 
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Found LLVM: ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
 
-include_directories(${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-add_executable(struct_nesting2json StructNesting2JSON.cpp)
+add_executable(struct_nesting_tool
+  src/struct_nesting_tool.cpp
+)
 
-# 链接常用的 Clang/LLVM 组件
-target_link_libraries(struct_nesting2json
+# 防止 Windows 上符号问题
+if(MSVC)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+# 链接需要的 Clang/LLVM 库
+target_link_libraries(struct_nesting_tool
   PRIVATE
     clangTooling
     clangASTMatchers
-    clangFrontend
-    clangSerialization
     clangAST
     clangBasic
-    clangRewrite
+    clangFrontend
+    clangSerialization
     clangLex
-    clangDriver
     LLVM
 )
-```
 
-构建：
-
-```bash
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . -j
-```
-
-## 方式二：手动编译（示例）
-
-不同平台/发行版可能略有不同，示意如下：
-
-```bash
-clang++ -std=c++17 StructNesting2JSON.cpp \
-  `llvm-config --cxxflags` \
-  -o struct_nesting2json \
-  -lclangTooling -lclangASTMatchers -lclangFrontend -lclangSerialization \
-  -lclangAST -lclangBasic -lclangRewrite -lclangLex -lclangDriver \
-  `llvm-config --ldflags --system-libs`
+# 开启更严格的编译选项（可选）
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  target_compile_options(struct_nesting_tool PRIVATE -Wall -Wextra -Wno-unused-parameter)
+endif()
 ```
 
 ---
 
-# 运行
+# 使用方法
 
-假设你的工程已有 `compile_commands.json`（比如由 CMake 生成），执行：
+1. 生成 `compile_commands.json`（例如 CMake 项目）：
 
 ```bash
-./struct_nesting2json path/to/a.c path/to/b.c
+cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 ```
 
-或在工程根目录直接给出源文件（`compile_commands.json` 会提供正确的编译参数，如 include 路径、宏定义等）。
+2. 编译工具：
 
-**输出示例：**
-给定
+```bash
+mkdir -p tool_build
+cmake -S . -B tool_build -DLLVM_DIR=/path/to/llvm-14/lib/cmake/llvm -DClang_DIR=/path/to/llvm-14/lib/cmake/clang
+cmake --build tool_build --config Release -j
+```
 
-```c
+3. 运行（指向你的源码或待分析文件；`-p` 目录里要有 `compile_commands.json`）：
+
+```bash
+tool_build/struct_nesting_tool -p build <source-or-dir>... -o out_structs.json
+# 例：分析整个源码树的所有 .c/.cpp：把源码目录传给它
+tool_build/struct_nesting_tool -p build . -o struct_nesting.json
+```
+
+* `-p build`：包含 `compile_commands.json` 的目录
+* `<source-or-dir>`：一个或多个源码路径（与 `clang-tidy` 用法一致；给 `.` 会让 libTooling 以 compile\_commands.json 中的条目为准遍历）
+* `-o`：输出 JSON 路径，默认 `struct_nesting.json`
+
+---
+
+# 输出示例
+
+给定：
+
+```cpp
 struct B { int x; };
-typedef struct B B_alias;
-
+struct C {};
 struct A {
   B b;
-  B_alias arr[3];
-  struct B *pb;
+  C* pc;
+  B arr[3];
 };
 ```
 
-输出：
+得到（`struct_nesting.json`）：
 
 ```json
 {
-  "A": [
-    "B"
-  ],
-  "B": []
+  "A": ["B", "C"],
+  "B": [],
+  "C": []
 }
 ```
 
 ---
 
-# 备注与可选增强
+# 说明与可选增强
 
-* **包含 class/union**：把 `isStruct()` 条件去掉或并入 `isClass()/isUnion()`，并在输出里加上种类标记。
-* **跨 TU 整合**：当前实现会把所有传入源文件内的定义整合到一个 JSON；若你想分文件输出，可在 `EndSourceFileAction` 里分别打印，但一般聚合更实用。
-* **处理匿名/内嵌定义**：匿名结构体（无名）目前跳过；如果你希望保留，也可用位置或父声明名生成“伪名”。
-* **去重**：使用 `std::set` 已去重，输出前再排序，保证稳定结果。
+* 目前只统计 **struct → struct** 的依赖；若你也想要 class/union，可把匹配条件改为 `recordDecl(isDefinition()).bind(...)` 并在回调里接受 `FRD->isStruct() || FRD->isClass() || FRD->isUnion()`。
+* 自引用（例如链表结点 `A* next;`）默认忽略；如需保留，把 `if (used == owner) continue;` 去掉即可。
+* 匿名 struct/匿名嵌套会被跳过（名字为空）。如需处理，可给它们生成稳定 ID（文件+行号）。
+* 若想忽略系统头文件定义的结构体，可在 owner/used 两侧加 `Result.SourceManager->isInSystemHeader(...)` 判断进行过滤。
+* 若工程很大、跨 TU 重复很多，当前用 `std::set` 去重，输出稳定。
 
-如果你把你的最小示例或仓库结构发给我，我也可以帮你快速调到能在你环境里直接跑的版本。
+需要我再给你一个最小示例工程（含示例代码与 `compile_commands.json`）用来快速验证吗？

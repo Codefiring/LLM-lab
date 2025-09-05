@@ -121,3 +121,65 @@ bool VisitFunctionDecl(FunctionDecl *funcDecl) {
 * 无法静态解析出名字（如函数指针调用）的，会被跳过。
 
 > 如果你确实需要生成“一个大 JSON（所有函数聚合成一个字典）”，也可以在 `FrontendAction` 结束时收口统一写一次；但你要求“不新增 class”，且当前代码风格用的是 jsonl 逐条输出，上面实现保持了同样的追加写入模式，落地最小。需要聚合版的话告诉我，我给你一个不引入新类的静态全局容器版本。
+
+这是内核/底层代码里常见的一种“**编译期断言**（compile-time assert）”的产物。
+像 `__compiletime_assert_383` 这样的“函数名”并不是真正要被链接调用的业务函数，而是由宏把一段**编译期检查**展开成了一个**带有 `__attribute__((error(...)))` 或 `__attribute__((warning(...)))` 的外部函数声明**，并把**行号**拼到名字里做唯一化（这里的 `383` 通常就是宏所在源文件的行号）。
+
+一个典型（简化）的实现思路如下（Linux kernel 的 `BUILD_BUG_ON` / `compiletime_assert` 系列宏也是这种套路）：
+
+```c
+#define __compiletime_error(msg) __attribute__((error(msg)))
+
+#define __compiletime_assert(cond, msg, line)                               \
+do {                                                                        \
+    extern void __compiletime_assert_##line(void) __compiletime_error(msg); \
+    if (!(cond))                                                            \
+        __compiletime_assert_##line(); /* 只在条件为假时保留调用 */           \
+} while (0)
+
+#define COMPILETIME_ASSERT(cond, msg) \
+    __compiletime_assert((cond), msg, __LINE__)
+```
+
+* 条件为**真**时，优化阶段会把这次“调用”消掉，不会生成真正的符号；
+* 条件为**假**时，编译器会因为调用了一个标注了 `error(...)` 的函数而直接**报错并终止**；
+* 为了**唯一化**，宏会把 `__LINE__` 拼接到名字上，于是你会看到 `__compiletime_assert_383`、`__compiletime_assert_1042` 这类标识符。
+
+你的 AST 采集逻辑（比如遍历 `CallExpr`）之所以会“看到”这些名字，是因为宏展开后在语法树里确实形成了一个调用表达式，即便它只是为了触发编译期报错而设计的“虚拟调用”。
+
+---
+
+## 在“收集被调函数列表”里如何过滤它们
+
+如果你不希望把这种“断言触发器”算进被调函数列表，可以在收集阶段做几类过滤：
+
+1. **按名字前缀过滤**
+   忽略所有以 `__compiletime_assert_` 开头的函数名。
+2. **按属性过滤**
+   忽略带有 `ErrorAttr` 或 `WarningAttr` 的函数声明（来自 `__attribute__((error/...))` / `warning`）。
+3. （可选）**忽略内建/伪调用**
+   忽略 `getBuiltinID() != 0` 的内建函数调用，避免把 `__builtin_*` 也算进去。
+
+把你之前的 `collect_direct_callees` 稍微加几行即可（Clang 14 可用）：
+
+```cpp
+#include "clang/AST/Attr.h" // ErrorAttr/WarningAttr
+
+// ... 在处理 CallExpr 时拿到 calleeFD 后：
+if (calleeFD) {
+  llvm::StringRef nm = calleeFD->getName();
+  if (nm.startswith("__compiletime_assert_"))
+    return; // 1) 前缀过滤
+
+  if (calleeFD->hasAttr<clang::ErrorAttr>() ||
+      calleeFD->hasAttr<clang::WarningAttr>())
+    return; // 2) 属性过滤
+
+  if (calleeFD->getBuiltinID() != 0)
+    return; // 3) 内建过滤（可选）
+
+  Out.insert(nm.str());
+}
+```
+
+> 小结：`__compiletime_assert_<行号>` 是编译期断言宏为制造**编译期错误**而合成的“占位调用”。它不是实际业务函数；如果你在做“函数调用关系”统计，通常应将其过滤掉，以免污染结果。

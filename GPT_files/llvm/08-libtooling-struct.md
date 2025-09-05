@@ -561,3 +561,189 @@ target_link_libraries(struct_nesting_tool
 ---
 
 如果按上面改完仍报同样的错，把你的**完整链接命令行**（`cmake --build` 的 verbose 输出）贴我，我帮你定位具体是哪个库没进来或顺序问题。
+
+下面给出一种**只通过增加函数**与少量修改 `VisitRecordDecl` 的做法，适配 **Clang 14** 与 **C 代码**。
+功能：在遍历到每个 `struct` 定义时，递归分析其字段类型（包含指针、数组、typedef、elaborated 等包裹），收集其**直接与间接**包含的其它 `struct`，将所有关系写入一个 JSON 文件（整体是一个 obj：key=结构体名，value=去重后的 list）。
+
+你可以直接把以下辅助代码粘到原文件里（和 `VisitRecordDecl` 在同一类中/同一编译单元里即可，不需要新建 class），并替换你的 `VisitRecordDecl` 实现处。文件写入路径示例为 `"struct_contains.json"`，你也可以按需改名。
+
+```cpp
+#include <set>
+#include <map>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <cassert>
+
+using ContainsGraph = std::map<std::string, std::set<std::string>>;
+
+// 全局/静态：累积所有 struct 的包含关系
+static ContainsGraph gStructGraph;
+
+// ---------- 工具函数 ----------
+
+// 获取 RecordDecl 的可用名字（仅处理有名 struct；匿名直接返回空）
+static std::string getRecordName(const RecordDecl *RD) {
+  if (!RD) return "";
+  // 只关心 struct（排除 union/enum）
+  if (RD->getTagKind() != TTK_Struct) return "";
+  std::string name = RD->getNameAsString();
+  return name;
+}
+
+// 规整类型并去掉外层修饰（typedef/elaborated/paren/attributed 等由 canonicalType 解决）
+// 同时剥离指针与数组外壳，获得“元素”的基础记录类型（若有）
+static const RecordDecl* peelToRecordDecl(QualType QT) {
+  if (QT.isNull()) return nullptr;
+
+  QualType T = QT.getCanonicalType(); // 去掉 typedef/elaborated/attributed/paren
+
+  // 剥指针层
+  while (const auto *PT = llvm::dyn_cast<PointerType>(T)) {
+    T = PT->getPointeeType().getCanonicalType();
+  }
+
+  // 剥数组层（支持多维、变长、不完整）
+  const Type *Ty = T.getTypePtrOrNull();
+  while (Ty) {
+    if (const auto *AT = llvm::dyn_cast<ArrayType>(Ty)) {
+      T = AT->getElementType().getCanonicalType();
+      Ty = T.getTypePtrOrNull();
+      continue;
+    }
+    break;
+  }
+
+  if (!T.isNull()) {
+    if (const auto *RT = T->getAs<RecordType>()) {
+      const RecordDecl *RD = RT->getDecl();
+      // 如果是前向声明，尽量拿定义体
+      if (RD) {
+        if (const auto *Def = RD->getDefinition())
+          return Def;
+        return RD; // 没有定义体也先返回（可能后续解析还能遇到定义）
+      }
+    }
+  }
+  return nullptr;
+}
+
+// 从某个 RecordDecl 的字段里收集它直接/间接包含的所有 struct 名字
+static void collectContainedStructsDeep(const RecordDecl *Root,
+                                        std::set<std::string> &accNames,
+                                        std::set<const RecordDecl*> &seen) {
+  if (!Root) return;
+  if (seen.count(Root)) return; // 防环
+  seen.insert(Root);
+
+  for (const FieldDecl *FD : Root->fields()) {
+    const RecordDecl *Inner = peelToRecordDecl(FD->getType());
+    if (!Inner) continue;
+
+    std::string innerName = getRecordName(Inner);
+    if (innerName.empty()) continue; // 跳过匿名/非 struct
+
+    // 加到 Root 的可达集合
+    if (!accNames.count(innerName)) {
+      accNames.insert(innerName);
+    }
+
+    // 递归向下（把更深层的也都并进来）
+    collectContainedStructsDeep(Inner, accNames, seen);
+  }
+}
+
+// 将 gStructGraph 写为 {"A":["B","C","D"],"B":["D"],...}
+static void writeStructGraphToJson(const ContainsGraph &G,
+                                   const std::string &path) {
+  std::ostringstream oss;
+  oss << "{";
+
+  bool firstK = true;
+  for (const auto &kv : G) {
+    const std::string &k = kv.first;
+    const std::set<std::string> &vals = kv.second;
+    if (k.empty()) continue;
+
+    if (!firstK) oss << ",";
+    firstK = false;
+
+    // 简单转义（标识符通常无特殊字符，这里保守仅处理双引号与反斜杠）
+    auto esc = [](const std::string &s){
+      std::string r; r.reserve(s.size()+8);
+      for (char c : s) {
+        if (c == '"' || c == '\\') { r.push_back('\\'); r.push_back(c); }
+        else r.push_back(c);
+      }
+      return r;
+    };
+
+    oss << "\"" << esc(k) << "\":[";
+    bool firstV = true;
+    for (const auto &v : vals) {
+      if (!firstV) oss << ",";
+      firstV = false;
+      oss << "\"" << esc(v) << "\"";
+    }
+    oss << "]";
+  }
+
+  oss << "}\n";
+
+  std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+  ofs << oss.str();
+  ofs.close();
+}
+
+// ---------- 修改后的 VisitRecordDecl ----------
+
+bool VisitRecordDecl(RecordDecl *recordDecl) {
+  if (collect_struct) {
+    if (recordDecl && recordDecl->isThisDeclarationADefinition()) {
+      // 仅收集 struct，忽略 union/enum
+      if (recordDecl->getTagKind() == TTK_Struct) {
+        std::string structName = recordDecl->getNameAsString();
+        if (!structName.empty()) {
+          // 递归收集当前 struct 可达的所有 struct
+          std::set<std::string> acc;
+          std::set<const RecordDecl*> seen;
+          collectContainedStructsDeep(recordDecl, acc, seen);
+
+          // 写入全局图
+          auto &slot = gStructGraph[structName];
+          slot.insert(acc.begin(), acc.end());
+
+          // 如果你仍然想保留原有输出（比如源码/定义信息），可保留：
+          // std::string sourceCode = get_decl_code(recordDecl);
+          // output_decl(recordDecl, "struct.jsonl");
+
+          // 每次更新后直接把完整图写回 JSON（简单可靠；如需一次性写，可放到 HandleTranslationUnit）
+          writeStructGraphToJson(gStructGraph, "struct_contains.json");
+        }
+      }
+    }
+  }
+  return true;
+}
+```
+
+### 说明与要点
+
+* **递归**：`collectContainedStructsDeep` 会把所有间接包含也纳入（例如 `A` 含 `B`，`B` 含 `D`，则 `A` 的列表包含 `B` 与 `D`）。
+* **类型剥离**：`peelToRecordDecl` 会把 `typedef`/`elaborated`/`pointer`/`array` 等外层剥掉，识别出底层是否为 `struct X`。因此 `struct B*`、`struct C[10]` 也会被视为“包含”关系。
+* **仅 struct**：通过 `getTagKind()==TTK_Struct` 过滤，忽略 `union`/`enum`。
+* **匿名 struct**：不输出（名字为空直接跳过）。
+* **去重与防环**：使用 `std::set` 与 `seen` 防止循环引用与重复。
+* **输出格式**：写入 `struct_contains.json`，整体是一个 JSON 对象，形如：
+
+  ```json
+  {
+    "A": ["B", "C", "D"],
+    "B": ["D"],
+    "C": []
+  }
+  ```
+
+  （空列表表示没有包含其它 struct）
+
+> 若你在别处已经有 `HandleTranslationUnit`/`EndSourceFileAction` 一类时机，也可以把 `writeStructGraphToJson` 的调用移过去，改为**处理完所有文件后写一次**。当前示例为“就地覆盖”式，简单直接。

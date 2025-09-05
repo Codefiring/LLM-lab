@@ -361,3 +361,320 @@ bool VisitFunctionDecl(FunctionDecl *FD) {
   若参数是“匿名 struct 的指针”等，`RecordDecl` 可能是匿名的（`isAnonymousStructOrUnion()`），这时也能把定义片段取出来，但没有名字。
 
 如果你希望“同时打印 typedef 链每一步到底映射到哪个类型/文件”，我可以再加一个链路追踪的 verbose 输出，调试 typedef/using 特别好用。
+
+
+下面给出一套基于 Clang LibTooling/AST 的完整实现思路与参考代码，直接把你现有的 `VisitFunctionDecl` 扩展为：
+
+* 获取函数声明所在头文件
+* 枚举每个入参，拿到：参数名、参数声明头文件、参数原始类型串、规范化类型串
+* 若参数类型是“指向 struct/union/class 的指针（或本体）”，解析出记录类型（RecordDecl），定位其**定义位置**与**定义所在头文件**，并抽取**定义源码**
+* 最终序列化为 JSON（可按行写入 JSONL）
+
+> 说明：代码用到了 `llvm::json`、`SourceManager`、`Lexer::getSourceText` 等；对 `typedef/using`、`ElaboratedType`、指针/引用/数组做了去糖处理以找到底层 `RecordType`。
+
+---
+
+# 参考实现
+
+```cpp
+#include "clang/AST/AST.h"
+#include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/AST/Type.h"
+#include "clang/AST/TypeLoc.h"
+#include "clang/AST/Decl.h"
+#include "clang/Basic/SourceManager.h"
+#include "clang/Basic/SourceLocation.h"
+#include "clang/Basic/LangOptions.h"
+#include "clang/Lex/Lexer.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/JSON.h"
+#include "llvm/Support/raw_ostream.h"
+
+using namespace clang;
+
+static std::string getHeaderFileName(const Decl *D, const SourceManager &SM) {
+  if (!D) return "";
+  SourceLocation Loc = D->getLocation();
+  if (Loc.isInvalid()) return "";
+  // 使用扩展后位置（展开宏后）
+  PresumedLoc PLoc = SM.getPresumedLoc(SM.getExpansionLoc(Loc));
+  if (!PLoc.isValid()) return "";
+  return std::string(PLoc.getFilename());
+}
+
+static std::string getHeaderFileName(SourceLocation Loc, const SourceManager &SM) {
+  if (Loc.isInvalid()) return "";
+  PresumedLoc PLoc = SM.getPresumedLoc(SM.getExpansionLoc(Loc));
+  if (!PLoc.isValid()) return "";
+  return std::string(PLoc.getFilename());
+}
+
+// 抽取某个 Decl 对应的源码（尽量用声明/定义的完整范围）
+static std::string getSourceForDecl(const Decl *D, const SourceManager &SM, const LangOptions &LangOpts) {
+  if (!D) return "";
+  SourceRange SR = D->getSourceRange();
+  if (SR.isInvalid()) return "";
+
+  SourceLocation Begin = SM.getExpansionLoc(SR.getBegin());
+  SourceLocation End   = SM.getExpansionLoc(SR.getEnd());
+
+  if (Begin.isInvalid() || End.isInvalid()) return "";
+
+  // 把 End 扩到 token 末尾
+  End = Lexer::getLocForEndOfToken(End, 0, SM, LangOpts);
+  if (End.isInvalid()) return "";
+
+  CharSourceRange CharRange = CharSourceRange::getCharRange(Begin, End);
+  llvm::StringRef Text = Lexer::getSourceText(CharRange, SM, LangOpts);
+  return Text.str();
+}
+
+// 递归去糖，拿到底层记录类型（struct/union/class）
+static const RecordDecl* getUnderlyingRecordDecl(QualType QT) {
+  if (QT.isNull()) return nullptr;
+
+  // 去除 cv、指针、引用、数组等修饰
+  QualType CT = QT.getCanonicalType().getUnqualifiedType();
+
+  while (true) {
+    if (const auto *PT = CT->getAs<PointerType>()) {
+      CT = PT->getPointeeType().getUnqualifiedType();
+      continue;
+    }
+    if (const auto *RT = CT->getAs<ReferenceType>()) {
+      CT = RT->getPointeeType().getUnqualifiedType();
+      continue;
+    }
+    if (const auto *AT = dyn_cast<ArrayType>(CT.getTypePtr())) {
+      CT = AT->getElementType().getUnqualifiedType();
+      continue;
+    }
+    break;
+  }
+
+  // 去 elaborated（如 "struct foo"）
+  if (auto ET = dyn_cast<ElaboratedType>(CT.getTypePtr())) {
+    CT = ET->getNamedType().getUnqualifiedType();
+  }
+
+  // 若是 Typedef/Using 再次取 canonical
+  CT = CT.getCanonicalType().getUnqualifiedType();
+
+  if (const auto *RTy = CT->getAs<RecordType>()) {
+    return RTy->getDecl();
+  }
+  return nullptr;
+}
+
+// 尝试找到记录类型的“定义”（而非仅前置声明）
+static const RecordDecl* getRecordDefinition(const RecordDecl *RD) {
+  if (!RD) return nullptr;
+  if (const auto *Def = RD->getDefinition()) return Def;
+  // 有的场景是 CXXRecordDecl
+  if (const auto *CRD = dyn_cast<CXXRecordDecl>(RD)) {
+    if (const auto *Def = CRD->getDefinition()) return Def;
+  }
+  return nullptr;
+}
+
+// 将函数信息写入 JSON（单条/JSONL）
+static void writeJSONLine(const llvm::json::Object &Obj, llvm::raw_ostream &OS) {
+  std::string S;
+  llvm::raw_string_ostream RS(S);
+  RS << llvm::formatv("{0:2}\n", llvm::json::Value(Obj)); // 紧凑/可读
+  RS.flush();
+  OS << S;
+}
+
+// 你已有的：从 Decl 拿到原始代码
+extern std::string get_decl_code(const Decl *D);
+// 你已有的：是否启用采集
+extern bool collect_func;
+
+// 这里把 VisitFunctionDecl 完整实现起来
+bool VisitFunctionDecl(FunctionDecl *FD) {
+  if (!collect_func) return true;
+  if (!FD || !FD->isThisDeclarationADefinition()) return true;
+
+  ASTContext &Ctx = FD->getASTContext();
+  const SourceManager &SM = Ctx.getSourceManager();
+  const LangOptions &LangOpts = Ctx.getLangOpts();
+
+  std::string FuncName = FD->getNameAsString();
+  if (FuncName.empty()) return true;
+
+  // 1) 函数声明（定义）所在头文件
+  std::string funcHeader = getHeaderFileName(FD, SM);
+
+  // 2) 函数源码（可选）
+  std::string funcSource = get_decl_code(FD);
+
+  // 3) 组装参数信息
+  llvm::json::Array paramsArr;
+
+  for (const ParmVarDecl *P : FD->parameters()) {
+    if (!P) continue;
+
+    llvm::json::Object PObj;
+    PObj["name"] = P->getNameAsString();
+
+    QualType T = P->getType();
+    // 参数声明位置所在头文件
+    std::string paramHeader = getHeaderFileName(P, SM);
+
+    // 类型原文与规范化串
+    std::string spelledType, canonicalType;
+    {
+      llvm::raw_string_ostream RS(spelledType);
+      T.print(RS, PrintingPolicy(LangOpts));
+      RS.flush();
+    }
+    {
+      llvm::raw_string_ostream RS(canonicalType);
+      T.getCanonicalType().print(RS, PrintingPolicy(LangOpts));
+      RS.flush();
+    }
+
+    PObj["decl_header"] = paramHeader;
+    PObj["type_spelled"] = spelledType;
+    PObj["type_canonical"] = canonicalType;
+
+    // 4) 若类型对应到 record（或指针/引用/数组包裹 record），找定义
+    const RecordDecl *MaybeRD = getUnderlyingRecordDecl(T);
+    if (MaybeRD) {
+      const RecordDecl *Def = getRecordDefinition(MaybeRD);
+      llvm::json::Object TypeInfo;
+
+      // 记录名
+      std::string recName = MaybeRD->getNameAsString();
+      if (recName.empty()) {
+        if (const auto *Tag = dyn_cast<TagDecl>(MaybeRD)) {
+          recName = Tag->getNameAsString();
+        }
+      }
+      TypeInfo["record_name"] = recName;
+
+      // 定义位置
+      if (Def) {
+        SourceLocation defLoc = Def->getLocation();
+        std::string defHeader = getHeaderFileName(defLoc, SM);
+        TypeInfo["def_header"] = defHeader;
+
+        // 5) 类型定义源码
+        std::string defCode = getSourceForDecl(Def, SM, LangOpts);
+        TypeInfo["def_code"] = defCode;
+      } else {
+        // 只有前置声明情况
+        std::string declHeader = getHeaderFileName(MaybeRD, SM);
+        TypeInfo["decl_header"] = declHeader;
+        TypeInfo["def_header"] = llvm::json::Value(nullptr);
+        TypeInfo["def_code"] = llvm::json::Value(nullptr);
+      }
+
+      PObj["record_type_info"] = std::move(TypeInfo);
+    } else {
+      // 非 record 类型（如内建、枚举、函数指针等）
+      PObj["record_type_info"] = llvm::json::Value(nullptr);
+    }
+
+    paramsArr.push_back(std::move(PObj));
+  }
+
+  // 最终 JSON 对象
+  llvm::json::Object FuncObj;
+  FuncObj["function_name"] = FuncName;
+  FuncObj["decl_header"]   = funcHeader;
+  FuncObj["source"]        = funcSource;
+  FuncObj["params"]        = std::move(paramsArr);
+
+  // 写文件（JSONL）
+  // 你原先写 "func.jsonl"，这里改为 jsonl 形式，每个函数一行
+  std::error_code EC;
+  static std::unique_ptr<llvm::raw_fd_ostream> Out;
+  static bool opened = false;
+  if (!opened) {
+    Out = std::make_unique<llvm::raw_fd_ostream>("func.jsonl", EC, llvm::sys::fs::OF_Append);
+    if (EC) {
+      llvm::errs() << "open func.jsonl failed: " << EC.message() << "\n";
+      return true;
+    }
+    opened = true;
+  }
+  writeJSONLine(FuncObj, *Out);
+
+  return true;
+}
+```
+
+---
+
+# 关键点说明与边界处理
+
+1. **函数声明所在头文件**
+
+* `getHeaderFileName(Decl*, SM)` 使用 `getPresumedLoc(getExpansionLoc(loc))`，可得到宏展开后的真实文件路径；对头文件/源文件都适用。
+
+2. **每个入参**
+
+* 遍历 `FD->parameters()`，对每个 `ParmVarDecl` 取 `name`、`getType()`、`getLocation()`。
+
+3. **每个入参的类型 + 若为 `struct num *` 找到定义位置**
+
+* 用 `getUnderlyingRecordDecl(QualType)`：通过 `getCanonicalType()` + 剥离指针/引用/数组/ElaboratedType/typedef，拿到底层 `RecordType`；
+* 再用 `getRecordDefinition(RD)` 拿“定义”（可能在别处），否则只有前置声明。
+* 定义位置用 `getHeaderFileName(Def, SM)`；源码用 `getSourceForDecl(Def, SM, LangOpts)`。
+
+4. **每个入参定义所在头文件**
+
+* 即 `ParmVarDecl` 的 `getLocation()` 映射的文件名。
+
+5. **每个入参类型定义的具体代码**
+
+* 用 Lexer 抽取 `RecordDecl` 的 `SourceRange` 文本。
+* 如果是 `typedef struct num {...} num_t;` 这类**别名名不等于记录名**，我们依然以 `RecordDecl` 的定义体为准；若你还想把 `typedef/using` 的别名声明源码也存起来，可再沿 `TypedefType`/`TypeAliasDecl` 解析并追加。
+
+---
+
+# 输出 JSON 结构（示例）
+
+写入 `func.jsonl` 的每行形如：
+
+```json
+{
+  "function_name": "foo",
+  "decl_header": "/path/include/a.h",
+  "source": "int foo(struct num *n, int x) { ... }",
+  "params": [
+    {
+      "name": "n",
+      "decl_header": "/path/include/a.h",
+      "type_spelled": "struct num *",
+      "type_canonical": "struct num *",
+      "record_type_info": {
+        "record_name": "num",
+        "def_header": "/path/include/num.h",
+        "def_code": "struct num { int v; };"
+      }
+    },
+    {
+      "name": "x",
+      "decl_header": "/path/include/a.h",
+      "type_spelled": "int",
+      "type_canonical": "int",
+      "record_type_info": null
+    }
+  ]
+}
+```
+
+---
+
+# 可选增强
+
+* **处理 `typedef/using` 的别名源码**：沿 `TypedefType` 找到 `TypedefNameDecl` 或 `TypeAliasDecl`，记录其 `getLocation()` 和定义文本。
+* **模板与特化**：若参数为 `T*` 或 `std::vector<Foo>`，可对 `TemplateSpecializationType` 做展开，追加一个 `template_args` 字段。
+* **只输出头文件基名**：可用 `llvm::sys::path::filename()` 提取。
+* **跨 TU**：若类型定义在别的 TU 未参与编译，`getDefinition()` 可能拿不到，这种情况下保持 `def_header: null, def_code: null`。
+
+把以上代码嵌到你现有的工具里即可直接产出目标 JSONL。如需我再加上 `Typedef/using` 的跟踪或把输出结构换成单一 JSON 文件（数组形式），我可以直接给出替换版。
+

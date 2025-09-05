@@ -678,3 +678,320 @@ bool VisitFunctionDecl(FunctionDecl *FD) {
 
 把以上代码嵌到你现有的工具里即可直接产出目标 JSONL。如需我再加上 `Typedef/using` 的跟踪或把输出结构换成单一 JSON 文件（数组形式），我可以直接给出替换版。
 
+
+
+好的！下面给你一份基于 Clang LibTooling（Clang 14）可直接嵌入到你现有 Visitor 的实现示例。它在遍历到**函数定义**时，反查其**声明（优先头文件中的声明）**，并为每个入参提取：
+
+* 函数“声明”所在头文件名
+* 入参名
+* 入参的完整类型串（带指针/引用/限定符）
+* 若入参底层为 `struct/union/class/enum` 或 `typedef`，解析出其**被定义/声明**的 `NamedDecl`、该声明所在头文件名、以及**类型定义/声明的源码**（尽量取完整定义，若仅有声明则取声明）
+* 入参自身（形参标识符）声明所在头文件名（一般与函数声明同文件，但这里单独按形参位置取）
+
+最终以 **JSON Lines（.jsonl）** 形式追加写入新文件（例如 `func_with_params.jsonl`）。示例不依赖第三方 JSON 库，使用 LLVM 自带 `llvm::json`。
+
+> 你原来有 `get_decl_code` / `output_decl` 等工具函数；下方我提供了独立可用的 `getSourceTextForDecl` 与 `append_jsonl`，可以直接替换或并存。
+
+---
+
+### 关键点实现思路
+
+1. **函数“声明”头文件**
+
+   * 访问到定义 `FunctionDecl` 时，遍历 `redecls()` 选出更“像声明”的版本：
+
+     * 优先选择位于头文件扩展名（`.h/.hh/.hpp/.hxx`）的那个；
+     * 若都在源文件，则取**最早出现**的那个；
+   * 这样能满足“函数声明所在头文件名称”的要求（若确实没在头文件声明，就会是源文件名）。
+
+2. **参数与类型剥离**
+
+   * 对 `ParmVarDecl` 取 `QualType`，逐层剥离 `ElaboratedType / PointerType / ReferenceType / TypedefType / AttributedType / ParenType / DecayedType`，直到拿到底层 `RecordType/EnumType` 或保留最近的 `TypedefDecl`。
+   * 若是 `struct num *`，会剥到 `RecordType(num)`，返回其 `TagDecl` 的位置；同时如果中途有 `typedef`，也会记录 typedef 的声明与底层真正定义（尽量给“定义”的源码）。
+
+3. **类型定义位置与源码**
+
+   * 若为 `RecordDecl/EnumDecl` 且有 `isCompleteDefinition()`，取其定义 `SourceRange`；否则退化为声明 `SourceRange`。
+   * `typedef` 则取 `TypedefDecl` 自己的 `SourceRange`，同时也会尝试解开到真正底层并给出底层的定义源码（若需要可保留/合并，下面示例只输出一个“最终确定的定义/声明”块以保持结构简单）。
+
+4. **定位与源码提取**
+
+   * 所有 `SourceLocation` 均先做 `getExpansionLoc`；
+   * 头文件名用 `SourceManager::getFilename()` 并用 `llvm::sys::path::filename()` 提取**文件名（不含路径）**；
+   * 源码用 `Lexer::getSourceText(CharSourceRange::getTokenRange(...))` 取文本。
+
+---
+
+### 代码示例（可直接拷贝集成）
+
+```cpp
+#include "clang/AST/AST.h"
+#include "clang/AST/Decl.h"
+#include "clang/AST/Type.h"
+#include "clang/Basic/SourceManager.h"
+#include "clang/Basic/LangOptions.h"
+#include "clang/Lex/Lexer.h"
+#include "llvm/Support/JSON.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/Path.h"
+
+using namespace clang;
+
+static inline std::string justFileName(const SourceManager &SM, SourceLocation Loc) {
+  if (!Loc.isValid()) return "";
+  auto Exp = SM.getExpansionLoc(Loc);
+  llvm::StringRef Path = SM.getFilename(Exp);
+  if (Path.empty()) return "";
+  return llvm::sys::path::filename(Path).str();
+}
+
+static inline std::string fullPath(const SourceManager &SM, SourceLocation Loc) {
+  if (!Loc.isValid()) return "";
+  auto Exp = SM.getExpansionLoc(Loc);
+  llvm::StringRef Path = SM.getFilename(Exp);
+  return Path.str();
+}
+
+static inline bool isHeaderPath(llvm::StringRef P) {
+  llvm::StringRef Ext = llvm::sys::path::extension(P);
+  return Ext.equals_lower(".h") || Ext.equals_lower(".hh") ||
+         Ext.equals_lower(".hpp") || Ext.equals_lower(".hxx");
+}
+
+static inline std::string getSourceTextForRange(const SourceManager &SM,
+                                                SourceRange SR,
+                                                const LangOptions &LO) {
+  if (!SR.isValid()) return "";
+  CharSourceRange CR = CharSourceRange::getTokenRange(
+      SourceRange(SM.getExpansionLoc(SR.getBegin()),
+                  SM.getExpansionLoc(SR.getEnd())));
+  llvm::StringRef Text = Lexer::getSourceText(CR, SM, LO);
+  return Text.str();
+}
+
+static inline std::string getSourceTextForDecl(const Decl *D,
+                                               const SourceManager &SM,
+                                               const LangOptions &LO) {
+  if (!D) return "";
+  // 对于定义优先整个定义范围；否则声明范围
+  SourceRange SR = D->getSourceRange();
+  return getSourceTextForRange(SM, SR, LO);
+}
+
+// 解析类型：不断剥离直到获得 Record/Enum 的 Decl；如果遇到 Typedef，则优先返回底层的目标 Decl，若没有则返回 TypedefDecl
+struct ResolvedTypeDecl {
+  const NamedDecl *Decl = nullptr;      // 解析到的命名声明（RecordDecl/EnumDecl/TypedefDecl等）
+  QualType        StrippedQT;           // 剥离指针/引用/typedef/elaborated 后的最终 QT
+  const TypedefNameDecl *Typedef = nullptr; // 若途中遇到 typedef，记录一下（可选）
+};
+
+static ResolvedTypeDecl resolveTypeDecl(QualType QT) {
+  ResolvedTypeDecl R;
+  R.StrippedQT = QT;
+
+  while (true) {
+    if (auto AT = dyn_cast<AttributedType>(R.StrippedQT)) {
+      R.StrippedQT = AT->getEquivalentType();
+    } else if (auto ET = dyn_cast<ElaboratedType>(R.StrippedQT)) {
+      R.StrippedQT = ET->getNamedType();
+    } else if (R.StrippedQT->isPointerType()) {
+      R.StrippedQT = R.StrippedQT->getPointeeType();
+    } else if (R.StrippedQT->isReferenceType()) {
+      R.StrippedQT = R.StrippedQT->getPointeeType();
+    } else if (auto PT = dyn_cast<ParenType>(R.StrippedQT)) {
+      R.StrippedQT = PT->getInnerType();
+    } else if (auto DT = dyn_cast<DecayedType>(R.StrippedQT)) {
+      R.StrippedQT = DT->getDecayedType();
+    } else if (auto TT = dyn_cast<TypedefType>(R.StrippedQT)) {
+      R.Typedef = TT->getDecl();
+      R.StrippedQT = R.Typedef->getUnderlyingType();
+    } else {
+      break;
+    }
+  }
+
+  if (auto RT = R.StrippedQT->getAs<RecordType>()) {
+    R.Decl = RT->getDecl();
+  } else if (auto ET = R.StrippedQT->getAs<EnumType>()) {
+    R.Decl = ET->getDecl();
+  } else if (!R.Decl && R.Typedef) {
+    // 没有进一步解析到 Record/Enum，则以 typedef 本身作为“类型定义点”
+    R.Decl = R.Typedef;
+  }
+
+  return R;
+}
+
+// 将一条 JSON 记录追加到 .jsonl 文件
+static void append_jsonl(llvm::StringRef Path, const llvm::json::Object &Obj) {
+  std::error_code EC;
+  llvm::raw_fd_ostream OS(Path, EC, llvm::sys::fs::OF_Append | llvm::sys::fs::OF_Text);
+  if (EC) {
+    llvm::errs() << "Failed to open " << Path << " for append: " << EC.message() << "\n";
+    return;
+  }
+  llvm::json::Value V(Obj);
+  std::string Line;
+  llvm::raw_string_ostream RS(Line);
+  RS << V;
+  RS.flush();
+  OS << Line << "\n";
+}
+
+// 选择“更像声明”的重声明（优先头文件；否则最早的）
+static const FunctionDecl* pickBestDeclForHeader(const FunctionDecl *FD,
+                                                 const SourceManager &SM) {
+  const FunctionDecl *Best = FD->getCanonicalDecl();
+  auto BestPath = fullPath(SM, Best->getLocation());
+  bool BestIsHeader = isHeaderPath(BestPath);
+
+  for (const FunctionDecl *R : FD->redecls()) {
+    auto P = fullPath(SM, R->getLocation());
+    bool H = isHeaderPath(P);
+    if (H && !BestIsHeader) {
+      Best = R; BestPath = P; BestIsHeader = true;
+      continue;
+    }
+    if (H == BestIsHeader) {
+      // 同类型（都头文件或都非头文件）则取“更早”的（偏向位置小的）
+      auto BL = SM.getFileOffset(SM.getExpansionLoc(Best->getLocation()));
+      auto RL = SM.getFileOffset(SM.getExpansionLoc(R->getLocation()));
+      if (RL < BL) {
+        Best = R; BestPath = P; BestIsHeader = H;
+      }
+    }
+  }
+  return Best;
+}
+
+// ===== 你原来的 Visitor：改造 VisitFunctionDecl =====
+
+bool VisitFunctionDecl(FunctionDecl *FuncDecl) {
+  if (!collect_func) return true;
+  if (!FuncDecl->isThisDeclarationADefinition())
+    return true; // 只在看到定义时输出一次
+
+  ASTContext &Ctx = FuncDecl->getASTContext();
+  const SourceManager &SM = Ctx.getSourceManager();
+  const LangOptions &LO = Ctx.getLangOpts();
+
+  // 选出“函数声明”（尽量是头文件中的那一个）
+  const FunctionDecl *DeclForHeader = pickBestDeclForHeader(FuncDecl, SM);
+
+  // 函数名与声明头文件
+  std::string FuncName = FuncDecl->getNameAsString();
+  std::string FuncDeclHeader = justFileName(SM, DeclForHeader->getLocation());
+
+  llvm::json::Array Params;
+
+  for (const ParmVarDecl *P : DeclForHeader->parameters()) {
+    llvm::json::Object PObj;
+
+    // 1) 形参名
+    std::string PName = P->getNameAsString();
+    PObj["name"] = PName;
+
+    // 2) 形参本身声明所在头文件（严格按形参 token 的位置取）
+    std::string ParamDeclHeader = justFileName(SM, P->getLocation());
+    PObj["param_decl_header"] = ParamDeclHeader;
+
+    // 3) 形参类型串（保留原样，可读性强）
+    QualType QT = P->getType();
+    PObj["type_spelling"] = QT.getAsString();
+
+    // 4) 解析底层类型定义点
+    ResolvedTypeDecl RTD = resolveTypeDecl(QT);
+    if (const NamedDecl *TD = RTD.Decl) {
+      // 类型名（限定名）
+      std::string TQName = TD->getQualifiedNameAsString();
+      PObj["type_decl_qualified_name"] = TQName;
+
+      // 类型声明/定义所在头文件名
+      std::string TypeHeader = justFileName(SM, TD->getLocation());
+      PObj["type_decl_header"] = TypeHeader;
+
+      // 类型定义的源码（若有完整定义就取定义范围；否则声明范围）
+      const Decl *ForText = TD;
+
+      // 若是 Record/Enum 并且有定义，尽量用定义节点（某些场景 Location 指向前置声明）
+      if (const auto *RD = dyn_cast<RecordDecl>(TD)) {
+        if (const RecordDecl *Def = RD->getDefinition())
+          ForText = Def;
+      } else if (const auto *ED = dyn_cast<EnumDecl>(TD)) {
+        if (const EnumDecl *Def = ED->getDefinition())
+          ForText = Def;
+      }
+      std::string TypeCode = getSourceTextForDecl(ForText, SM, LO);
+      PObj["type_decl_code"] = TypeCode;
+    } else {
+      // 没有解析到具体的命名 Decl（如内建类型、函数指针且底层不是 record/enum 等）
+      PObj["type_decl_qualified_name"] = llvm::json::Value(nullptr);
+      PObj["type_decl_header"] = llvm::json::Value(nullptr);
+      PObj["type_decl_code"] = llvm::json::Value(nullptr);
+    }
+
+    Params.push_back(std::move(PObj));
+  }
+
+  // 组装函数级 JSON
+  llvm::json::Object J;
+  J["function_name"] = FuncName;
+  J["function_decl_header"] = FuncDeclHeader;
+
+  // 也可根据需要保留“定义文件名”与“定义源码”
+  J["function_def_file"] = justFileName(SM, FuncDecl->getLocation());
+  J["function_def_code"] = getSourceTextForDecl(FuncDecl, SM, LO);
+
+  J["params"] = std::move(Params);
+
+  // 追加写入新的 jsonl
+  append_jsonl("func_with_params.jsonl", J);
+
+  return true;
+}
+```
+
+---
+
+### 输出 JSON（示例）
+
+每个函数一行 JSON（便于后处理）：
+
+```json
+{
+  "function_name": "foo",
+  "function_decl_header": "api.h",
+  "function_def_file": "api.cc",
+  "function_def_code": "int foo(struct num *n, double x) { ... }",
+  "params": [
+    {
+      "name": "n",
+      "param_decl_header": "api.h",
+      "type_spelling": "struct num *",
+      "type_decl_qualified_name": "num",
+      "type_decl_header": "num.h",
+      "type_decl_code": "struct num { int v; };"
+    },
+    {
+      "name": "x",
+      "param_decl_header": "api.h",
+      "type_spelling": "double",
+      "type_decl_qualified_name": null,
+      "type_decl_header": null,
+      "type_decl_code": null
+    }
+  ]
+}
+```
+
+---
+
+### 兼容性与注意事项（Clang 14）
+
+* 头文件选择策略并非绝对（复杂项目里也可能只在 `.cc` 有唯一声明），我用“优先头文件扩展名、否则最早位置”的启发式来满足“尽量取声明处”的需求。若你有更强约定（例如“必须取 `#include` 头里的那份”），可以在 `pickBestDeclForHeader` 中加入路径前缀白名单或更复杂规则。
+* `Lexer::getSourceText` 在 Clang 14 可用；若遇到宏产生的声明，`getExpansionLoc` 已做了基本展开位置归一化；极端情况下可考虑 `getFileLoc` 或 `getSpellingLoc` 做差异比较。
+* `resolveTypeDecl` 已覆盖常见壳层（指针/引用/typedef/elaborated/paren/attributed/decayed）；若你项目里有 `AutoType`、模板形参等，可按同样思路扩展（例如 `DeducedType`、`TemplateSpecializationType` -> 通过 `getAsCXXRecordDecl()` 取特化的 `CXXRecordDecl`）。
+
+---
+
+如果你愿意，我也可以把这段封装成一个最小可运行的 `FrontendAction` 小工具模板，或把输出从 `.jsonl` 改为单个 `.json`（数组）并在 `EndSourceFileAction` 统一写出。

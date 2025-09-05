@@ -383,3 +383,96 @@ llvm-config-14 --libs all --system-libs
 ---
 
 要不要我给你改一个**精简版 CMakeLists.txt**，用 `llvm-config` 自动展开依赖，这样就不用手工维护 `-l` 列表了？
+
+
+好的！这是一个**精简且健壮**的 `CMakeLists.txt`，适配 **Clang 14**，并用 `llvm-config` 自动拿到需要的 LLVM 库，避免了 `-lLLVM` 的链接错误。它会优先找 `llvm-config-14`，找不到再回退到 `llvm-config`。
+
+把下面内容保存为项目根目录的 `CMakeLists.txt` 即可：
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(struct_nesting_tool CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# --- 找 llvm-config（优先 14 版，找不到再回退） ---
+find_program(LLVM_CONFIG_EXE NAMES llvm-config-14 llvm-config REQUIRED)
+message(STATUS "Using llvm-config: ${LLVM_CONFIG_EXE}")
+
+# --- 拿到 LLVM 需要的库和系统库 ---
+execute_process(COMMAND ${LLVM_CONFIG_EXE} --libs --system-libs
+                OUTPUT_VARIABLE LLVM_LIBS_RAW
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+separate_arguments(LLVM_LIBS_RAW)
+set(LLVM_LIBS ${LLVM_LIBS_RAW})
+
+# 可选：如果你想更精简地只拉核心库，可以用：
+# execute_process(COMMAND ${LLVM_CONFIG_EXE} --libs core support option --system-libs
+#                 OUTPUT_VARIABLE LLVM_LIBS_RAW
+#                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+# separate_arguments(LLVM_LIBS_RAW)
+# set(LLVM_LIBS ${LLVM_LIBS_RAW})
+
+# --- 也拿一下 LLVM 的 include 路径（一般 Clang 的 CMake 包已包含，不拿也行） ---
+execute_process(COMMAND ${LLVM_CONFIG_EXE} --includedir
+                OUTPUT_VARIABLE LLVM_INCLUDE_DIR
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# --- 找 Clang 14（用它的 CMake 包提供的 imported targets，如 clangTooling 等） ---
+# 如果安装路径不在默认目录，可在配置时传 -DClang_DIR=/path/to/llvm-14/lib/cmake/clang
+find_package(Clang 14 REQUIRED CONFIG)
+message(STATUS "Found Clang: ${Clang_DIR}")
+
+# （可选）启用 Clang/LLVM 的头文件路径
+include_directories(${LLVM_INCLUDE_DIR})
+include_directories(${CLANG_INCLUDE_DIRS})
+
+# --- 目标 ---
+add_executable(struct_nesting_tool
+  src/struct_nesting_tool.cpp
+)
+
+# --- 编译选项（精简） ---
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  target_compile_options(struct_nesting_tool PRIVATE -Wall -Wextra -Wno-unused-parameter)
+elseif (MSVC)
+  target_compile_options(struct_nesting_tool PRIVATE /W4)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+# --- 链接 ---
+# 关键点：不要写 “LLVM” 这个聚合名；使用 clang 的 imported targets + llvm-config 展开的库列表
+target_link_libraries(struct_nesting_tool
+  PRIVATE
+    clangTooling
+    clangASTMatchers
+    clangAST
+    clangBasic
+    clangFrontend
+    clangSerialization
+    clangLex
+    ${LLVM_LIBS}
+)
+
+# --- 小贴士输出 ---
+message(STATUS "LLVM libs: ${LLVM_LIBS}")
+message(STATUS "LLVM include: ${LLVM_INCLUDE_DIR}")
+```
+
+## 用法速记
+
+```bash
+# 1) 你的工程（含 src/struct_nesting_tool.cpp 与上面的 CMakeLists.txt）
+# 2) 生成被分析项目的 compile_commands.json（示例）
+cmake -S your_project -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+# 3) 构建本工具
+cmake -S . -B tool_build -DClang_DIR=/path/to/llvm-14/lib/cmake/clang
+cmake --build tool_build --config Release -j
+
+# 4) 运行（-p 指向含 compile_commands.json 的目录）
+tool_build/struct_nesting_tool -p build . -o struct_nesting.json
+```
+
+如果你的系统包名不是 `llvm-config-14`（比如用的自编译或不同发行版），只要 `llvm-config` 在 PATH 里也没问题；上面的脚本会自动回退。需要我给你一个同时兼容 **Clang 13/15** 的变体吗？

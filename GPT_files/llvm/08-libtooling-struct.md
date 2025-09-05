@@ -747,3 +747,168 @@ bool VisitRecordDecl(RecordDecl *recordDecl) {
   （空列表表示没有包含其它 struct）
 
 > 若你在别处已经有 `HandleTranslationUnit`/`EndSourceFileAction` 一类时机，也可以把 `writeStructGraphToJson` 的调用移过去，改为**处理完所有文件后写一次**。当前示例为“就地覆盖”式，简单直接。
+
+
+好的——在不新增 class 的前提下，我把递归逻辑扩展为**同时穿透 union**，也就是：当 `struct A` 的某个字段是 `union U` 时，会继续向下遍历 `U` 的各个字段，把里面出现的 **struct 名字**一并收集；如果 `U` 里还有 union/struct，会继续递归。
+输出依旧是：**key=struct 名字，value=其可达（直接或间接）其它 struct 名字的去重列表**；不会把 union 名字写进 JSON（只把 union 作为“容器”来穿透）。
+
+把下面这段替换/补充到你现有文件里（和之前的辅助函数放一起即可）：
+
+```cpp
+#include <set>
+#include <map>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <cassert>
+
+using ContainsGraph = std::map<std::string, std::set<std::string>>;
+static ContainsGraph gStructGraph;
+
+// ---- 保留你已有的 peelToRecordDecl 与 writeStructGraphToJson，如果没有就使用这里版本 ----
+
+// 仅返回“有名 struct”的名字；union/匿名返回空
+static std::string getRecordName(const RecordDecl *RD) {
+  if (!RD) return "";
+  if (RD->getTagKind() != TTK_Struct) return "";
+  return RD->getNameAsString();
+}
+
+// 规整类型 -> 剥指针/数组 -> 若到底层是 RecordType 则返回其 Decl（尽量拿到定义体）
+static const RecordDecl* peelToRecordDecl(QualType QT) {
+  if (QT.isNull()) return nullptr;
+  QualType T = QT.getCanonicalType();
+
+  while (const auto *PT = llvm::dyn_cast<PointerType>(T)) {
+    T = PT->getPointeeType().getCanonicalType();
+  }
+  const Type *Ty = T.getTypePtrOrNull();
+  while (Ty) {
+    if (const auto *AT = llvm::dyn_cast<ArrayType>(Ty)) {
+      T = AT->getElementType().getCanonicalType();
+      Ty = T.getTypePtrOrNull();
+      continue;
+    }
+    break;
+  }
+
+  if (!T.isNull()) {
+    if (const auto *RT = T->getAs<RecordType>()) {
+      const RecordDecl *RD = RT->getDecl();
+      if (RD) {
+        if (const auto *Def = RD->getDefinition()) return Def;
+        return RD;
+      }
+    }
+  }
+  return nullptr;
+}
+
+// 递归穿透任意 Record（struct 或 union），把遇到的 struct 名字加入 acc
+static void traverseRecordForStructs(const RecordDecl *AnyRec,
+                                     std::set<std::string> &acc,
+                                     std::set<const RecordDecl*> &seen,
+                                     const RecordDecl *Root /*用于避免自包含计入*/) {
+  if (!AnyRec) return;
+  if (seen.count(AnyRec)) return;
+  seen.insert(AnyRec);
+
+  for (const FieldDecl *FD : AnyRec->fields()) {
+    const RecordDecl *Inner = peelToRecordDecl(FD->getType());
+    if (!Inner) continue;
+
+    // 如果字段是 struct，记录其名字；如果是 union，不记录名字但继续递归穿透
+    if (Inner->getTagKind() == TTK_Struct) {
+      // 跳过自包含（例如 struct A { struct A *next; }）
+      if (Inner != Root) {
+        std::string innerName = Inner->getNameAsString();
+        if (!innerName.empty()) acc.insert(innerName);
+      }
+      // 继续下钻到该 struct 的字段
+      traverseRecordForStructs(Inner, acc, seen, Root);
+    } else if (Inner->getTagKind() == TTK_Union) {
+      // union 只作为容器继续下钻，不把 union 名字写入
+      traverseRecordForStructs(Inner, acc, seen, Root);
+    } else {
+      // 其他（如 class/enum）忽略
+    }
+  }
+}
+
+// 从某个 struct 定义出发，收集其可达的所有 struct（穿透 union/多层嵌套）
+static void collectContainedStructsDeep(const RecordDecl *Root,
+                                        std::set<std::string> &acc) {
+  if (!Root || Root->getTagKind() != TTK_Struct) return;
+  std::set<const RecordDecl*> seen;
+  traverseRecordForStructs(Root, acc, seen, Root);
+}
+
+// JSON 写盘：{"A":["B","C","D"],"B":["D"],...}
+static void writeStructGraphToJson(const ContainsGraph &G,
+                                   const std::string &path) {
+  auto esc = [](const std::string &s){
+    std::string r; r.reserve(s.size()+8);
+    for (char c : s) { if (c=='"'||c=='\\') { r.push_back('\\'); } r.push_back(c); }
+    return r;
+  };
+
+  std::ostringstream oss;
+  oss << "{";
+  bool firstK = true;
+  for (const auto &kv : G) {
+    const std::string &k = kv.first;
+    if (k.empty()) continue;
+    if (!firstK) oss << ",";
+    firstK = false;
+    oss << "\"" << esc(k) << "\":[";
+    bool firstV = true;
+    for (const auto &v : kv.second) {
+      if (!firstV) oss << ",";
+      firstV = false;
+      oss << "\"" << esc(v) << "\"";
+    }
+    oss << "]";
+  }
+  oss << "}\n";
+
+  std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+  ofs << oss.str();
+  ofs.close();
+}
+
+// ---- 修改后的 VisitRecordDecl ----
+// 仅对 struct 定义建 key；但在递归时会穿透 union/struct 两者
+bool VisitRecordDecl(RecordDecl *recordDecl) {
+  if (collect_struct) {
+    if (recordDecl && recordDecl->isThisDeclarationADefinition()) {
+      if (recordDecl->getTagKind() == TTK_Struct) {  // 只以 struct 作为 key
+        std::string structName = recordDecl->getNameAsString();
+        if (!structName.empty()) {
+          std::set<std::string> acc;
+          collectContainedStructsDeep(recordDecl, acc);
+
+          auto &slot = gStructGraph[structName];
+          slot.insert(acc.begin(), acc.end());
+
+          // 如仍需原输出，可保留下面两行
+          // std::string sourceCode = get_decl_code(recordDecl);
+          // output_decl(recordDecl, "struct.jsonl");
+
+          // 简单起见：每次更新即写盘；你也可改到 TU 结束时统一写
+          writeStructGraphToJson(gStructGraph, "struct_contains.json");
+        }
+      }
+    }
+  }
+  return true;
+}
+```
+
+### 变化点小结
+
+* **穿透 union**：`traverseRecordForStructs` 会把 union 当作容器继续递归，不把 union 名字写入结果。
+* **结果仍是 struct→\[struct…]**：key/value 都只包含 struct 名字，满足“只输出 struct 关系”的要求。
+* **兼容 C/Clang-14**：基于 `RecordDecl`/`FieldDecl`/`RecordType`，并通过 `CanonicalType` 处理 `typedef/elaborated/pointer/array` 等外壳。
+* **防环/去重**：`seen` 记录已遍历记录体，`acc` 用 `set` 去重；并**避免自包含**（`struct A* next;` 不会把 `A` 计入 `A` 的列表）。
+
+这样就能在含有 `union` 的各种嵌套场景下，正确把隐藏在 union 里的 struct 一并列出到 JSON。

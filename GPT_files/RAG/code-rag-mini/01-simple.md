@@ -61,3 +61,79 @@ python rag_code.py ask --index ./rag_index --backend ollama --model llama3.1:8b-
 * RAG 提示：自动把检索片段（含相对路径与行号）拼进上下文，指导模型引用依据
 
 如果你希望我把它改成**支持增量更新**、**代码块语义感知切片（如 tree-sitter）**、**BM25+向量混合检索**、或**重排（Cross-Encoder）**，告诉我你的偏好和代码库大小，我直接给你升级版本。
+
+
+
+
+
+
+
+我已经把一个可直接跑的\*\*后端 Server（FastAPI）+ 简易前端页面（原生 HTML/JS）\*\*做好并放到右侧画布里（单文件：`rag_server.py`）。它基于你前面那份 RAG 实现，提供 HTTP API 和一个小控制台页面。
+
+### 目录与运行
+
+将两份脚本放在同一目录：
+
+```
+rag_code.py       # 我之前给你的RAG核心实现
+rag_server.py     # 这次新增的server+前端（单文件）
+```
+
+安装依赖并启动：
+
+```bash
+pip install fastapi uvicorn[standard] pydantic ujson rich
+# 还需要 rag_code.py 的依赖（sentence-transformers、faiss-cpu 等）
+python rag_server.py
+```
+
+打开浏览器访问：`http://127.0.0.1:8000/`
+
+### 能做什么
+
+* 在页面里填：代码目录、索引目录、嵌入模型、切片参数，点击“构建/重建索引”
+* 用“相似检索”快速看召回的代码片段预览（含相对路径与行号+score）
+* “RAG 问答”支持两种后端：
+
+  * OpenAI：需设置 `OPENAI_API_KEY`，例如 `gpt-4o-mini`
+  * 本地 Ollama：如 `llama3.1:8b-instruct` / `qwen2.5:7b`
+
+### HTTP API
+
+* `POST /api/build`：构建索引
+  body：
+
+  ```json
+  {
+    "kb": "/path/to/repo",
+    "index": "./rag_index",
+    "model": "BAAI/bge-m3",
+    "max_lines": 120,
+    "overlap": 20,
+    "use_instruction": true
+  }
+  ```
+* `GET /api/status?index=./rag_index`：查看索引设置与片段数
+* `POST /api/query`：相似检索
+
+  ```json
+  { "index": "./rag_index", "query": "如何初始化数据库连接？", "top_k": 6 }
+  ```
+* `POST /api/ask`：RAG 推理
+
+  ```json
+  {
+    "index": "./rag_index",
+    "question": "结合仓库如何新增API路由？",
+    "top_k": 6,
+    "backend": "openai",      // 或 "ollama"
+    "model": "gpt-4o-mini",   // 或 "llama3.1:8b-instruct"
+    "max_ctx_tokens": 3500
+  }
+  ```
+
+### 小贴士（可按需调整）
+
+* 如果要部署到内网服务器，把 `uvicorn.run` 的 host 改成 `0.0.0.0`，并加上反向代理/鉴权。
+* 大仓库初建比较久，可先把 `--max-lines` 调小；后续可以加**增量更新**与**重排（Cross-Encoder）**，我也可以直接给你升级版本。
+* 想要更漂亮的 UI（如表格排序、分栏、代码高亮），我可以再给你一个 React + Tailwind 的前端，也对接同一套 API。

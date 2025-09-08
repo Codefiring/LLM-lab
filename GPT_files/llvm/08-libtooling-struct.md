@@ -912,3 +912,51 @@ bool VisitRecordDecl(RecordDecl *recordDecl) {
 * **防环/去重**：`seen` 记录已遍历记录体，`acc` 用 `set` 去重；并**避免自包含**（`struct A* next;` 不会把 `A` 计入 `A` 的列表）。
 
 这样就能在含有 `union` 的各种嵌套场景下，正确把隐藏在 union 里的 struct 一并列出到 JSON。
+
+可以，仅修改 `writeStructGraphToJson`，把整体 JSON 改为 **JSON Lines**：每个 `struct` 一行，形如
+`{"A":["B","C","D"]}`。其余逻辑不变。你只需要把该函数替换为下面版本（调用处可把文件名改为 `*.jsonl`，但不是必须）：
+
+```cpp
+static void writeStructGraphToJson(const ContainsGraph &G,
+                                   const std::string &path) {
+  // 简单转义（标识符通常简单，这里仅转义 " 与 \）
+  auto esc = [](const std::string &s){
+    std::string r; r.reserve(s.size() + 8);
+    for (char c : s) {
+      if (c == '"' || c == '\\') r.push_back('\\');
+      r.push_back(c);
+    }
+    return r;
+  };
+
+  // JSONL：每行一个独立 JSON 对象，不再有最外层的大括号
+  // 为了避免重复积累，这里采用覆盖写（trunc），每次写出完整快照
+  std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+
+  for (const auto &kv : G) {
+    const std::string &k = kv.first;
+    if (k.empty()) continue;
+
+    ofs << "{\"" << esc(k) << "\":[";
+    bool first = true;
+    for (const auto &v : kv.second) {
+      if (!first) ofs << ",";
+      first = false;
+      ofs << "\"" << esc(v) << "\"";
+    }
+    ofs << "]}\n";  // 一行一个对象
+  }
+  ofs.close();
+}
+```
+
+> 说明
+>
+> * 输出示例（多行）：
+>
+>   ```
+>   {"A":["B","C","D"]}
+>   {"B":["D"]}
+>   {"C":[]}
+>   ```
+> * 当前实现是**覆盖写**整份图，避免多次调用产生重复行。如果你确实想“增量追加”，把 `std::ios::trunc` 改为 `std::ios::app`，但要注意会出现重复行。

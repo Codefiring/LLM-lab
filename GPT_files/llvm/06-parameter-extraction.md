@@ -995,3 +995,203 @@ bool VisitFunctionDecl(FunctionDecl *FuncDecl) {
 ---
 
 如果你愿意，我也可以把这段封装成一个最小可运行的 `FrontendAction` 小工具模板，或把输出从 `.jsonl` 改为单个 `.json`（数组）并在 `EndSourceFileAction` 统一写出。
+
+
+# fix json write
+
+出现“有些行不是完整 JSON”的常见原因主要有三类。结合你当前的实现（每次在 `VisitFunctionDecl` 里打开文件并 `append`），最容易踩的坑是**并发写同一个 .jsonl 文件**导致的行间“交错”。下面按概率从高到低列问题与可落地的修复办法（附可直接替换的代码片段）。
+
+---
+
+## 可能原因
+
+1. **并发/多进程同时写同一文件（最常见）**
+
+* 如果你的工具以 `-j N` 并行跑多个 TU，或者你在多个进程里同时写 `func_with_params.jsonl`，每个进程/线程都在“追加”，但**一次 JSON 行可能被拆成多次系统调用**，从而被别的进程的输出“插队”截断，形成半行或两行粘在一起。
+* `llvm::raw_fd_ostream` 带缓冲，也可能把一行分成多次 `write()`。
+
+2. **写入内容不是有效 UTF-8 或含有奇怪的控制字符**
+
+* `llvm::json` 期望字符串是 UTF-8。若源码文件非 UTF-8（例如 GBK）、或包含非法字节/内嵌 NUL，序列化后可能让下游解析器失败（虽然 llvm 会转义大多数控制字符，但**非法 UTF-8** 本身会是问题）。
+
+3. **异常中止导致行没写完**
+
+* 进程崩溃/被信号中断，缓冲区尚未 flush；或你在 Windows 用文本模式（`OF_Text`）遇到换行转换与编码混用造成意外。
+
+---
+
+## 推荐修复策略（从根本到权衡）
+
+### A. 最稳：**每个 TU 写各自的临时文件，结束后再合并**
+
+* 方案：把输出改成 `func_with_params.<pid>.<tu>.jsonl`（或放到一个临时目录），跑完再顺序 `cat` 合并到最终 `func_with_params.jsonl`。
+* 优点：无锁、跨平台、完全避免竞争；行完整且追加顺序可控。
+* 缺点：需要一个合并步骤（脚本或 `EndSourceFileAction` / 稍后工具做 merge）。
+
+### B. 若必须直写同一个文件：**确保“单次写入原子化” + 进程间加锁**
+
+* 关键点：把**整行 JSON（含结尾 `\n`）一次系统调用**写入，避免流式多次 write；并使用**文件锁**保证不同进程不会交错写。
+* 在 POSIX 上，单次 `write(fd, buf, len)` 到 `O_APPEND` 打开的文件是原子的（整段会插入为一个连续块），但**两次 write 就不原子**。
+* 加锁可用 `llvm::LockFileManager`（基于 lock 文件）或平台原生 `flock` / `CreateFile` 共享模式。
+
+### C. **规范与清洗字符串**，避免坏编码破坏 JSON
+
+* 用 `llvm::json::fixUTF8()` 清洗所有要进 JSON 的字符串（函数源码、类型源码、文件名等）。
+* 去掉内嵌 NUL 或将其替换为 `\u0000`。
+* 编译/运行时确保源码转为 UTF-8（`-finput-charset=utf-8`，或在读取文本时做转换）。
+
+---
+
+## 代码改造示例
+
+### 1) 替换 `append_jsonl` 为“单次写入 + 可选文件锁 + UTF-8 清洗”
+
+```cpp
+#include "llvm/Support/JSON.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Support/Errc.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/LockFileManager.h"
+#include <system_error>
+
+static inline std::string fix_utf8(llvm::StringRef S) {
+  return llvm::json::fixUTF8(S);
+}
+
+// 递归清洗 JSON 对象内所有字符串（避免非法 UTF-8 / 内嵌 NUL）
+static void sanitize_json(llvm::json::Value &V) {
+  if (auto *S = V.getAsString()) {
+    std::string T = fix_utf8(*S);
+    // 可选：过滤 NUL
+    T.erase(std::remove(T.begin(), T.end(), '\0'), T.end());
+    V = llvm::json::Value(T);
+    return;
+  }
+  if (auto *O = V.getAsObject()) {
+    for (auto &KV : *O) sanitize_json(KV.second);
+    return;
+  }
+  if (auto *A = V.getAsArray()) {
+    for (auto &E : *A) sanitize_json(E);
+    return;
+  }
+}
+
+// 原子地把一整行 JSON 写到文件；支持跨进程锁（可按需启用）
+static void append_jsonl_atomic(llvm::StringRef Path, llvm::json::Object Obj,
+                                bool UseFileLock = false) {
+  // 1) 清洗 UTF-8
+  llvm::json::Value V(Obj);
+  sanitize_json(V);
+
+  // 2) 序列化到内存缓冲（含结尾换行）
+  std::string Line;
+  {
+    llvm::raw_string_ostream RS(Line);
+    RS << V;          // 紧凑单行 JSON
+    RS << '\n';       // 行分隔
+  }
+
+  // 3) 可选：文件级锁，避免多进程交错（基于 .lock file）
+  std::unique_ptr<llvm::LockFileManager> LFM;
+  if (UseFileLock) {
+    std::string LockPath = (Path.str() + ".lock");
+    LFM = std::make_unique<llvm::LockFileManager>(LockPath);
+    auto State = LFM->getState();
+    if (State == llvm::LockFileManager::LFS_Error) {
+      llvm::errs() << "Lock error for " << LockPath << "\n";
+      // 不中断；继续尝试写
+    } else if (State == llvm::LockFileManager::LFS_Shared) {
+      // 等待独占锁
+      if (auto EC = LFM->waitForUnlock()) {
+        llvm::errs() << "Wait for unlock failed: " << EC.message() << "\n";
+      }
+      // 重新获取
+      LFM = std::make_unique<llvm::LockFileManager>(LockPath);
+    }
+    // 现在我们持有独占锁（LFS_Owned）
+  }
+
+  // 4) 以 O_APPEND 打开并**一次 write**写入整行
+#if !defined(_WIN32)
+  int FD;
+  if (auto EC = llvm::sys::fs::openFileForWrite(Path, FD,
+        llvm::sys::fs::CD_CreateAlways,   // 若不存在创建；若存在仅打开（见 Flag）
+        llvm::sys::fs::OF_Append)) {
+    // 注意：CD_* 语义在不同 LLVM 版本有差异，如有编译问题可改用 ::open
+    // 退化到 raw_fd_ostream 也行，但原子性会差些
+    std::error_code EC2;
+    llvm::raw_fd_ostream OS(Path, EC2, llvm::sys::fs::OF_Append);
+    if (EC2) { llvm::errs() << "open failed: " << EC2.message() << "\n"; return; }
+    OS << Line; // 可能多次 write（不完全原子）
+    return;
+  }
+  // 使用 ::write 保证一次系统调用写入
+  ssize_t N = ::write(FD, Line.data(), Line.size());
+  (void)N;
+  ::close(FD);
+#else
+  // Windows：使用 raw_fd_ostream 退化（建议采用方案A分文件合并，或用 Win32 原生 API）
+  std::error_code EC;
+  llvm::raw_fd_ostream OS(Path, EC, llvm::sys::fs::OF_Append | llvm::sys::fs::OF_None);
+  if (EC) { llvm::errs() << "open failed: " << EC.message() << "\n"; return; }
+  OS << Line; // 可能多次 write；可换成 CreateFile/WriteFile 做一次性写入
+#endif
+}
+```
+
+> 简化版：如果不方便引入锁，至少保证“**一次系统调用写一整行**”。在 POSIX 上这就能显著减少（几乎消除）行被切开的概率。
+
+然后把你原来的
+
+```cpp
+append_jsonl("func_with_params.jsonl", J);
+```
+
+改为
+
+```cpp
+append_jsonl_atomic("func_with_params.jsonl", J, /*UseFileLock=*/true);
+```
+
+---
+
+### 2) 若选择“每 TU 单独输出再合并”（推荐）
+
+* 生成文件名：`func_with_params.<pid>.<basename_of_main_file>.jsonl`
+
+  ```cpp
+  auto MainFile = SM.getFileEntryForID(SM.getMainFileID());
+  std::string TUBase = MainFile ? llvm::sys::path::stem(MainFile->getName()).str()
+                                : "unknown_tu";
+  std::string Out = ("out_dir/func_with_params." + std::to_string(::getpid())
+                    + "." + TUBase + ".jsonl");
+  append_jsonl_atomic(Out, J, /*UseFileLock=*/false); // 每TU独占，不需要锁
+  ```
+* 结束后用简单脚本顺序 `cat out_dir/*.jsonl > func_with_params.jsonl`。
+  也可在 `EndSourceFileAction` / `EndInvocation` 里做一次合并（单线程执行）。
+
+---
+
+### 3) 对**编码/非法字符**的加固（如果你的源码不是 UTF-8）
+
+* 对所有要进 JSON 的字符串（函数源码、类型源码、文件名、类型名等）调用上面的 `fix_utf8`；
+* 若你观察到 NUL 或其它奇异控制符，保守做法是**删除**或**转义成可打印形式**（上面的 `sanitize_json` 已演示 NUL 过滤）。
+* 构建时显式使用 UTF-8：`-finput-charset=utf-8 -fexec-charset=utf-8`（视编译器支持而定）。
+
+---
+
+## 额外排查清单
+
+* 运行参数里是否用到了并发：`-j` 或你自己的并行框架；若有，先降成串行做对照测试。
+* 把 `append_jsonl_atomic` 临时改成写到 `stderr` 看是否还能复现（若不复现，多半就是文件并发/原子性问题）。
+* 检查“坏行”是否正好是两条 JSON 粘在一起/中间断开——粘连/截断 = 并发交错；解析报“非法字节” = 编码问题。
+* Windows 上避免 `OF_Text`，统一用二进制方式并自己控制换行。
+
+---
+
+### TL;DR
+
+* **最简单稳定**：每个 TU 写各自的 `.jsonl`，最后**合并**。
+* 若必须同写一个文件：**一次系统调用写一整行** + （尽量）**文件锁**。
+* 统一把所有字符串过一遍 `fixUTF8` 清洗，避免非 UTF-8 把 JSON “写坏”。

@@ -1195,3 +1195,131 @@ append_jsonl_atomic("func_with_params.jsonl", J, /*UseFileLock=*/true);
 * **最简单稳定**：每个 TU 写各自的 `.jsonl`，最后**合并**。
 * 若必须同写一个文件：**一次系统调用写一整行** + （尽量）**文件锁**。
 * 统一把所有字符串过一遍 `fixUTF8` 清洗，避免非 UTF-8 把 JSON “写坏”。
+
+出现“有些行不是完整 JSON”的常见原因（Linux）主要有这几类：
+
+1. 并发追加写入发生了**写入交错**
+
+* 你可能在同一进程的多线程里（`ClangTool -j`）或多个进程同时往同一个 `.jsonl` 里写。
+* `llvm::raw_fd_ostream` 在 `OF_Append` 模式下**不保证一次 `<<` 就只对应一次底层 `write()`**；一次逻辑行可能被拆成多次系统调用，被其他线程/进程插入。
+
+2. 写入不是**单次原子 write()**
+
+* 即使使用 `O_APPEND`，如果一次逻辑行被拆成多次 `write()`，在多并发下仍会交叉。
+* `raw_fd_ostream` 可能缓冲/分多次写。
+
+3. 生成的字符串很长（包含源码），在换行前程序异常退出或缓冲未及时 flush，也会出现**半行**。
+
+> JSON 里换行符本身没问题，`llvm::json` 会自动做转义（`\n`），不是它导致的“半行”。
+
+---
+
+## 改造思路
+
+* 不再用 `raw_fd_ostream` 直接写；改为：
+
+  * 先把一整行 JSON 字符串（末尾带 `\n`）**拼好**；
+  * **加文件锁**（`flock()` 或 `fcntl()`），保证跨线程/跨进程互斥；
+  * 使用**单次或尽量少次的 `write()`** 写入整行（带重试处理 `EINTR`）；
+  * `fsync()`（可选，根据性能权衡）；
+  * 释放锁、关闭文件。
+* 如果你只在**单进程单线程**里运行，也至少保证“单次 write 完整行”，避免 `raw_fd_ostream` 的分片。
+
+下面给出一个 Linux 版更稳妥的 `append_jsonl`（使用 `flock`，依赖 `<sys/file.h>`）。你可以直接替换原函数：
+
+```cpp
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+
+static bool write_all(int fd, const char* buf, size_t len) {
+  size_t off = 0;
+  while (off < len) {
+    ssize_t n = ::write(fd, buf + off, len - off);
+    if (n < 0) {
+      if (errno == EINTR) continue;     // 被信号打断，重试
+      return false;                     // 其他错误
+    }
+    off += static_cast<size_t>(n);
+  }
+  return true;
+}
+
+// 将一条 JSON 记录追加到 .jsonl 文件（Linux，原子化 & 并发安全）
+static void append_jsonl(llvm::StringRef Path, const llvm::json::Object &Obj) {
+  // 1) 先在内存里把整行 JSON 组好
+  llvm::json::Value V(Obj);
+  std::string line;
+  {
+    llvm::raw_string_ostream rs(line);
+    rs << V;
+    rs.flush();
+  }
+  line.push_back('\n'); // JSON Lines 以换行分隔
+
+  // 2) 以 O_APPEND 打开（必要时创建），权限 0644
+  int fd = ::open(Path.str().c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
+  if (fd < 0) {
+    llvm::errs() << "append_jsonl: open failed: " << Path
+                 << " error=" << strerror(errno) << "\n";
+    return;
+  }
+
+  // 3) 加文件锁（跨进程/跨线程保护，避免交叉写）
+  //    注意：flock 锁是“建议锁”(advisory)，要求所有写入方都遵守。
+  if (::flock(fd, LOCK_EX) != 0) {
+    llvm::errs() << "append_jsonl: flock(LOCK_EX) failed: " << Path
+                 << " error=" << strerror(errno) << "\n";
+    ::close(fd);
+    return;
+  }
+
+  // 4) 单次/少次 write 将整行写完
+  bool ok = write_all(fd, line.data(), line.size());
+  if (!ok) {
+    llvm::errs() << "append_jsonl: write failed: " << Path
+                 << " error=" << strerror(errno) << "\n";
+    // 失败也要解锁+关闭
+    ::flock(fd, LOCK_UN);
+    ::close(fd);
+    return;
+  }
+
+  // 5) 可选：确保落盘（视性能取舍）
+  // 如果你担心宕机导致尾行丢失，可以启用 fsync
+  // 若性能敏感，可以注释掉或改成按需批量 fsync。
+  if (::fsync(fd) != 0) {
+    // 不把 fsync 失败当致命错误，仅记录
+    llvm::errs() << "append_jsonl: fsync failed: " << Path
+                 << " error=" << strerror(errno) << "\n";
+  }
+
+  // 6) 释放锁、关闭
+  (void)::flock(fd, LOCK_UN);
+  ::close(fd);
+}
+```
+
+### 说明与建议
+
+* **为什么不用 `raw_fd_ostream`？**
+  它可能拆分为多次 `write()`，在并发下就会和别人交错；上面实现明确保证了“一条记录一次批量写入 + 文件锁”。
+
+* **`flock` vs `fcntl`**
+  `flock` 对同一文件描述符的协作更直观；只要**所有**写入者都采用 `flock` 同步，就能避免交错。若你的环境或代码库倾向 `fcntl` 记录锁，也可以换成 `fcntl`。
+
+* **性能**
+
+  * 逐条 `fsync` 会慢；如果你是大量输出，可以去掉 `fsync`，或在更高层做缓冲/批量。
+  * 也可以采取“每个编译单元写到一个临时文件，最后再合并”的方式彻底避免锁竞争。
+
+* **内容中的换行**
+  用 `llvm::json` 打印出的字符串会做必要转义（包括 `\n`、`"` 等），所以 JSON 行中不会出现“裸换行”破坏一行一条的结构。
+
+* **仍然出现半行怎么办**
+  若你看到半行，大概率仍有其他写入路径没走此函数（例如旧的 `output_decl` 也在写同一个文件），或某些代码在写“裸文本”。统一走 `append_jsonl` 并开启锁即可消除。
+
+这样修改后，即使你用 `-j` 并行跑多个 TU 或多个进程同时写，也不会再出现“部分行不是完整 JSON”的问题。

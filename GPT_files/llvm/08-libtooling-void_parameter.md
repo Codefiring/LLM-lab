@@ -278,3 +278,97 @@ int drm_version(struct drm_device *dev, void *data, struct drm_file *file_priv) 
 ---
 
 把这些补丁合进去后，你的输出就能把 **`void*` 的实际使用类型** 也一并沉到参数 JSON 中了。需要我把完整文件（含 `FrontendAction` 模板和 `main`）也拼好给你吗？
+
+
+
+好嘞！在 Clang 的 AST 里，`void*` 被用作别的指针类型时，常常表现为 `ImplicitCastExpr`（比如 `struct drm_version *v = data;`、把 `data` 当成 `T*` 实参传给函数等）。你只要在遍历里专门识别这种 `ImplicitCastExpr`，并把**目标类型**取自 `ICE->getType()`，再合并到该参数的 `voidptr_casts` 即可。
+
+下面给出最小增量补丁，直接加到我上一条提供的 `collectVoidPtrCastsInBody` 的递归遍历里就行（其余代码都不用改）。
+
+---
+
+### 1) 小工具：判断类型是否为 void*（含引用）
+
+```cpp
+static inline bool isVoidPtrOrRef(QualType QT) {
+  if (QT->isVoidPointerType()) return true;
+  if (QT->isReferenceType())
+    return QT->getPointeeType()->isVoidPointerType();
+  return false;
+}
+```
+
+### 2) 在 `collectVoidPtrCastsInBody` 的 `VisitS` 中新增对 `ImplicitCastExpr` 的处理
+
+把这一段插入到 `VisitS` 函数里（建议放在“C 风格强转 / C++ 强转”之后、变量定义和赋值之前，顺序不严格）：
+
+```cpp
+// 2.5) 隐式强转：ImplicitCastExpr
+if (const auto *ICE = dyn_cast<ImplicitCastExpr>(S)) {
+  const Expr *Sub = ICE->getSubExpr()->IgnoreParenImpCasts();
+
+  // 仅当子表达式确实引用了该 void* 形参时才认为是 data -> T* 的隐式转换
+  if (containsRefToParm(Sub, VoidParm)) {
+    QualType FromT = Sub->getType();
+    QualType ToT   = ICE->getType();
+
+    // 常见的 cast kind: CK_NoOp / CK_BitCast（C 中 void* 到 T*）
+    auto CK = ICE->getCastKind();
+    bool LooksLikeVoidPtrToPtr =
+        (CK == CK_NoOp || CK == CK_BitCast || CK == CK_ConstCast ||
+         CK == CK_ReinterpretCast || CK == CK_AddressSpaceConversion);
+
+    // 只有当来源像 void*，且目标像指针/引用才记录
+    if (LooksLikeVoidPtrToPtr && isVoidPtrOrRef(FromT) &&
+        (ToT->isAnyPointerType() || ToT->isReferenceType())) {
+      addHit(ToT, S); // S=ICE，用它的 SourceRange 做溯源片段
+    }
+  }
+}
+```
+
+> 说明
+>
+> * 这里不直接信任 `CastKind`，而是同时检查 **来源是 void***、**目标是指针/引用**，确保是从 `void*` 隐式变成了某个 `T*`。
+> * 在 C 代码里，`void* -> T*` 多见 `CK_BitCast` 或 `CK_NoOp`；我把若干相关 kind 列了一遍以覆盖更广。
+
+---
+
+### 3) 这段加进去后能覆盖哪些场景？
+
+* 变量初始化：`struct drm_version *version = data;` → 命中 `ImplicitCastExpr`，`ToT` 为 `struct drm_version *`。
+* 赋值表达式右值上也常包着 `ImplicitCastExpr`；不过你已有“赋值分支”（从 LHS 类型拿目标），两条都会命中也没关系。
+* 函数调用：参数表达式外层通常也会出现 `ImplicitCastExpr`；你已有 `CallExpr` 分支（用被调函数形参类型兜底），现在再加 `ICE` 分支就能更早、就地拿到“AST 实际推断的目标类型”。
+
+---
+
+### 4)（可选）简单去重
+
+如果担心同一处被“赋值分支”和“ICE 分支”都记录一遍，可以加个去重集（比如 `llvm::DenseSet<std::pair<const Stmt*, QualType::getAsOpaquePtr()>>` 或按 `(file,line,col,type_spelling)` 做 key）。一般不影响使用，我就不强加了。
+
+---
+
+### 5) 产出 JSON 仍然不变
+
+还是合并进 `param` 的
+
+```json
+"voidptr_casts": [
+  {
+    "target_type_spelling": "struct drm_version *",
+    "target_type_decl_qualified_name": "drm_version",
+    "target_type_decl_header": "drm_ioctl.h",
+    "target_type_decl_code": "struct drm_version { ... };",
+    "site": {
+      "file": "drm_ioctl.c",
+      "line": 2,
+      "col": 3,
+      "code_snippet": "struct drm_version *version = data;"
+    }
+  }
+]
+```
+
+---
+
+这样，你提到的“AST 看到的是 `ImplicitCastExpr`”的情况就被完全覆盖了；`void* data` 在函数体里变成什么类型使用，都会被抓到并写入同一个参数的 `voidptr_casts` 字段。需要我把完整文件（含 `main` / `FrontendAction`）也拼好给你吗？

@@ -372,3 +372,114 @@ if (const auto *ICE = dyn_cast<ImplicitCastExpr>(S)) {
 ---
 
 这样，你提到的“AST 看到的是 `ImplicitCastExpr`”的情况就被完全覆盖了；`void* data` 在函数体里变成什么类型使用，都会被抓到并写入同一个参数的 `voidptr_casts` 字段。需要我把完整文件（含 `main` / `FrontendAction`）也拼好给你吗？
+
+
+原因基本确定：你在函数体里做数据流匹配时，用的是**头文件那份参数声明**（`DeclForHeader->parameters()`）作为对照目标；而 `DeclRefExpr` 在函数体里引用的是**定义处那份参数声明**。这两者虽然“是同一个形参”，但在 AST 里是**不同的 `ParmVarDecl*` 实例**，你原来的比较（指针相等）就对不上，所以没把 `data` 命中的 `ImplicitCastExpr` 识别出来——于是 `struct drm_version *version = data;` 这条初始化没有被记到 `voidptr_casts` 里。
+
+修法有两种，任选其一，建议两者都做更稳：
+
+---
+
+## 方案 A：遍历时传“定义处的形参”做匹配
+
+构建 `param` 的 JSON 仍然可以取头文件那份 `ParmVarDecl` 来拿头文件名等信息，但**做函数体内分析时**用**定义处**的同位置参数：
+
+```cpp
+// 替换你原来的参数遍历逻辑：用索引对齐“声明处参数(头文件)”和“定义处参数(函数体)”
+for (unsigned i = 0; i < DeclForHeader->getNumParams(); ++i) {
+  const ParmVarDecl *PHeader = DeclForHeader->getParamDecl(i);
+  const ParmVarDecl *PDef    = FuncDecl->getParamDecl(i); // 用这份做体内匹配
+
+  llvm::json::Object PObj;
+  // ……这里用 PHeader 填你需要的头文件名/类型串/typedef 溯源等字段……
+
+  QualType QT = PHeader->getType();
+  PObj["type_spelling"] = QT.getAsString();
+
+  if (QT->isVoidPointerType()) {
+    // 用“定义处的形参”去搜体内用法
+    llvm::json::Array Casts = collectVoidPtrCastsInBody(FuncDecl, PDef);
+    PObj["voidptr_casts"] = std::move(Casts);
+  }
+
+  Params.push_back(std::move(PObj));
+}
+```
+
+---
+
+## 方案 B：`containsRefToParm` 改成**按 canonical decl** 比较
+
+即使你不改 A，也最好加这个，避免别的 redecl 场景踩坑。
+
+```cpp
+static bool containsRefToParm(const Stmt *S, const ParmVarDecl *Target) {
+  if (!S) return false;
+  for (const Stmt *Child : S->children())
+    if (Child && containsRefToParm(Child, Target)) return true;
+
+  if (const auto *DRE = dyn_cast<DeclRefExpr>(S)) {
+    const auto *D = dyn_cast<ParmVarDecl>(DRE->getDecl());
+    if (D && D->getCanonicalDecl() == Target->getCanonicalDecl())
+      return true;
+  }
+  return false;
+}
+```
+
+---
+
+## 确保 `ImplicitCastExpr` 分支已覆盖
+
+你给的代码里这一句就是 `ImplicitCastExpr`（C 里从 `void*` 到 `T*` 常是 `CK_BitCast`/`CK_NoOp`）：
+
+```c
+struct drm_version *version = data;
+```
+
+在 `collectVoidPtrCastsInBody` 的递归里，保留/加入这段（此前我给过），就能抓住：
+
+```cpp
+if (const auto *ICE = dyn_cast<ImplicitCastExpr>(S)) {
+  const Expr *Sub = ICE->getSubExpr()->IgnoreParenImpCasts();
+  if (containsRefToParm(Sub, VoidParm)) {
+    QualType FromT = Sub->getType();
+    QualType ToT   = ICE->getType();
+    auto CK = ICE->getCastKind();
+    bool LooksLikeVoidPtrToPtr =
+        (CK == CK_NoOp || CK == CK_BitCast || CK == CK_ConstCast ||
+         CK == CK_ReinterpretCast || CK == CK_AddressSpaceConversion);
+
+    if (LooksLikeVoidPtrToPtr &&
+        (FromT->isVoidPointerType() ||
+         (FromT->isReferenceType() && FromT->getPointeeType()->isVoidPointerType())) &&
+        (ToT->isAnyPointerType() || ToT->isReferenceType())) {
+      addHit(ToT, ICE); // 记录目标类型 + 发生点
+    }
+  }
+}
+```
+
+> 记得包含头文件：`#include "clang/AST/OperationKinds.h"`（提供 `CastKind` 枚举）。
+
+---
+
+## 小结
+
+* 没解析出 `data` 的根因：**不同 redecl 的 `ParmVarDecl*` 不同**，导致匹配失败。
+* 修复：**用定义处的参数做体内匹配**（方案 A），或/并且 **按 canonical decl 比较**（方案 B）。
+* `ImplicitCastExpr` 分支要启用，上面那段即可覆盖 `struct drm_version *version = data;`。
+
+按上面改完后，你的 JSON 里 `data` 参数会出现：
+
+```json
+"voidptr_casts": [
+  {
+    "target_type_spelling": "struct drm_version *",
+    "target_type_decl_qualified_name": "drm_version",
+    "target_type_decl_header": "…",
+    "target_type_decl_code": "struct drm_version { … };",
+    "site": { "file": "…", "line": N, "col": M, "code_snippet": "struct drm_version *version = data;" }
+  }
+]
+```

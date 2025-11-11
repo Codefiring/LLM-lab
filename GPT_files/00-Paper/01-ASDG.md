@@ -326,3 +326,75 @@ This representation enables both structural analysis and semantic reasoning over
 是否希望我下一步帮你补充一小节示例（如一个小的代码片段及其对应的ASDG公式化实例），用于放在该节末尾？这通常在IEEE S&P论文中能显著提高读者理解。
 
 
+\section{Formal Definition of ASDG}
+\label{sec:asdg-definition}
+
+We formally define the \textbf{Abstract State Dependency Graph (ASDG)} as a directed, attributed multigraph that captures both syntactic relationships and semantic dependencies among program entities within a given codebase. The ASDG provides a unified representation of how low-level code facts (such as functions, structures, macros, and enumerations) interact to form higher-level semantic relations between APIs.
+
+\subsection{Overall Structure}
+
+An ASDG is denoted as $\mathcal{G} = (\mathcal{V}, \mathcal{E}, \mathcal{A})$, 
+where $\mathcal{V}$ is the set of nodes, $\mathcal{E}$ is the set of directed edges, 
+and $\mathcal{A}$ is a collection of attributes attached to nodes and edges. 
+Each node represents a concrete code entity, while each edge expresses either 
+a structural or semantic connection among these entities.
+
+\subsection{Nodes: Code-Level Facts}
+
+The node set $\mathcal{V}$ contains all program elements that form the building blocks of the codebase. 
+Specifically, we include the following categories of entities:
+
+\begin{itemize}
+    \item \textbf{Enumeration constants:} Each enumeration constant is represented as a node whose name and assigned integer value are recorded as attributes.
+    \item \textbf{Macro definitions:} Each macro is modeled as a node whose name and textual definition form its attributes.
+    \item \textbf{Structure definitions:} Each structure type corresponds to a node containing its name and member list. For each member, the name and type are stored, and if the member type itself is a structure, the relationship is recursively recorded to preserve nesting.
+    \item \textbf{Functions and APIs:} Each function definition, including target APIs, is represented as a node. Non-API functions are annotated with their implementation code, while API nodes include additional attributes such as the header file list and the parameter list. Each parameter is analyzed to extract its type; if the type is a structure, the structure's definition and all nested members are attached as subattributes.
+\end{itemize}
+
+This node layer captures the \emph{basic syntactic facts} of the codebase. 
+All entities, from constants to functions, are abstracted into a unified set of nodes, 
+ensuring a consistent representation for subsequent semantic analysis.
+
+\subsection{Edges: Structural and Semantic Relations}
+
+The edge set $\mathcal{E}$ defines the links between program entities, representing their structural or behavioral relationships. 
+Edges in the ASDG can be divided into three major categories:
+
+\begin{itemize}
+    \item \textbf{Function-call edges:} Represent invocation relationships between functions. A directed edge from $f_1$ to $f_2$ indicates that function $f_1$ calls $f_2$.
+    \item \textbf{Structure-nesting edges:} Capture composition relationships among structures. An edge from structure $S_1$ to $S_2$ indicates that $S_1$ includes $S_2$ as a field type.
+    \item \textbf{API dependency edges:} Describe high-level semantic dependencies among target APIs. A directed edge from API $A_1$ to $A_2$ means that the correct execution of $A_2$ semantically depends on the state modified or produced by $A_1$.
+\end{itemize}
+
+Each edge can be annotated with an attribute function $\alpha_e$, which encodes additional semantics such as:
+\begin{itemize}
+    \item \emph{State dependency} --- describes the abstract state that $A_1$ produces and $A_2$ consumes;
+    \item \emph{Parameter dependency} --- specifies which parameters of the two APIs are linked through shared data or control flow.
+\end{itemize}
+
+\subsection{Semantic Attributes}
+
+Beyond syntactic relationships, ASDG also integrates semantic properties inferred from code analysis. These semantic attributes enrich the graph with context-sensitive information that reflects how code entities behave at runtime.
+
+\begin{itemize}
+    \item \textbf{Value ranges:} For each structure member or variable, the ASDG records its potential value range, typically represented as $[l, u]$. This range reflects the possible numeric or symbolic bounds inferred from the program logic or macro definitions.
+    \item \textbf{Usage semantics:} Each variable or structure field may carry a usage label indicating its operational role, such as \texttt{Address}, \texttt{Buffer}, \texttt{Flag}, or \texttt{Count}. These labels help capture domain-specific semantics, e.g., whether a field represents a DMA buffer address.
+    \item \textbf{State and parameter dependencies:} For each pair of APIs connected by a dependency edge, the ASDG maintains (i) the abstract state transition between them, and (ii) the mapping between dependent parameters that transmit data or state information.
+\end{itemize}
+
+These semantic annotations make ASDG more than a syntactic call graph: 
+it serves as a semantically enriched abstraction that connects data structures, API interfaces, 
+and the underlying state transitions implied by their interactions.
+
+\subsection{Summary}
+
+In summary, ASDG unifies syntactic code elements and semantic relations into a single formal structure:
+\begin{itemize}
+    \item \textbf{Nodes} describe all identifiable code facts, including enumerations, macros, structures, and functions.
+    \item \textbf{Edges} capture both direct code relationships (such as calls and containment) and higher-level semantic dependencies.
+    \item \textbf{Attributes} attach rich metadata about value ranges, usage semantics, and state transitions.
+\end{itemize}
+
+This unified representation allows us to reason about program semantics in a graph-theoretic manner. 
+It provides the foundational abstraction upon which we later perform 
+\emph{state dependency inference}, \emph{API relation extraction}, and \emph{API misuse detection}.

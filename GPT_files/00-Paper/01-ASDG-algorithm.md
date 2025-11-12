@@ -132,3 +132,57 @@
 \STATE \textbf{return} $G_\tau$
 \end{algorithmic}
 \end{algorithm}
+
+
+\begin{algorithm}[t]
+\caption{RAG-Guided LLM for IOCTL Task Graph Inference}
+\label{alg:ioctl_graph}
+\begin{algorithmic}[1]
+\REQUIRE Task description $T$; set of IOCTL names $\mathcal{I}$; RAG back-end with interfaces \textsc{Enumerate}, \textsc{Struct}, \textsc{Macro}, \textsc{Function}; modules \textsc{IoctlSummarizer}, \textsc{Evaluator}, \textsc{MissingCode}; maximum refinement rounds $K$
+\ENSURE Dependency graph $G=(V,E_{\text{param}},E_{\text{state}})$ over $\mathcal{I}$ for task $T$
+\STATE $V \gets \mathcal{I}$; $S \gets \emptyset$ \COMMENT{initialize vertices and per-IOCTL summaries}
+\vspace{3pt}
+\STATE \textbf{Phase I: RAG-grounded per-IOCTL semantic summarization}
+\FORALL{$i \in \mathcal{I}$}
+  \STATE $B_i \gets$ \textsc{Enumerate}$(i) \cup$ \textsc{Struct}$(i) \cup$ \textsc{Macro}$(i) \cup$ \textsc{Function}$(i)$ \COMMENT{collect basic facts}
+  \STATE $s_i^{(0)} \gets$ \textsc{IoctlSummarizer}$(i, T, B_i)$ \COMMENT{LLM: initial task-focused summary}
+  \STATE $t \gets 0$
+  \WHILE{$t < K$}
+    \STATE $ok,\,R \gets$ \textsc{Evaluator}$(s_i^{(t)}, T, B_i)$
+    \IF{$ok$}
+      \STATE \textbf{break}
+    \ELSE
+      \STATE $M \gets$ \textsc{MissingCode}$(s_i^{(t)}, T)$ \COMMENT{LLM: identify missing code evidence}
+      \STATE $B_i \gets B_i \cup$ \textsc{QueryRAG}$(M)$ \COMMENT{fetch concrete code via RAG: enums/structs/macros/functions}
+      \STATE $s_i^{(t+1)} \gets$ \textsc{IoctlSummarizer}$(i, T, B_i, R)$ \COMMENT{refine using newly grounded facts}
+      \STATE $t \gets t+1$
+    \ENDIF
+  \ENDWHILE
+  \STATE $S \gets S \cup \{\,\textsc{Finalize}(i, s_i^{(t)}, B_i)\,\}$ \COMMENT{freeze hallucination-checked summary}
+\ENDFOR
+\vspace{3pt}
+\STATE \textbf{Phase II: Graph reasoning over all IOCTLs for task $T$}
+\STATE $S' \gets \{\,\textsc{Compress}(s_i) \mid s_i \in S\,\}$ \COMMENT{length-normalized, salient facts only}
+\STATE $C \gets \textsc{Merge}(S')$ \COMMENT{cross-IOCTL evidence pool}
+\STATE $\widehat{E}_{\text{param}}, \widehat{E}_{\text{state}} \gets$ \textsc{LLM-Reason}$(C, T)$
+\STATE $\widehat{E}_{\text{param}} \gets \textsc{Ground\&Filter}(\widehat{E}_{\text{param}}, S)$ \COMMENT{keep only edges supported by basic facts}
+\STATE $\widehat{E}_{\text{state}} \gets \textsc{Ground\&Filter}(\widehat{E}_{\text{state}}, S)$
+\STATE $E_{\text{param}}, E_{\text{state}} \gets \textsc{ResolveConflicts}(\widehat{E}_{\text{param}}, \widehat{E}_{\text{state}})$ \COMMENT{prefer fact-backed, conservative ties}
+\STATE \textbf{return} $G=(V,E_{\text{param}},E_{\text{state}})$
+\vspace{4pt}
+\STATE \hrulefill
+\STATE \textbf{Subroutine semantics (sketch).}
+\STATE \textsc{IoctlSummarizer}$(i,T,B)$: Produces a task-centric summary including (a) input/parameter roles and preconditions; (b) read/write effects on device state; (c) error paths; (d) observable outputs. Uses $B$ (basic facts) to anchor claims.
+\STATE \textsc{Evaluator}$(s,T,B)$: Verifies that the summary is faithful to code; returns $(ok,R)$ where $R$ lists missing evidence (e.g., specific enums, struct fields, macro guards, callee definitions).
+\STATE \textsc{MissingCode}$(s,T)$: Extracts concrete code artifacts required to resolve gaps; expressed as RAG queries.
+\STATE \textsc{QueryRAG}$(M)$: Executes \textsc{Enumerate}/\textsc{Struct}/\textsc{Macro}/\textsc{Function} queries to retrieve code snippets and definitions.
+\STATE \textsc{Compress}$(s)$: Retains only grounded facts and minimal semantics for graph reasoning.
+\STATE \textsc{LLM-Reason}$(C,T)$: Infers candidate edges:
+\begin{itemize}
+  \item $E_{\text{param}}$: input/return/data-flow dependencies between IOCTLs for $T$ (e.g., handle/descriptor/identifier propagation).
+  \item $E_{\text{state}}$: state-precondition/effect dependencies (enable/disable, create/use/destroy, init$\rightarrow$use$\rightarrow$finalize).
+\end{itemize}
+\STATE \textsc{Ground\&Filter}: Discards edges lacking support in $S$'s basic-fact citations; downgrades speculative links.
+\STATE \textsc{ResolveConflicts}: Reconciles contradictory edges, favoring conservative, code-backed relations; enforces acyclicity where required by $T$.
+\end{algorithmic}
+\end{algorithm}

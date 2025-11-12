@@ -16,46 +16,47 @@ These code facts serve as the \textit{ground truth layer} for subsequent reasoni
 While they describe syntactic and type-level information available from the code, many semantic dependencies (e.g., implicit state transitions or hidden data correlations) are not directly visible.
 Hence, we later employ LLM-assisted reasoning to infer such higher-level semantics on top of the extracted facts.
 
-\paragraph{Example.} To illustrate, consider the following simplified kernel structure and function definition: 
+\paragraph{Example.} To illustrate, consider the following simplified kernel structure and function definition:
+\begin{verbatim}
+struct drm_device {
+int device_id;
+struct drm_driver *driver;
+};
 
-\begin{verbatim} struct drm\\_device { int device\_id; struct drm\_driver *driver; };
-
-int drm\_open(struct drm\_device *dev) { if (!dev->driver) return -EINVAL; dev->device\_id = allocate\_id(); return 0; } 
-
-\end{verbatim} 
-
-Through static analysis, the Basic Facts extracted include: (1) the definition of \texttt{struct drm\_device} and its nested field \texttt{driver}; (2) the function \texttt{drm\_open()} and its parameter type; and (3) the direct call to \texttt{allocate\_id()}. These facts serve as verifiable, code-grounded knowledge describing type relationships and call dependencies. Later, during semantic reasoning, the LLM can use these Basic Facts to deduce that \texttt{drm\_open()} transitions the device state by assigning a valid identifier, thus contributing to the ASDG’s state and data-flow inference.
+int drm_open(struct drm_device *dev) {
+if (!dev->driver)
+return -EINVAL;
+dev->device_id = allocate_id();
+return 0;
+}
+\end{verbatim}
+Through static analysis, the Basic Facts extracted include: (1) the definition of \texttt{struct drm\_device} and its nested field \texttt{driver}; (2) the function \texttt{drm_open()} and its parameter type; and (3) the direct call to \texttt{allocate\_id()}. These facts serve as verifiable, code-grounded knowledge describing type relationships and call dependencies. Later, during semantic reasoning, the LLM can use these Basic Facts to deduce that \texttt{drm\_open()} transitions the device state by assigning a valid identifier, thus contributing to the ASDG’s state and data-flow inference.
 
 \subsubsection{Call-Chain Refinement}
 In C programs, a \textit{call graph} represents the set of calling relationships between functions, describing which functions invoke which others throughout the program. Generally, a call graph can be divided into two categories: (1) \textbf{direct function calls}, where a function explicitly invokes another through its name, and (2) \textbf{indirect function calls}, where the invocation occurs through function pointers, callbacks, or virtual operation tables. Direct calls can be easily extracted using the Basic Fact Extraction (BFE) process described in the previous section. However, in kernel driver development, indirect calls are heavily used, leading to incomplete or disconnected portions of the call graph that cannot be reconstructed through conventional static analysis. Restoring these missing connections has long been a significant challenge in program analysis research.
 
-To address this challenge, we employ the state-of-the-art tool \textbf{DeepType}, which assists in recovering indirect call relationships and completing the call graph. DeepType models the correlation between pointer assignments and the data-flow of function objects. It collects pointer usage contexts, builds embedding representations of functions and call sites, and classifies potential targets through neural type inference. By integrating DeepType’s inferred call edges into our analysis, we obtain an \textit{augmented call graph} that accurately reflects both direct and indirect invocation relationships—essential for later reasoning over inter-API dependencies.
+To address this challenge, we employ the state-of-the-art tool \textbf{DeepType}, an advanced deep learning-based type inference framework for C programs developed by the S3 team . DeepType implements the Strong Multi-Layer Type Analysis (SMLTA) algorithm to address the limitations of traditional type-based analyses. Considering the high false positive rate of conventional approaches, it uses a multi-layer type representation to describe function pointers, consisting of both the function signature and the composite types that encapsulate it. While this richer representation improves precision, it introduces challenges in type matching because address-taken functions may propagate through complex information flows between multi-layer types. To mitigate this, DeepType applies SMLTA, which enforces a strong matching constraint—only functions whose entire multi-layer types match an indirect call are considered valid targets. SMLTA resolves the relationships between multi-layer types based on the direction of information flow and employs an adapted breadth-first search (BFS) algorithm to discover all multi-layer types involved in the propagation of target functions. It further adopts conservative strategies to handle ambiguous type information. As a prototype implementation of SMLTA, DeepType effectively overcomes the challenges of multi-layer type matching and precisely identifies indirect call targets in C-based kernel drivers. By integrating DeepType’s inferred call edges into our analysis, we obtain an \textit{augmented call graph} that accurately reflects both direct and indirect invocation relationships—essential for later reasoning over inter-API dependencies.
 
 \paragraph{Example.} Consider the following simplified snippet:
 \begin{verbatim}
-static int drv\_open(struct inode *inode, struct file *filp) {
-return drv\_fops.open(inode, filp);   // indirect via function pointer table
+static int drv_open(struct inode *inode, struct file *filp) {
+return drv_fops.open(inode, filp);   // indirect via function pointer table
 }
 
-static const struct file\_operations drv\_fops = {
-.open = drv\_open\_impl,
+static const struct file_operations drv_fops = {
+.open = drv_open_impl,
 };
 
-static int drv\_open\_impl(struct inode *inode, struct file *filp) {
-return real\_open(inode, filp);       // direct call
-}
-\end{verbatim}
+static int drv\_open\_impl(struct inode *inode, struct file *filp) { return real_open(inode, filp);       // direct call } 
+\end{verbatim} 
 
 Basic Fact Extraction recovers the direct edge \texttt{drv\_open\_impl() -> real\_open()}, but without resolving the function pointer \texttt{drv\_fops.open}, the edge from \texttt{drv\_open()} to \texttt{drv\_open\_impl()} remains missing. DeepType identifies \texttt{drv\_open\_impl} as the dynamic target of \texttt{drv\_fops.open}, allowing us to add the missing indirect edge and obtain a precise, connected call graph that faithfully reflects the driver’s control flow.
 
-\subsubsection{Dynamic Parameter-Type Inference}
-Given the refined call graph, we apply \textbf{LLM-guided semantic exploration} to infer the concrete runtime semantics of parameters whose types are ambiguous in static analysis. For example, a function parameter defined as \texttt{unsigned long addr} may actually hold the address of a specific kernel data structure. To resolve such latent semantics, we traverse the call chain upward and downward to collect the parameter’s usage contexts, and query an LLM to reason about its most plausible underlying type (e.g., a pointer to \texttt{struct drm\_device}). This step allows our fuzzing framework to construct valid objects and memory layouts for realistic test generation.
+\subsubsection{Dynamic Parameter-Type Inference} Given the refined call graph, we apply \textbf{LLM-guided semantic exploration} to infer the concrete runtime semantics of parameters whose types are ambiguous in static analysis. For example, a function parameter defined as \texttt{unsigned long addr} may actually hold the address of a specific kernel data structure. To resolve such latent semantics, we traverse the call chain upward and downward to collect the parameter’s usage contexts, and query an LLM to reason about its most plausible underlying type (e.g., a pointer to \texttt{struct drm\_device}). This step allows our fuzzing framework to construct valid objects and memory layouts for realistic test generation.
 
-\subsubsection{Parameter Range Derivation}
-We next infer \textit{value-range constraints} for parameters. Condition-checking statements in the driver often imply bounds on valid inputs. For instance, the condition \texttt{if (nr >= DRM\_CORE\_IOCTL\_COUNT)} indicates that the ioctl number \texttt{nr} must lie within a bounded range. Combining syntactic conditions obtained from basic fact extraction with LLM-based reasoning about symbolic comparisons and enumeration semantics, we infer approximate value domains for each input field (e.g., \texttt{0 ≤ nr < DRM\_CORE\_IOCTL\_COUNT}). Such range information helps the fuzzer prune infeasible inputs and concentrate on semantically valid cases.
+\subsubsection{Parameter Range Derivation} We next infer \textit{value-range constraints} for parameters. Condition-checking statements in the driver often imply bounds on valid inputs. For instance, the condition \texttt{if (nr >= DRM\_CORE\_IOCTL\_COUNT)} indicates that the ioctl number \texttt{nr} must lie within a bounded range. Combining syntactic conditions obtained from basic fact extraction with LLM-based reasoning about symbolic comparisons and enumeration semantics, we infer approximate value domains for each input field (e.g., \texttt{0 ≤ nr < DRM_CORE_IOCTL_COUNT}). Such range information helps the fuzzer prune infeasible inputs and concentrate on semantically valid cases.
 
-\subsubsection{State and Parameter Dependency Inference}
-Finally, we construct both the \textit{state-machine transitions} and \textit{parameter-dependency edges} among ioctl APIs. State transitions describe the ordering constraints between APIs (e.g., \texttt{open()} must precede \texttt{ioctl(SETUP)}), while parameter dependencies capture data relationships such as ``\texttt{set\_format(image)} must precede \texttt{get\_format(image)}.''
+\subsubsection{State and Parameter Dependency Inference} Finally, we construct both the \textit{state-machine transitions} and \textit{parameter-dependency edges} among ioctl APIs. State transitions describe the ordering constraints between APIs (e.g., \texttt{open()} must precede \texttt{ioctl(SETUP)}), while parameter dependencies capture data relationships such as ``\texttt{set\_format(image)} must precede \texttt{get\_format(image)}.''
 
 To infer these dependencies, we design a \textbf{LangGraph-based reasoning framework}. Each API is treated as a node whose semantics are summarized by the LLM. For a target reasoning task (state inference or parameter influence), we first prompt the LLM to summarize the API’s behavioral intent based on its code. If the summary lacks sufficient context (e.g., missing definitions of called functions or relevant structures), the framework automatically identifies and retrieves the missing facts from the code fact database. Those facts are recursively summarized and fed back into the node’s reasoning context, forming an iterative summarization–refinement loop until the LLM deems the information sufficient. After all API nodes are individually summarized, the framework jointly reasons over the set of summaries to infer inter-API dependencies and produce the final \textbf{API State Dependency Graph (ASDG)}.
 

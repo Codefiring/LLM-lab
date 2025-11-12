@@ -186,3 +186,55 @@
 \STATE \textsc{ResolveConflicts}: Reconciles contradictory edges, favoring conservative, code-backed relations; enforces acyclicity where required by $T$.
 \end{algorithmic}
 \end{algorithm}
+
+\begin{algorithm}[t]
+\caption{RAG-Guided Inference of Task-Specific Relations Among \texttt{ioctl}s}
+\label{alg:ioctl-graph}
+\begin{algorithmic}[1]
+\REQUIRE Task description $T$; set of ioctl names $\mathcal{I}$; RAG backend interfaces $\mathsf{ENUM}$, $\mathsf{STRUCT}$, $\mathsf{MACRO}$, $\mathsf{FUNC}$; LLM modules $\mathsf{Summarizer}$, $\mathsf{Evaluator}$, $\mathsf{MissingCode}$, $\mathsf{Compressor}$, $\mathsf{GraphInfer}$; maximum refinement rounds $K$
+\ENSURE Concise per-ioctl summaries $\{S_i^{\text{final}}\}_{i\in\mathcal{I}}$ and a task-specific relation graph $G=(V,E)$
+
+\STATE $V \leftarrow \mathcal{I}$; $\mathcal{S} \leftarrow \emptyset$ \COMMENT{Graph nodes are ioctls; collect summaries in $\mathcal{S}$}
+\FORALL{$i \in \mathcal{I}$}
+    \STATE $C_i \leftarrow \mathsf{FUNC}.\mathsf{query}(i)$ \COMMENT{Primary code for ioctl $i$}
+    \STATE $S_i \leftarrow \mathsf{Summarizer}(i, T, C_i)$ \COMMENT{Initial, task-focused code summary}
+    \STATE $r \leftarrow 0$
+    \REPEAT
+        \STATE $(\textit{sufficient}, R_i) \leftarrow \mathsf{Evaluator}(S_i, T)$
+        \IF{$\textit{sufficient} = \textbf{true}$}
+            \STATE \textbf{break}
+        \ELSE
+            \STATE $\Delta_i \leftarrow \mathsf{MissingCode}(S_i, R_i, T)$
+            \STATE $\mathcal{B}_i \leftarrow \emptyset$ \COMMENT{Bag of basic facts and code to fill gaps}
+            \IF{$\Delta_i$ requires enumerations}
+                \STATE $\mathcal{B}_i \leftarrow \mathcal{B}_i \cup \mathsf{ENUM}.\mathsf{fetch}(\Delta_i)$
+            \ENDIF
+            \IF{$\Delta_i$ requires macros}
+                \STATE $\mathcal{B}_i \leftarrow \mathcal{B}_i \cup \mathsf{MACRO}.\mathsf{fetch}(\Delta_i)$
+            \ENDIF
+            \IF{$\Delta_i$ requires structs}
+                \STATE $\mathcal{B}_i \leftarrow \mathcal{B}_i \cup \mathsf{STRUCT}.\mathsf{fetch}(\Delta_i)$
+            \ENDIF
+            \IF{$\Delta_i$ requires functions}
+                \STATE $\mathcal{B}_i \leftarrow \mathcal{B}_i \cup \mathsf{FUNC}.\mathsf{fetch}(\Delta_i)$
+            \ENDIF
+            \STATE $S^{\text{aux}}_i \leftarrow \mathsf{Summarizer}(\mathcal{B}_i, T)$ \COMMENT{Summarize only the fetched missing pieces}
+            \STATE $S_i \leftarrow \mathsf{Summarizer}(i, T, C_i, S^{\text{aux}}_i)$ \COMMENT{Re-summarize ioctl with gap-filling context}
+            \STATE $r \leftarrow r + 1$
+        \ENDIF
+    \UNTIL{$\textit{sufficient}=\textbf{true}$ \OR $r \ge K$}
+    \STATE $S_i^{\text{final}} \leftarrow \mathsf{Compressor}(S_i)$ \COMMENT{Length-controlled, task-focused summary}
+    \STATE $\mathcal{S} \leftarrow \mathcal{S} \cup \{S_i^{\text{final}}\}$
+\ENDFOR
+
+\STATE $M \leftarrow \textsc{Merge}(\mathcal{S})$ \COMMENT{Global view over all ioctls under task $T$}
+\STATE $G \leftarrow \mathsf{GraphInfer}(M, T)$
+\STATE \textbf{return} $\{S_i^{\text{final}}\}_{i\in\mathcal{I}},\; G$
+
+\vspace{0.25em}
+\STATE \textbf{Notes on semantics and grounding:}
+\STATE \hspace{0.6em}(a) \emph{Basic facts} (from $\mathsf{ENUM}$/$\mathsf{STRUCT}$/$\mathsf{MACRO}$/$\mathsf{FUNC}$) are treated as faithful, static signals.
+\STATE \hspace{0.6em}(b) LLM reasoning is constrained to operate \emph{under} these facts to reduce hallucinations and to guide efficient inference.
+\STATE \hspace{0.6em}(c) $\mathsf{GraphInfer}$ outputs labeled edges $E$ such as \textit{input-dependency} and \textit{state-dependency}, optionally with confidence scores.
+\end{algorithmic}
+\end{algorithm}

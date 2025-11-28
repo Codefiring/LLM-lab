@@ -385,3 +385,248 @@ drivers/gpu/drm/drm_ioctl.c
 
 告诉我你关心的是：
 **QEMU 可运行优先？状态机复杂度优先？类似 NPU 的 ioctl 模式优先？还是你准备 fuzz 综合子系统？**
+
+
+loop 驱动本身在代码里已经有一个非常清晰的“状态机”，核心就是 `lo->lo_state` 这个字段：([codebrowser.dev][1])
+
+```c
+/* Possible states of device */
+enum {
+    Lo_unbound,
+    Lo_bound,
+    Lo_rundown,
+    Lo_deleting,
+};
+```
+
+下面我先给你一张 **DOT 状态机图**，然后再逐条解释每个状态和关键 ioctl/操作的前置条件和效果。
+
+---
+
+## 1. loop 的 DOT 状态机
+
+你可以直接把下面这段保存为 `loop.dot`，用 `dot -Tpng loop.dot -o loop.png` 画图：
+
+```dot
+digraph loop_state_machine {
+    rankdir=LR;
+    node [shape=ellipse];
+
+    Lo_unbound  [label="Lo_unbound\n(未绑定 backing file)"];
+    Lo_bound    [label="Lo_bound\n(已绑定 backing file, 可正常 I/O)"];
+    Lo_rundown  [label="Lo_rundown\n(准备解绑, 等待最后一个 close)"];
+    Lo_deleting [label="Lo_deleting\n(设备正在被移除)"];
+
+    // 初始绑定
+    Lo_unbound -> Lo_bound [
+        label="LOOP_SET_FD / LOOP_CONFIGURE\n前置: lo_state == Lo_unbound"
+    ];
+
+    // 配置类 ioctl，不改状态
+    Lo_bound -> Lo_bound [
+        label="LOOP_SET_STATUS(_64)\nLOOP_SET_CAPACITY\nLOOP_SET_BLOCK_SIZE\nLOOP_SET_DIRECT_IO\nLOOP_GET_STATUS(_64)"
+    ];
+
+    // 显式请求清除 + 只有一个打开者
+    Lo_bound -> Lo_rundown [
+        label="LOOP_CLR_FD 且 disk_openers == 1\n(设置 LO_FLAGS_AUTOCLEAR\n并立刻进入 Lo_rundown)"
+    ];
+
+    // 显式请求清除 + 多个打开者
+    Lo_bound -> Lo_bound [
+        label="LOOP_CLR_FD 且 disk_openers > 1\n(仅设置 LO_FLAGS_AUTOCLEAR,\n状态仍为 Lo_bound)"
+    ];
+
+    // 自动清除路径：最后一次 close
+    Lo_bound -> Lo_rundown [
+        label="最后一个 close\n且设置了 LO_FLAGS_AUTOCLEAR\n(lo_release 中修改为 Lo_rundown)"
+    ];
+
+    // 真正解绑 backing file
+    Lo_rundown -> Lo_unbound [
+        label="__loop_clr_fd()\n(释放 backing file, 清理 size,\n最终 lo_state = Lo_unbound)"
+    ];
+
+    // 删除设备（通过 /dev/loop-control 等）
+    Lo_unbound -> Lo_deleting [
+        label="loop_remove() / 模块卸载"
+    ];
+    Lo_bound -> Lo_deleting [
+        label="loop_remove() / 模块卸载"
+    ];
+
+    // 删除状态是终态：open 会失败
+    Lo_deleting -> Lo_deleting [
+        label="lo_open 拒绝 (ENXIO)"
+    ];
+}
+```
+
+---
+
+## 2. 每个状态的含义
+
+### Lo_unbound（未绑定）
+
+* 没有 `lo_backing_file`，设备只是一个空壳。([codebrowser.dev][1])
+* 常见初始状态（刚创建的 /dev/loopX）。
+* 只能通过 **绑定类 ioctl** 进入下一状态：
+
+  * `LOOP_SET_FD`（老接口，内部现在会走 `loop_configure()` 路径）([codebrowser.dev][1])
+  * `LOOP_CONFIGURE`（新接口，直接调用 `loop_configure()`）([codebrowser.dev][1])
+* 在 `loop_configure()` 里，如果 `lo_state != Lo_unbound` 就直接 `-EBUSY`：([codebrowser.dev][1])
+
+  ```c
+  error = -EBUSY;
+  if (lo->lo_state != Lo_unbound)
+      goto out_unlock;
+  ```
+
+---
+
+### Lo_bound（已绑定，可 I/O）
+
+* `loop_configure()` 成功后会设置：([codebrowser.dev][1])
+
+  ```c
+  lo->lo_state = Lo_bound;
+  ```
+* 此时：
+
+  * `lo_backing_file` 已设置；
+  * queue limits、block size 等已经按 backing file 计算；
+  * 可以正常接收 block I/O 请求。
+* I/O 路径中有显式检查：([codebrowser.dev][1])
+
+  ```c
+  if (lo->lo_state != Lo_bound)
+      return BLK_STS_IOERR;
+  ```
+
+  也就是说只有在 Lo_bound 才会成功处理请求；其它状态返回 I/O 错误。
+* **仅在 Lo_bound 状态下** 许多 ioctl 才有效，比如：([codebrowser.dev][1])
+
+  * `LOOP_SET_STATUS(_64)`：修改 offset、sizelimit、flags 等；
+  * `LOOP_GET_STATUS(_64)`：查询当前配置；
+  * `LOOP_SET_CAPACITY` / `LOOP_SET_BLOCK_SIZE` / `LOOP_SET_DIRECT_IO` 等。
+* 典型的状态保持操作（状态不变，只改配置）：
+
+  ```c
+  if (lo->lo_state != Lo_bound)
+      return -ENXIO;
+  // 各种更新 lo_flags / size / DIO 等
+  ```
+
+---
+
+### Lo_rundown（清理中/等待解绑）
+
+这个状态是 loop 状态机里比较关键的一部分，用来做 **“延迟解绑”**，避免竞态。([codebrowser.dev][1])
+
+触发路径有两种：
+
+1. **显式调用 `LOOP_CLR_FD`，且只有一个 opener**
+   `loop_clr_fd()`：([codebrowser.dev][1])
+
+   ```c
+   err = loop_global_lock_killable(lo, true);
+   if (err)
+       return err;
+   if (lo->lo_state != Lo_bound) {
+       loop_global_unlock(lo, true);
+       return -ENXIO;
+   }
+
+   lo->lo_flags |= LO_FLAGS_AUTOCLEAR;
+   if (disk_openers(lo->lo_disk) == 1)
+       lo->lo_state = Lo_rundown;
+   loop_global_unlock(lo, true);
+   ```
+
+   * 前置: `lo_state == Lo_bound`
+   * 结果:
+
+     * 总是设置 `LO_FLAGS_AUTOCLEAR`；
+     * 若当前只有一个 open，则立即转入 `Lo_rundown`。
+
+2. **多 opener 情况下的最后一次 close**
+   在 `lo_release()` 的最后一次 close 路径中：([codebrowser.dev][1])
+
+   ```c
+   if (disk_openers(disk) > 0)
+       return;
+
+   mutex_lock(&lo->lo_mutex);
+   if (lo->lo_state == Lo_bound &&
+       (lo->lo_flags & LO_FLAGS_AUTOCLEAR))
+       lo->lo_state = Lo_rundown;
+
+   need_clear = (lo->lo_state == Lo_rundown);
+   mutex_unlock(&lo->lo_mutex);
+
+   if (need_clear)
+       __loop_clr_fd(lo);
+   ```
+
+   * 也就是说，如果之前 `LOOP_CLR_FD` 只是打了 `AUTOCLEAR` 标记（但当时有多个 opener），那么在最后一个 fd close 时，会从 Lo_bound 变为 Lo_rundown，并调用 `__loop_clr_fd()` 做真正的解绑。
+
+**Lo_rundown 状态下的行为：**
+
+* `lo_open()` 会拒绝新的 open：([codebrowser.dev][1])
+
+  ```c
+  if (lo->lo_state == Lo_deleting || lo->lo_state == Lo_rundown)
+      err = -ENXIO;
+  ```
+* I/O 路径 `loop_queue_rq()` 中也会因为 `lo_state != Lo_bound` 而直接失败 (`BLK_STS_IOERR`)。([codebrowser.dev][1])
+* 最终由 `__loop_clr_fd()` 把所有资源释放并把状态切回 `Lo_unbound`。
+
+---
+
+### Lo_deleting（设备删除中）
+
+* 用于设备被 `/dev/loop-control` 的 `LOOP_CTL_REMOVE` 等操作删除，或者模块卸载时。
+* 在 `lo_open()` 中，与 Lo_rundown 一样，直接拒绝 open：([codebrowser.dev][1])
+
+  ```c
+  if (lo->lo_state == Lo_deleting || lo->lo_state == Lo_rundown)
+      err = -ENXIO;
+  ```
+* 对 fuzz driver 来说可以把它看作 **终态**，一般不会通过普通的 `/dev/loopX` ioctl 进入（更多是控制接口 / 模块卸载的行为）。
+
+---
+
+## 3. 结合 fuzzing 的简化抽象建议
+
+如果你的目标是给 AFL 做 **ioctl 状态机约束**，可以适当简化：
+
+* 只保留 3 个“逻辑状态”：
+
+  1. `U` = Unbound  (`Lo_unbound`)
+  2. `B` = Bound    (`Lo_bound`)
+  3. `R` = Rundown  (`Lo_rundown` + `Lo_deleting` 都视为“不可用”)
+
+* 事件（边）：
+
+  * `bind`：`U --(LOOP_SET_FD / LOOP_CONFIGURE)--> B`
+  * `configure`：`B --(LOOP_SET_STATUS/SET_CAPACITY/SET_BLOCK_SIZE/SET_DIRECT_IO/GET_STATUS)--> B`
+  * `clear_fd`：
+
+    * 如果“模拟环境”里 `openers == 1`：`B --(LOOP_CLR_FD)--> R`
+    * 否则：`B --(LOOP_CLR_FD)--> B`（只记下 AUTOCLEAR 标志即可）
+  * `last_close`：
+
+    * 如果之前被 `clear_fd` 标过：`B -> R -> U`
+  * `device_remove`：`U/B -> R`（可以直接当成 `R` 终态）
+
+* 对 AFL 的约束：
+
+  * 想 fuzz 这些 ioctl：`LOOP_SET_STATUS(_64)`, `LOOP_SET_DIRECT_IO`, `LOOP_SET_BLOCK_SIZE`, `LOOP_SET_CAPACITY`, `LOOP_GET_STATUS(_64)`
+    → 必须处于 `B`。
+  * 想 fuzz I/O 请求（读写 loop 设备本身）
+    → 也必须处于 `B`。
+  * 处于 `R` 时，新 open/更多 ioctl 基本都会失败，用于覆盖错误路径也可以，但对“正确驱动”探索帮助不大。
+
+如果你愿意，我可以 **按你现在的 fuzz driver 结构**，再帮你写一个“loop 专用”的状态机描述结构（比如 JSON 或 C 里的表驱动形式），方便自动生成 DOT 或约束 AFL 的 mutator。
+
+[1]: https://codebrowser.dev/linux/linux/drivers/block/loop.c.html "loop.c source code [linux/drivers/block/loop.c] - Codebrowser "

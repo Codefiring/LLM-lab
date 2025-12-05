@@ -777,3 +777,10 @@ ground truth 的抽象方式 **要尽量跟你自动框架的输出一致**，�
 
 * 看一下你当前提取框架生成的某个驱动的 DOT，
 * 一起设计一个具体的 ground truth schema 和对比脚本的格式。
+
+
+To systematically evaluate the effectiveness of our proposed Automatic State-machine Derivation Generator (ASDG) in modeling ioctl behaviors of Linux device drivers, this design document aims to provide a set of repeatable, quantitative, and extensible evaluation methodologies. Since many real-world drivers contain explicit state variables in their ioctl execution paths (such as bitmasks, enumerated states, and context flags), constructing a correct and precise driver state machine is crucial for achieving state-aware fuzzing. Therefore, we require a mechanism to compare the state machines automatically derived by ASDG with manually defined ground truth (GT) state machines and quantify the differences between them.
+
+This evaluation document first clarifies our definition of a “state machine,” including how states are abstracted, how transitions are specified, and the modeling scope of ioctl behaviors. Next, we provide a simplified Linux driver example to demonstrate both the manually constructed ground truth state machine and the state machine inferred by ASDG, allowing a more intuitive alignment between the two. Finally, we introduce several feasible evaluation dimensions and metrics, including state-level and transition-level precision/recall, sequence-level behavioral similarity, structural graph differences, and downstream fuzzing-based effectiveness evaluation.
+
+Together, these components form a unified, transparent, and quantitative standard framework for assessing the accuracy of ASDG, ensuring that future improvements and iterations are traceable and methodologically grounded.

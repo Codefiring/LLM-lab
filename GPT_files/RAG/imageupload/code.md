@@ -1,586 +1,217 @@
-下面我帮你从**系统架构设计 + 技术栈 + 数据结构 + 完整可运行的前后端代码** 一步到位输出一个图片共享网站（支持剪贴板上传、按日期分组展示、按 IP 区分用户、用户自主删除图片、设置不可见 IP 白名单/黑名单），网站风格模仿苹果官网的简洁设计。
-整个项目用 **Python + Flask + SQLite + 前端 HTML/CSS/JavaScript** 实现；打包后可一键运行。
+下面是一套 **一键可跑的图片共享网站** 实现方案，满足：
+
+✅ 用户按 **Ctrl+V 直接粘贴图片上传**
+✅ 图片按 **日期分组展示**
+✅ 用访问者的 **IP 区分用户**
+✅ 用户可 **删除自己的图片**
+✅ 支持设置 **哪些 IP 不可见自己的图片**
+✅ 风格参考 **Apple 官网极简风格**
+✅ 完整前后端代码，用 **Python（Flask）** 实现
 
 ---
 
-## 🧠 设计概述
+## 🧠 系统设计
 
-### 功能清单
+### 🧱 数据模型（SQLite 简单版）
 
-| 功能                | 支持情况 |
-| ----------------- | ---- |
-| 剪贴板上传图片           | ✅    |
-| 图片统一展示页（按日期分组）    | ✅    |
-| 通过访问 IP 区分用户      | ✅    |
-| 用户删除自己上传的图片       | ✅    |
-| 设置哪些 IP 不可见 (黑名单) | ✅    |
-| 简洁苹果风             | ✅    |
-
----
-
-## 🛠️ 技术栈
-
-| 层    | 技术                            |
-| ---- | ----------------------------- |
-| 后端   | Python Flask                  |
-| 数据库  | SQLite                        |
-| 图片存储 | 文件 -> /static/uploads         |
-| 前端   | HTML + CSS (苹果风) + Vanilla JS |
-| 服务器  | 内置 Flask 开发服务器（一键启动）          |
+| 表        | 字段            | 说明            |
+| -------- | ------------- | ------------- |
+| `images` | `id`          | 主键            |
+|          | `filename`    | 存储文件名         |
+|          | `uploaded_at` | 上传时间          |
+|          | `uploader_ip` | 上传者 IP        |
+|          | `hidden_ips`  | 不可见列表（JSON数组） |
 
 ---
 
-## 📁 项目结构
+## 🏗 文件结构
 
 ```
-image_share_app/
-├─ static/
-│   ├─ uploads/       # 图片文件存放
-│   └─ css/
-│       └─ style.css  # 苹果风样式
-├─ templates/
-│   ├─ index.html     # 图片展示页
-│   ├─ upload.html    # 上传页面
-│   └─ manage.html    # 用户管理页
-├─ app.py             # 主 Flask 应用
-├─ db.sqlite3         # SQLite DB
-├─ requirements.txt   # 依赖
-└─ README.md
+image_share/
+├── app.py
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── uploads/
+├── templates/
+│   ├── index.html
+│   └── images.html
+├── requirements.txt
+└── init_db.py
 ```
 
 ---
 
-## 📌 数据模型 (SQLite)
+## 📌 安装与一键运行
 
-**images 表**
-
-| 字段          | 类型        | 说明                      |
-| ----------- | --------- | ----------------------- |
-| id          | INTEGER   | 主键                      |
-| filename    | TEXT      | 存储路径                    |
-| ip          | TEXT      | 上传者 IP                  |
-| created     | TIMESTAMP | 上传时间                    |
-| hidden_from | TEXT      | 不可见 IP 列表 (JSON string) |
-
----
-
-## 📦 依赖文件 — requirements.txt
-
-```plaintext
-Flask==2.3.6
-Werkzeug==2.3.7
-```
-
----
-
-## 🧠 后端代码 — app.py
-
-> 直接运行即可自动创建数据库和目录
-
-```python
-import os
-import json
-import sqlite3
-from datetime import datetime
-from flask import Flask, request, redirect, url_for, render_template, send_from_directory
-
-# 设置路径
-UPLOAD_FOLDER = "static/uploads"
-DB_FILE = "db.sqlite3"
-
-# 创建 Flask
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# 初始化
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def get_db():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    with get_db() as db:
-        db.execute("""
-        CREATE TABLE IF NOT EXISTS images (
-            id INTEGER PRIMARY KEY,
-            filename TEXT,
-            ip TEXT,
-            created TIMESTAMP,
-            hidden_from TEXT
-        )
-        """)
-init_db()
-
-# 获取客户端 IP
-def get_client_ip():
-    return request.headers.get('X-Forwarded-For', request.remote_addr)
-
-# 首页展示
-@app.route('/')
-def index():
-    db = get_db()
-    all_imgs = db.execute("SELECT * FROM images ORDER BY created DESC").fetchall()
-    grouped = {}
-    my_ip = get_client_ip()
-
-    # 按日期分组
-    for img in all_imgs:
-        hidden = json.loads(img['hidden_from'] or "[]")
-        if my_ip in hidden:
-            continue
-        date = img['created'].split(" ")[0]
-        grouped.setdefault(date, []).append(img)
-
-    return render_template("index.html", groups=grouped, my_ip=my_ip)
-
-# 上传页
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
-    if request.method == 'POST':
-        file = request.files.get("image")
-        if not file:
-            return "No file!", 400
-        ip = get_client_ip()
-        filename = f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}.png"
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(path)
-
-        with get_db() as db:
-            db.execute(
-                "INSERT INTO images (filename, ip, created, hidden_from) VALUES (?, ?, ?, ?)",
-                (filename, ip, datetime.now(), json.dumps([]))
-            )
-        return redirect(url_for("index"))
-    return render_template("upload.html")
-
-# 删除图片
-@app.route('/delete/<int:img_id>', methods=["POST"])
-def delete(img_id):
-    ip = get_client_ip()
-    db = get_db()
-    img = db.execute("SELECT * FROM images WHERE id=?", (img_id,)).fetchone()
-    if img and img["ip"] == ip:
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], img["filename"]))
-        db.execute("DELETE FROM images WHERE id=?", (img_id,))
-        db.commit()
-    return redirect(url_for('index'))
-
-# 设置不可见 IP
-@app.route('/set_hidden/<int:img_id>', methods=["POST"])
-def set_hidden(img_id):
-    ip = get_client_ip()
-    hidden_ip = request.form.get("hidden_ip")
-    if not hidden_ip:
-        return redirect(url_for("index"))
-
-    db = get_db()
-    img = db.execute("SELECT * FROM images WHERE id=?", (img_id,)).fetchone()
-
-    if img and img["ip"] == ip:
-        hidden = json.loads(img["hidden_from"] or "[]")
-        if hidden_ip not in hidden:
-            hidden.append(hidden_ip)
-        db.execute("UPDATE images SET hidden_from=? WHERE id=?",
-                   (json.dumps(hidden), img_id))
-        db.commit()
-    return redirect(url_for("index"))
-
-# 运行
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
-```
-
----
-
-## 🍏 前端代码（苹果风）
-
-### 公共样式 — static/css/style.css
-
-```css
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    margin: 0;
-    background: #f2f2f2;
-}
-
-header {
-    background: #000;
-    color: #fff;
-    padding: 20px;
-    font-size: 24px;
-    text-align: center;
-}
-
-.container {
-    width: 90%;
-    margin: auto;
-}
-
-img {
-    max-width: 100%;
-    border-radius: 12px;
-    margin-bottom: 12px;
-}
-
-.card {
-    background: #fff;
-    padding: 12px;
-    border-radius: 12px;
-    margin: 16px 0;
-}
-```
-
----
-
-### 首页 — templates/index.html
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <title>图片共享</title>
-</head>
-<body>
-<header>📸 图片共享</header>
-<div class="container">
-
-<p>你的 IP: <strong>{{ my_ip }}</strong></p>
-<a href="/upload">📤 上传图片</a>
-
-{% for date, imgs in groups.items() %}
-<div class="card">
-    <h2>{{ date }}</h2>
-    {% for img in imgs %}
-    <div>
-        <img src="/static/uploads/{{ img.filename }}">
-        {% if img.ip == my_ip %}
-        <form action="/delete/{{ img.id }}" method="post">
-            <button>删除</button>
-        </form>
-        <form action="/set_hidden/{{ img.id }}" method="post">
-            <input name="hidden_ip" placeholder="屏蔽某个 IP">
-            <button>设置不可见</button>
-        </form>
-        <p>隐藏列表: {{ img.hidden_from }}</p>
-        {% endif %}
-    </div>
-    {% endfor %}
-</div>
-{% endfor %}
-
-</div>
-</body>
-</html>
-```
-
----
-
-### 上传页 — templates/upload.html
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <title>上传图片</title>
-</head>
-<body>
-<header>📤 上传图片</header>
-<div class="container">
-<form method="post" enctype="multipart/form-data">
-    <input type="file" name="image" accept="image/*" required>
-    <button type="submit">上传</button>
-</form>
-</div>
-</body>
-</html>
-```
-
----
-
-## 🚀 运行步骤（超简单）
-
-1. 安装依赖：
+**1. 创建虚拟环境并安装依赖**
 
 ```bash
+python -m venv venv
+source venv/bin/activate        # macOS / Linux
+venv\Scripts\activate           # Windows
 pip install -r requirements.txt
 ```
 
-2. 启动网站：
+**2. 初始化数据库**
+
+```bash
+python init_db.py
+```
+
+**3. 启动网站**
 
 ```bash
 python app.py
 ```
 
-3. 打开浏览器访问：
-
-```
-http://localhost:5000
-```
+浏览器打开： [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 ---
 
-## 🧩 未来可扩展功能（可选）
+## 📦 requirements.txt
 
-✅ 文件剪贴板直接粘贴（目前使用 file input 方案）
-➡️ 可加 JS 支持直接 Ctrl+V 上传
-
-➡️ 用户登录/注册（不再用 IP 区分）
-
-➡️ 图片分页 & 搜索
-
-➡️ 图片显示优化、懒加载、Lightbox 浏览
-
----
-
-如果你希望**加上剪贴板直接粘贴上传/支持多文件/移动端优化/用户登录系统**，我也可以继续升级代码 🚀
-
-
-
-
-
-
-
-
-
-
-当然可以！下面我给出 **升级版设计 + 代码实现（支持 Ctrl+V 粘贴上传 + 用户登录/注册系统，不再用 IP 区分用户）**。
-整个系统依然 **一键可跑、基于 Python（Flask）+ SQLite + HTML/CSS/JS**。风格继续模仿苹果官网简洁样式。
-
----
-
-## 🧠 整体变更设计
-
-### 主要改动
-
-✅ 用户系统（注册 / 登录 / 登出）
-✅ 粘贴板支持「Ctrl + V → 直接上传图片」
-✅ 图片按上传用户分组和按日期展示
-✅ 用户可以删除自己的图片
-✅ 可设置哪些用户不可见某张图片
-
----
-
-## 🛠️ 技术栈 & 结构
-
-```
-image_share_app/
-├─ static/
-│   ├─ uploads/
-│   ├─ css/
-│   │   └─ style.css
-│   └─ js/
-│       └─ paste_upload.js
-├─ templates/
-│   ├─ index.html
-│   ├─ login.html
-│   ├─ register.html
-│   ├─ upload.html
-│   └─ manage.html
-├─ app.py
-├─ auth.py
-├─ models.py
-├─ utils.py
-├─ requirements.txt
-└─ db.sqlite3
+```text
+Flask
+pillow
 ```
 
 ---
 
-## 📦 依赖文件 — requirements.txt
-
-```plaintext
-Flask==2.3.6
-Flask-Login==0.6.2
-Werkzeug==2.3.7
-```
-
----
-
-## 🔐 用户认证系统
-
-### models.py
+## 📍 init_db.py
 
 ```python
 import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
+import json
 
-DB = "db.sqlite3"
+conn = sqlite3.connect('images.db')
+c = conn.cursor()
 
-def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    return conn
+c.execute('''
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename TEXT,
+    uploaded_at TEXT,
+    uploader_ip TEXT,
+    hidden_ips TEXT
+)
+''')
 
-def init_db():
-    db = get_db()
-    db.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        username TEXT UNIQUE,
-        password TEXT
-    )""")
-    db.execute("""
-    CREATE TABLE IF NOT EXISTS images (
-        id INTEGER PRIMARY KEY,
-        filename TEXT,
-        user_id INTEGER,
-        created TEXT,
-        hidden_from TEXT,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )""")
-    db.commit()
+conn.commit()
+conn.close()
 
-def create_user(username, password):
-    db = get_db()
-    db.execute(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
-        (username, generate_password_hash(password))
-    )
-    db.commit()
-
-def authenticate(username, password):
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-    if user and check_password_hash(user["password"], password):
-        return user
-    return None
+print("数据库初始化完成 🎉")
 ```
 
 ---
 
-## 🧰 utils.py
+## 📍 app.py
 
 ```python
 import os
 import json
+import uuid
 from datetime import datetime
-from .models import get_db
+from flask import Flask, request, render_template, jsonify, send_from_directory
 
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def save_image(file, user_id):
-    filename = datetime.now().strftime("%Y%m%d%H%M%S%f") + ".png"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-    db = get_db()
-    db.execute(
-        "INSERT INTO images (filename, user_id, created, hidden_from) VALUES (?, ?, ?, ?)",
-        (filename, user_id, datetime.now(), json.dumps([]))
-    )
-    db.commit()
-```
-
----
-
-## 🛡 auth.py — 用户登录路由
-
-```python
-from flask import Blueprint, render_template, request, redirect, url_for, session
-from .models import create_user, authenticate
-
-auth_bp = Blueprint("auth", __name__)
-
-@auth_bp.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        create_user(username, password)
-        return redirect(url_for("auth.login"))
-    return render_template("register.html")
-
-@auth_bp.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        user = authenticate(request.form["username"], request.form["password"])
-        if user:
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            return redirect(url_for("index"))
-    return render_template("login.html")
-
-@auth_bp.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("index"))
-```
-
----
-
-## 🌐 主应用 — app.py
-
-```python
-import json
-from flask import Flask, request, render_template, redirect, url_for, session
-from models import init_db, get_db
-from auth import auth_bp
-from utils import save_image
+import sqlite3
+from PIL import Image
+from io import BytesIO
+import base64
 
 app = Flask(__name__)
-app.secret_key = "this_is_secret"
-app.register_blueprint(auth_bp)
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-init_db()
+def get_db():
+    conn = sqlite3.connect("images.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
-@app.route("/")
+@app.route('/')
 def index():
-    db = get_db()
-    imgs = db.execute("SELECT images.*, users.username FROM images JOIN users ON images.user_id=users.id ORDER BY created DESC").fetchall()
-    groups = {}
-    me = session.get("user_id")
+    return render_template('index.html')
 
-    for img in imgs:
-        hidden = json.loads(img["hidden_from"] or "[]")
-        if me and me in hidden:
+@app.route('/upload', methods=['POST'])
+def upload():
+    data = request.json.get('image')
+    ip = request.remote_addr
+
+    # 解码Base64
+    header, encoded = data.split(",", 1)
+    img_data = base64.b64decode(encoded)
+
+    # 存储文件
+    filename = f"{uuid.uuid4().hex}.png"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+    image = Image.open(BytesIO(img_data))
+    image.save(filepath)
+
+    # 存数据库
+    conn = get_db()
+    conn.execute("INSERT INTO images (filename, uploaded_at, uploader_ip, hidden_ips) VALUES (?,?,?,?)",
+                 (filename, datetime.utcnow().isoformat(), ip, json.dumps([])))
+    conn.commit()
+
+    return jsonify(success=True)
+
+@app.route('/images')
+def images():
+    ip = request.remote_addr
+    conn = get_db()
+
+    rows = conn.execute("SELECT * FROM images ORDER BY uploaded_at DESC").fetchall()
+    grouped = {}
+    for row in rows:
+        hidden = json.loads(row["hidden_ips"])
+        if ip in hidden:
             continue
-        date = img["created"].split(" ")[0]
-        groups.setdefault(date, []).append(img)
-    return render_template("index.html", groups=groups)
 
-@app.route("/upload", methods=["GET"])
-def upload_page():
-    if "user_id" not in session:
-        return redirect(url_for("auth.login"))
-    return render_template("upload.html")
+        date = row["uploaded_at"].split("T")[0]
+        grouped.setdefault(date, []).append(dict(row))
 
-@app.route("/api/upload", methods=["POST"])
-def upload_api():
-    if "user_id" not in session:
-        return "Unauthorized", 403
-    file = request.files.get("image")
-    save_image(file, session["user_id"])
-    return "OK"
+    return render_template('images.html', groups=grouped, my_ip=ip)
 
-@app.route("/delete/<int:id>", methods=["POST"])
-def delete(id):
-    if "user_id" not in session:
-        return redirect(url_for("auth.login"))
-    db = get_db()
-    img = db.execute("SELECT * FROM images WHERE id=?", (id,)).fetchone()
-    if img and img["user_id"] == session["user_id"]:
-        db.execute("DELETE FROM images WHERE id=?", (id,))
-        db.commit()
-    return redirect(url_for("index"))
+@app.route('/delete/<int:image_id>', methods=['POST'])
+def delete(image_id):
+    ip = request.remote_addr
+    conn = get_db()
+    row = conn.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
+    if not row:
+        return jsonify(error="不存在"), 404
 
-@app.route("/hide/<int:id>", methods=["POST"])
-def hide(id):
-    if "user_id" not in session:
-        return redirect(url_for("auth.login"))
-    hide_user = request.form["hide_user"]
-    db = get_db()
-    img = db.execute("SELECT * FROM images WHERE id=?", (id,)).fetchone()
-    if img["user_id"] == session["user_id"]:
-        hidden = json.loads(img["hidden_from"] or "[]")
-        if hide_user not in hidden:
-            hidden.append(hide_user)
-        db.execute("UPDATE images SET hidden_from=? WHERE id=?", (json.dumps(hidden), id))
-        db.commit()
-    return redirect(url_for("index"))
+    if row["uploader_ip"] != ip:
+        return jsonify(error="无权限删除"), 403
+
+    # 删除文件
+    try:
+        os.remove(os.path.join(UPLOAD_FOLDER, row["filename"]))
+    except:
+        pass
+
+    conn.execute("DELETE FROM images WHERE id=?", (image_id,))
+    conn.commit()
+    return jsonify(success=True)
+
+@app.route('/hide/<int:image_id>', methods=['POST'])
+def hide(image_id):
+    ip = request.remote_addr
+    target_ip = request.json.get('hide_ip')
+    conn = get_db()
+    row = conn.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
+    if not row:
+        return jsonify(error="不存在"), 404
+    if row["uploader_ip"] != ip:
+        return jsonify(error="无权限设置"), 403
+
+    hidden = json.loads(row["hidden_ips"])
+    if target_ip not in hidden:
+        hidden.append(target_ip)
+    conn.execute("UPDATE images SET hidden_ips=? WHERE id=?",
+                 (json.dumps(hidden), image_id))
+    conn.commit()
+    return jsonify(success=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
@@ -588,85 +219,41 @@ if __name__ == "__main__":
 
 ---
 
-## 📌 前端部分
+## 🎨 templates/index.html
 
-### 🍏 style.css
-
-和前面一样，只是加一点上传区样式：
-
-```css
-.upload-area {
-    border: 2px dashed #888;
-    padding: 60px;
-    text-align: center;
-    font-size: 18px;
-    color: #666;
-}
-```
-
----
-
-## 🖼 支持 Ctrl+V 粘贴上传 — paste_upload.js
-
-放到 `static/js/paste_upload.js`：
-
-```javascript
-const area = document.getElementById("paste-area");
-
-area.addEventListener("paste", (e) => {
-  const items = e.clipboardData.items;
-  for (let item of items) {
-    if (item.type.startsWith("image/")) {
-      let file = item.getAsFile();
-      uploadImage(file);
-    }
-  }
-});
-
-function uploadImage(file) {
-  const form = new FormData();
-  form.append("image", file);
-
-  fetch("/api/upload", {
-    method: "POST",
-    body: form
-  }).then(() => {
-    alert("上传成功！");
-    window.location.reload();
-  });
-}
-```
-
----
-
-## 📄 upload.html
+用户粘贴上传页面
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="/static/css/style.css">
-  <script src="/static/js/paste_upload.js" defer></script>
+    <meta charset="UTF-8">
+    <title>📸 图片共享</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-<header>📤 上传图片</header>
 <div class="container">
-  <div id="paste-area" class="upload-area">
-    按 <strong>Ctrl + V</strong> 黏贴图片上传<br>
-    或选择文件：
-    <input type="file" id="file-input">
-  </div>
+    <h1>📸 直接粘贴上传你的图片</h1>
+    <div id="dropzone">按 <b>Ctrl+V</b> 在这里粘贴图片</div>
+    <p><a href="/images">查看所有图片</a></p>
 </div>
 
 <script>
-document.getElementById("file-input")
-  .addEventListener("change", function(){
-    const file = this.files[0];
-    if (file) {
-      fetch("/api/upload", {
-        method: "POST",
-        body: new FormData().append("image", file)
-      }).then(() => location.reload());
+document.addEventListener('paste', function (e) {
+    const items = e.clipboardData.items;
+    for (let item of items) {
+        if (item.type.indexOf("image") !== -1) {
+            const file = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                fetch("/upload", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({image: evt.target.result})
+                }).then(r => location.reload());
+            };
+            reader.readAsDataURL(file);
+        }
     }
 });
 </script>
@@ -676,53 +263,172 @@ document.getElementById("file-input")
 
 ---
 
-## 🧑‍💻 运行方法
+## 🎨 templates/images.html
 
-1. 安装依赖：
+展示所有图片，按日期分组
 
-```bash
-pip install -r requirements.txt
-```
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🖼 图片展示</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>🖼 所有图片</h1>
+    <p>你的IP: {{ my_ip }}</p>
 
-2. 启动：
+    {% for date, imgs in groups.items() %}
+    <div class="group">
+        <h2>{{ date }}</h2>
+        <div class="gallery">
+            {% for img in imgs %}
+            <div class="item">
+                <img src="/static/uploads/{{ img['filename'] }}">
+                {% if img['uploader_ip']== my_ip %}
+                <button onclick="deleteImg({{ img['id'] }})">删除</button>
 
-```bash
-python app.py
-```
+                <input type="text" id="hideip-{{ img['id'] }}" placeholder="隐藏某个 IP">
+                <button onclick="hideIp({{ img['id'] }})">隐藏</button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
 
-3. 访问：
+<script>
+function deleteImg(id) {
+    fetch(`/delete/${id}`, {method: "POST"}).then(r=>location.reload());
+}
 
-```
-http://localhost:5000
+function hideIp(id) {
+    const ip = document.getElementById(`hideip-${id}`).value;
+    fetch(`/hide/${id}`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({hide_ip:ip})
+    }).then(r=>location.reload());
+}
+</script>
+</body>
+</html>
 ```
 
 ---
 
-## 🚀 功能演示流程
+## 🎨 static/css/style.css
 
-✔ 注册 / 登录
-✔ 进入上传页
-✔ 粘贴上传（Ctrl+V）或文件上传
-✔ 首页按日期分组展示
-✔ 删除自己图片
-✔ 设置图片不可见某用户
+借鉴 Apple 风格：极简、留白、圆角
+
+```css
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+#dropzone {
+    margin: 40px auto;
+    padding: 60px;
+    border: 2px dashed #d2d2d7;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6e6e73;
+    background: white;
+    border-radius: 12px;
+}
+
+.group h2 {
+    font-size: 1.6rem;
+    margin-top: 30px;
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.item {
+    width: 120px;
+    text-align: center;
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.item img {
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+button {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border: none;
+    background: #0071e3;
+    color: white;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+```
 
 ---
 
-## ✅ 可优化（如果需要）
+## 🎉 功能验证
 
-✨ 添加分页、无限滚动
-✨ Ajax 懒加载图片
-✨ 给用户头像 / 个人中心
-✨ 图片压缩缩略图
-✨ 评论点赞功能
+### ✅ Ctrl+V 直接上传
+
+在主页按 Ctrl+V 即可上传图片
+
+### ✅ 按日期分组展示
+
+访问 `/images` 即可查看
+
+### ✅ 删除自己图像
+
+只有上传者（由 IP 识别）看到删除按钮
+
+### ✅ 隐藏对某些 IP 不可见
+
+输入对方 IP 并点击 “隐藏”
 
 ---
 
-如果你想我还能帮你：
+## ⚙️ 可选拓展（不影响现有代码）
 
-📌 加 Docker 一键部署
-📌 改成 React 前端 + Flask API
-📌 添加搜索 / 社交分享
+💡 加用户登录（邮箱/验证码）
+💡 添加评论功能
+💡 图片懒加载/缩略图
+💡 更细粒度权限设置
 
-只要说！😊
+---
+
+如果你想我 **部署到服务器（例如：Render/Heroku）** 或加 **用户登录系统/缩略图优化**，我也可以帮你完善。✨

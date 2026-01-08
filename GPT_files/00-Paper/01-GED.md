@@ -1,90 +1,64 @@
-import re
+了解：**50 条三元组、单对图、允许分钟级**——这非常适合用「**多进程并行 + 多次随机重启 + 逐轮加 timeout**」把 192 核吃满，同时稳定拿到更小（更接近最优）的 GED。
+
+下面我直接给你一个**可落地的加速方案**（你把它替换到现有代码里即可）。
+
+---
+
+## 推荐配置（针对 50 triples / 单对图 / 分钟级）
+
+你的图规模大致是：
+
+* op 节点 = 50
+* ent 节点 <= 100（通常更少）
+* 总节点 ~ 150，边 ~ 100
+
+这种规模下，**一轮每次尝试 timeout 1~3 秒**就能得到不错上界；多轮逐步加 timeout 可以显著降低 GED。
+
+我建议：
+
+* `workers = 128`（别用满 192：进程调度+复制图的开销会变大，128 往往更快更稳；你也可以试 192）
+* 分 3 轮（progressive deepening）：
+
+  * 第 1 轮：`restarts=256`, `timeout=0.5s`
+  * 第 2 轮：`restarts=256`, `timeout=1.5s`
+  * 第 3 轮：`restarts=256`, `timeout=4.0s`
+* 早停：如果某轮达到 `GED == 0`，立刻结束（最优）
+
+总体时间通常在**几十秒到几分钟**，并且能充分并行。
+
+---
+
+## 直接可用代码：并行随机重启 + 逐轮加深
+
+把下面这段加到你脚本里（成本函数沿用你之前的 `node_subst_cost/...` 那套）：
+
+```python
+import os
+import time
+import random
 import networkx as nx
-from typing import List, Tuple, Dict, Any, Optional
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import Optional, Dict, Any, Tuple, List
 
-TRIPLE_RE = re.compile(r'"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"')
+# 你已有的成本函数：node_subst_cost/node_del_cost/node_ins_cost/edge_xxx_cost
+# 这里默认你已经定义好了它们
 
-def read_triples(path: str) -> List[Tuple[str, str, str]]:
-    triples = []
-    with open(path, "r", encoding="utf-8") as f:
-        for line_no, line in enumerate(f, 1):
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            m = TRIPLE_RE.search(line)
-            if not m:
-                raise ValueError(f"Parse error at {path}:{line_no}: {line}")
-            h, op, t = m.group(1), m.group(2), m.group(3)
-            triples.append((h, op, t))
-    return triples
+def _random_relabel_graph(G: nx.DiGraph, seed: int) -> nx.DiGraph:
+    """随机重标号节点以改变 GED 搜索路径；保留所有节点属性。"""
+    rng = random.Random(seed)
+    nodes = list(G.nodes())
+    rng.shuffle(nodes)
+    mapping = {old: f"R::{i}" for i, old in enumerate(nodes)}
+    return nx.relabel_nodes(G, mapping, copy=True)
 
-def triples_to_bipartite_digraph(triples: List[Tuple[str, str, str]]) -> nx.DiGraph:
-    """
-    将 (h, op, t) 转换为：
-      h(ent) -> edge_i(op) -> t(ent)
-    - ent 节点：不关心名字（但为了构图仍需要唯一 id）
-    - op 节点：关心 operator 标签
-    """
-    G = nx.DiGraph()
+def _ged_once(args: Tuple[nx.DiGraph, nx.DiGraph, int, float]) -> float:
+    """子进程执行一次 GED（带 timeout）。"""
+    G1, G2, seed, timeout = args
+    H1 = _random_relabel_graph(G1, seed)
+    H2 = _random_relabel_graph(G2, seed ^ 0x9E3779B1)
 
-    # 用 "E::<name>" 只是为了让同名实体在同一张图里仍是同一个点
-    # 但匹配阶段我们会忽略这个 name
-    def ent_id(name: str) -> str:
-        return f"E::{name}"
-
-    for i, (h, op, t) in enumerate(triples):
-        h_id = ent_id(h)
-        t_id = ent_id(t)
-        op_id = f"OP::{i}"  # 每条三元组一个独立 op 节点，避免并行边问题
-
-        G.add_node(h_id, ntype="ent")
-        G.add_node(t_id, ntype="ent")
-        G.add_node(op_id, ntype="op", label=op)
-
-        G.add_edge(h_id, op_id)
-        G.add_edge(op_id, t_id)
-
-    return G
-
-# ---------- GED 成本函数（忽略实体名，严格比较 operator） ----------
-
-def node_subst_cost(a: Dict[str, Any], b: Dict[str, Any]) -> float:
-    ta, tb = a.get("ntype"), b.get("ntype")
-    if ta != tb:
-        return 1e9  # 强制不允许 ent <-> op 互换
-    if ta == "ent":
-        return 0.0   # 忽略实体名：ent 之间替换无成本
-    # op 节点：label 不同就算一次替换
-    return 0.0 if a.get("label") == b.get("label") else 1.0
-
-def node_del_cost(a: Dict[str, Any]) -> float:
-    # 删除一个节点的代价
-    return 1.0
-
-def node_ins_cost(b: Dict[str, Any]) -> float:
-    # 插入一个节点的代价
-    return 1.0
-
-def edge_subst_cost(a: Dict[str, Any], b: Dict[str, Any]) -> float:
-    # 在我们构造里边没有 label；通常保持 0 即可
-    return 0.0
-
-def edge_del_cost(a: Dict[str, Any]) -> float:
-    return 1.0
-
-def edge_ins_cost(b: Dict[str, Any]) -> float:
-    return 1.0
-
-def graph_edit_distance_ignored_entities(gt_path: str, pred_path: str, timeout: Optional[float] = 3.0):
-    gt_triples = read_triples(gt_path)
-    pr_triples = read_triples(pred_path)
-
-    G1 = triples_to_bipartite_digraph(gt_triples)
-    G2 = triples_to_bipartite_digraph(pr_triples)
-
-    # NetworkX 的 GED 可能返回一个生成器（不断改进的上界），这里取最小值
-    ged_iter = nx.algorithms.similarity.optimize_graph_edit_distance(
-        G1, G2,
+    it = nx.algorithms.similarity.optimize_graph_edit_distance(
+        H1, H2,
         node_subst_cost=node_subst_cost,
         node_del_cost=node_del_cost,
         node_ins_cost=node_ins_cost,
@@ -96,32 +70,82 @@ def graph_edit_distance_ignored_entities(gt_path: str, pred_path: str, timeout: 
 
     best = None
     try:
-        for v in ged_iter:
+        for v in it:
             best = v
     except Exception:
         pass
 
-    if best is None:
-        raise RuntimeError("GED computation did not return a result (try increasing timeout).")
+    return float(best) if best is not None else float("inf")
 
-    # 一个简单的归一化分数：1 - dist / (|V1|+|E1|+|V2|+|E2|)
-    denom = (G1.number_of_nodes() + G1.number_of_edges() + G2.number_of_nodes() + G2.number_of_edges())
-    score = 1.0 - (best / denom if denom > 0 else 0.0)
+def parallel_ged_progressive(
+    G1: nx.DiGraph,
+    G2: nx.DiGraph,
+    workers: int = 128,
+    rounds: Optional[List[Tuple[int, float]]] = None,
+    hard_time_budget_sec: Optional[float] = 180.0,  # 3分钟，按你“分钟级”默认给
+) -> float:
+    """
+    多进程并行随机重启 GED：分多轮逐步增加 timeout。
+    rounds: [(restarts, per_try_timeout), ...]
+    """
+    if rounds is None:
+        rounds = [
+            (256, 0.5),
+            (256, 1.5),
+            (256, 4.0),
+        ]
 
-    return {
-        "ged": float(best),
-        "normalized_score": float(score),
-        "gt": {"nodes": G1.number_of_nodes(), "edges": G1.number_of_edges(), "triples": len(gt_triples)},
-        "pred": {"nodes": G2.number_of_nodes(), "edges": G2.number_of_edges(), "triples": len(pr_triples)},
-    }
+    start = time.time()
+    best = float("inf")
 
-if __name__ == "__main__":
-    import argparse, json
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--gt", required=True, help="ground truth txt")
-    ap.add_argument("--pred", required=True, help="prediction txt")
-    ap.add_argument("--timeout", type=float, default=3.0, help="GED timeout seconds (increase if needed)")
-    args = ap.parse_args()
+    # Windows 必须保护 main；Linux/HPC 一般没问题，但建议你仍保留 if __name__ == "__main__"
+    with ProcessPoolExecutor(max_workers=workers) as ex:
+        for (restarts, per_try_timeout) in rounds:
+            if hard_time_budget_sec is not None and (time.time() - start) > hard_time_budget_sec:
+                break
+            if best == 0.0:
+                break
 
-    res = graph_edit_distance_ignored_entities(args.gt, args.pred, timeout=args.timeout)
-    print(json.dumps(res, ensure_ascii=False, indent=2))
+            base_seed = int(time.time() * 1000) ^ os.getpid()
+            tasks = [(G1, G2, base_seed + i * 9973, per_try_timeout) for i in range(restarts)]
+            futures = [ex.submit(_ged_once, t) for t in tasks]
+
+            for f in as_completed(futures):
+                v = f.result()
+                if v < best:
+                    best = v
+                    if best == 0.0:
+                        break
+
+                if hard_time_budget_sec is not None and (time.time() - start) > hard_time_budget_sec:
+                    break
+
+    return best
+```
+
+然后在你原来的评估函数里，把单次 GED 换成：
+
+```python
+best = parallel_ged_progressive(G1, G2, workers=128, hard_time_budget_sec=180.0)
+```
+
+---
+
+## 为什么这个对你有效（50 triples 特别适配）
+
+* **GED 的搜索树高度依赖节点顺序**，随机重标号=随机化搜索路径
+* 并行跑很多次，每次给一点点时间，就能很快找到更小的上界
+* “逐轮加 timeout”让你在分钟级预算下，先快速探索、再把算力集中到更有希望的路径
+
+---
+
+## 再给你两个“秒级小优化”（不改算法但能省时间）
+
+1. **强制节点类型不互换（你已做了）**：`ent <-> op` 置极大代价，这能减少无意义映射。
+2. **提高 op label 错误的惩罚**（可选）：
+
+   * 你的评估如果更关心 operator 对不对，把 `op label 不同` 的替换代价从 `1.0` 调到 `2.0~5.0`，更符合“结构语义”。
+
+---
+
+如果你希望我再进一步把速度榨干：我可以给你加一个**“快筛下界”**（operator 频次差、度分布差），当下界已经 ≥ 当前 best 时直接跳过该重启（会让并行尝试更有效）。但在 50 triples 这个规模下，上面的并行随机重启通常已经够快、实现也最稳。

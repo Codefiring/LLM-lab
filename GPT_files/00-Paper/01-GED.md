@@ -1,65 +1,144 @@
-了解：**50 条三元组、单对图、允许分钟级**——这非常适合用「**多进程并行 + 多次随机重启 + 逐轮加 timeout**」把 192 核吃满，同时稳定拿到更小（更接近最优）的 GED。
-
-下面我直接给你一个**可落地的加速方案**（你把它替换到现有代码里即可）。
-
----
-
-## 推荐配置（针对 50 triples / 单对图 / 分钟级）
-
-你的图规模大致是：
-
-* op 节点 = 50
-* ent 节点 <= 100（通常更少）
-* 总节点 ~ 150，边 ~ 100
-
-这种规模下，**一轮每次尝试 timeout 1~3 秒**就能得到不错上界；多轮逐步加 timeout 可以显著降低 GED。
-
-我建议：
-
-* `workers = 128`（别用满 192：进程调度+复制图的开销会变大，128 往往更快更稳；你也可以试 192）
-* 分 3 轮（progressive deepening）：
-
-  * 第 1 轮：`restarts=256`, `timeout=0.5s`
-  * 第 2 轮：`restarts=256`, `timeout=1.5s`
-  * 第 3 轮：`restarts=256`, `timeout=4.0s`
-* 早停：如果某轮达到 `GED == 0`，立刻结束（最优）
-
-总体时间通常在**几十秒到几分钟**，并且能充分并行。
-
----
-
-## 直接可用代码：并行随机重启 + 逐轮加深
-
-把下面这段加到你脚本里（成本函数沿用你之前的 `node_subst_cost/...` 那套）：
-
 ```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+GED evaluation for triple-graph prediction, ignoring entity names (col1/col3),
+using parallel multi-restart + progressive timeouts to fully utilize many CPUs.
+
+Input format per line (quotes required):
+"S1", "operator1", "S2"
+
+Usage:
+  pip install networkx
+  python ged_eval_parallel.py --gt ground_truth.txt --pred prediction.txt \
+      --workers 128 --budget-sec 180 \
+      --round "256,0.5" --round "256,1.5" --round "256,4.0"
+
+Notes:
+- Entities are anonymized for matching (names ignored). Operators are compared strictly.
+- Each triple becomes: ent(head) -> op_node(label=operator) -> ent(tail)
+- GED is NP-hard; this script uses repeated randomized restarts in parallel to get a strong approximation.
+"""
+
+import argparse
+import json
 import os
-import time
 import random
-import networkx as nx
+import re
+import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import Optional, Dict, Any, Tuple, List
+from typing import Any, Dict, List, Optional, Tuple
 
-# 你已有的成本函数：node_subst_cost/node_del_cost/node_ins_cost/edge_xxx_cost
-# 这里默认你已经定义好了它们
+import networkx as nx
 
+TRIPLE_RE = re.compile(r'"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"')
+
+
+# ---------------------------
+# Parsing
+# ---------------------------
+def read_triples(path: str) -> List[Tuple[str, str, str]]:
+    triples: List[Tuple[str, str, str]] = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line_no, line in enumerate(f, 1):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            m = TRIPLE_RE.search(line)
+            if not m:
+                raise ValueError(f"Parse error at {path}:{line_no}: {line}")
+            h, op, t = m.group(1), m.group(2), m.group(3)
+            triples.append((h, op, t))
+    return triples
+
+
+# ---------------------------
+# Graph construction
+# ---------------------------
+def triples_to_bipartite_digraph(triples: List[Tuple[str, str, str]]) -> nx.DiGraph:
+    """
+    Convert (h, op, t) to a directed bipartite graph:
+      ent(h) -> op_i(label=op) -> ent(t)
+    """
+    G = nx.DiGraph()
+
+    def ent_id(name: str) -> str:
+        # Keep names for identity inside one graph only; matching ignores them.
+        return f"E::{name}"
+
+    for i, (h, op, t) in enumerate(triples):
+        h_id = ent_id(h)
+        t_id = ent_id(t)
+        op_id = f"OP::{i}"  # unique per triple (avoids parallel-edge issues)
+
+        G.add_node(h_id, ntype="ent")
+        G.add_node(t_id, ntype="ent")
+        G.add_node(op_id, ntype="op", label=op)
+
+        G.add_edge(h_id, op_id)
+        G.add_edge(op_id, t_id)
+
+    return G
+
+
+# ---------------------------
+# GED costs (ignoring entity names)
+# ---------------------------
+def node_subst_cost(a: Dict[str, Any], b: Dict[str, Any], op_mismatch_cost: float) -> float:
+    ta, tb = a.get("ntype"), b.get("ntype")
+    if ta != tb:
+        return 1e9  # forbid ent <-> op mapping
+    if ta == "ent":
+        return 0.0  # ignore entity names entirely
+    # op nodes: label must match, otherwise pay cost
+    return 0.0 if a.get("label") == b.get("label") else float(op_mismatch_cost)
+
+
+def node_del_cost(_: Dict[str, Any]) -> float:
+    return 1.0
+
+
+def node_ins_cost(_: Dict[str, Any]) -> float:
+    return 1.0
+
+
+def edge_subst_cost(_: Dict[str, Any], __: Dict[str, Any]) -> float:
+    return 0.0
+
+
+def edge_del_cost(_: Dict[str, Any]) -> float:
+    return 1.0
+
+
+def edge_ins_cost(_: Dict[str, Any]) -> float:
+    return 1.0
+
+
+# ---------------------------
+# Parallel randomized GED
+# ---------------------------
 def _random_relabel_graph(G: nx.DiGraph, seed: int) -> nx.DiGraph:
-    """随机重标号节点以改变 GED 搜索路径；保留所有节点属性。"""
+    """Randomly relabel node ids to perturb GED search path; keep attributes."""
     rng = random.Random(seed)
     nodes = list(G.nodes())
     rng.shuffle(nodes)
     mapping = {old: f"R::{i}" for i, old in enumerate(nodes)}
     return nx.relabel_nodes(G, mapping, copy=True)
 
-def _ged_once(args: Tuple[nx.DiGraph, nx.DiGraph, int, float]) -> float:
-    """子进程执行一次 GED（带 timeout）。"""
-    G1, G2, seed, timeout = args
+
+def _ged_once(payload: Tuple[nx.DiGraph, nx.DiGraph, int, float, float]) -> float:
+    """
+    One GED attempt in a worker process.
+    payload: (G1, G2, seed, timeout, op_mismatch_cost)
+    """
+    G1, G2, seed, timeout, op_mismatch_cost = payload
     H1 = _random_relabel_graph(G1, seed)
     H2 = _random_relabel_graph(G2, seed ^ 0x9E3779B1)
 
     it = nx.algorithms.similarity.optimize_graph_edit_distance(
-        H1, H2,
-        node_subst_cost=node_subst_cost,
+        H1,
+        H2,
+        node_subst_cost=lambda a, b: node_subst_cost(a, b, op_mismatch_cost),
         node_del_cost=node_del_cost,
         node_ins_cost=node_ins_cost,
         edge_subst_cost=edge_subst_cost,
@@ -77,75 +156,184 @@ def _ged_once(args: Tuple[nx.DiGraph, nx.DiGraph, int, float]) -> float:
 
     return float(best) if best is not None else float("inf")
 
+
 def parallel_ged_progressive(
     G1: nx.DiGraph,
     G2: nx.DiGraph,
-    workers: int = 128,
-    rounds: Optional[List[Tuple[int, float]]] = None,
-    hard_time_budget_sec: Optional[float] = 180.0,  # 3分钟，按你“分钟级”默认给
-) -> float:
+    workers: int,
+    rounds: List[Tuple[int, float]],
+    budget_sec: float,
+    op_mismatch_cost: float,
+) -> Tuple[float, Dict[str, Any]]:
     """
-    多进程并行随机重启 GED：分多轮逐步增加 timeout。
-    rounds: [(restarts, per_try_timeout), ...]
+    Multi-round progressive deepening:
+      rounds = [(restarts, per_try_timeout), ...]
+    Runs restarts in parallel, updates best, early-stops on 0 or budget.
     """
-    if rounds is None:
-        rounds = [
-            (256, 0.5),
-            (256, 1.5),
-            (256, 4.0),
-        ]
-
     start = time.time()
     best = float("inf")
+    stats = {
+        "workers": workers,
+        "rounds": [{"restarts": r, "timeout": t} for (r, t) in rounds],
+        "attempts_scheduled": 0,
+        "attempts_completed": 0,
+        "early_stop_zero": False,
+        "time_sec": None,
+    }
 
-    # Windows 必须保护 main；Linux/HPC 一般没问题，但建议你仍保留 if __name__ == "__main__"
     with ProcessPoolExecutor(max_workers=workers) as ex:
         for (restarts, per_try_timeout) in rounds:
-            if hard_time_budget_sec is not None and (time.time() - start) > hard_time_budget_sec:
+            if time.time() - start >= budget_sec:
                 break
             if best == 0.0:
+                stats["early_stop_zero"] = True
                 break
 
-            base_seed = int(time.time() * 1000) ^ os.getpid()
-            tasks = [(G1, G2, base_seed + i * 9973, per_try_timeout) for i in range(restarts)]
+            base_seed = (int(time.time() * 1000) ^ os.getpid()) & 0x7FFFFFFF
+            tasks = [
+                (G1, G2, base_seed + i * 9973, float(per_try_timeout), float(op_mismatch_cost))
+                for i in range(restarts)
+            ]
+            stats["attempts_scheduled"] += len(tasks)
             futures = [ex.submit(_ged_once, t) for t in tasks]
 
             for f in as_completed(futures):
+                stats["attempts_completed"] += 1
                 v = f.result()
                 if v < best:
                     best = v
                     if best == 0.0:
+                        stats["early_stop_zero"] = True
                         break
-
-                if hard_time_budget_sec is not None and (time.time() - start) > hard_time_budget_sec:
+                if time.time() - start >= budget_sec:
                     break
 
-    return best
+    stats["time_sec"] = round(time.time() - start, 4)
+    return best, stats
+
+
+# ---------------------------
+# Scoring / normalization
+# ---------------------------
+def normalized_score_from_ged(ged: float, G1: nx.DiGraph, G2: nx.DiGraph) -> float:
+    denom = (G1.number_of_nodes() + G1.number_of_edges() + G2.number_of_nodes() + G2.number_of_edges())
+    if denom <= 0:
+        return 1.0
+    return max(0.0, 1.0 - (ged / denom))
+
+
+# ---------------------------
+# CLI
+# ---------------------------
+def parse_rounds(round_args: List[str]) -> List[Tuple[int, float]]:
+    """
+    --round "256,0.5" can be repeated.
+    """
+    out: List[Tuple[int, float]] = []
+    for s in round_args:
+        parts = [p.strip() for p in s.split(",")]
+        if len(parts) != 2:
+            raise ValueError(f"Invalid --round '{s}'. Use 'restarts,timeout' e.g. '256,1.5'")
+        r = int(parts[0])
+        t = float(parts[1])
+        if r <= 0 or t <= 0:
+            raise ValueError(f"Invalid --round '{s}': restarts/timeout must be > 0")
+        out.append((r, t))
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Parallel GED evaluator ignoring entity names (col1/col3).")
+    ap.add_argument("--gt", required=True, help="Ground truth txt file")
+    ap.add_argument("--pred", required=True, help="Prediction txt file")
+    ap.add_argument("--workers", type=int, default=128, help="Process workers (e.g., 128 or 192)")
+    ap.add_argument("--budget-sec", type=float, default=180.0, help="Total time budget in seconds (minutes-level)")
+    ap.add_argument(
+        "--round",
+        action="append",
+        default=None,
+        help="One round as 'restarts,timeout'. Repeatable. Default: 256,0.5 256,1.5 256,4.0",
+    )
+    ap.add_argument(
+        "--op-mismatch-cost",
+        type=float,
+        default=1.0,
+        help="Cost when operator labels differ (increase to penalize operator mistakes more)",
+    )
+    ap.add_argument("--json", action="store_true", help="Output JSON only")
+    args = ap.parse_args()
+
+    rounds = parse_rounds(args.round) if args.round else [(256, 0.5), (256, 1.5), (256, 4.0)]
+    workers = max(1, int(args.workers))
+    budget_sec = float(args.budget_sec)
+
+    gt_triples = read_triples(args.gt)
+    pr_triples = read_triples(args.pred)
+    G1 = triples_to_bipartite_digraph(gt_triples)
+    G2 = triples_to_bipartite_digraph(pr_triples)
+
+    ged, stats = parallel_ged_progressive(
+        G1, G2,
+        workers=workers,
+        rounds=rounds,
+        budget_sec=budget_sec,
+        op_mismatch_cost=float(args.op_mismatch_cost),
+    )
+    score = normalized_score_from_ged(ged, G1, G2)
+
+    result = {
+        "ged": float(ged),
+        "normalized_score": float(score),
+        "gt": {"triples": len(gt_triples), "nodes": G1.number_of_nodes(), "edges": G1.number_of_edges()},
+        "pred": {"triples": len(pr_triples), "nodes": G2.number_of_nodes(), "edges": G2.number_of_edges()},
+        "config": {
+            "workers": workers,
+            "budget_sec": budget_sec,
+            "rounds": [{"restarts": r, "timeout": t} for r, t in rounds],
+            "op_mismatch_cost": float(args.op_mismatch_cost),
+        },
+        "run_stats": stats,
+    }
+
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        print("=== GED Evaluation (entity names ignored) ===")
+        print(f"GED distance         : {result['ged']}")
+        print(f"Normalized score     : {result['normalized_score']:.6f}")
+        print(f"GT   triples/nodes/edges: {result['gt']['triples']}/{result['gt']['nodes']}/{result['gt']['edges']}")
+        print(f"PRED triples/nodes/edges: {result['pred']['triples']}/{result['pred']['nodes']}/{result['pred']['edges']}")
+        print(f"Workers              : {workers}")
+        print(f"Budget (sec)         : {budget_sec}")
+        print(f"Rounds               : {', '.join([f'{r}x@{t}s' for r, t in rounds])}")
+        print(f"Op mismatch cost     : {args.op_mismatch_cost}")
+        print(f"Attempts completed   : {stats['attempts_completed']} / {stats['attempts_scheduled']}")
+        print(f"Time used (sec)      : {stats['time_sec']}")
+        print("\nJSON:")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-然后在你原来的评估函数里，把单次 GED 换成：
+### 你直接这样用（针对你：50 triples、单对图、分钟级）
 
-```python
-best = parallel_ged_progressive(G1, G2, workers=128, hard_time_budget_sec=180.0)
+```bash
+pip install networkx
+
+# 建议先用 128 workers（通常比 192 更稳、更少调度开销）
+python ged_eval_parallel.py --gt gt.txt --pred pred.txt --workers 128 --budget-sec 180 \
+  --round "256,0.5" --round "256,1.5" --round "256,4.0"
 ```
 
----
+### 小建议（可选）
 
-## 为什么这个对你有效（50 triples 特别适配）
+* 如果你更在意 operator 的准确性：把 `--op-mismatch-cost` 调大，例如：
 
-* **GED 的搜索树高度依赖节点顺序**，随机重标号=随机化搜索路径
-* 并行跑很多次，每次给一点点时间，就能很快找到更小的上界
-* “逐轮加 timeout”让你在分钟级预算下，先快速探索、再把算力集中到更有希望的路径
+```bash
+python ged_eval_parallel.py --gt gt.txt --pred pred.txt --workers 128 --budget-sec 180 \
+  --op-mismatch-cost 3.0
+```
 
----
-
-## 再给你两个“秒级小优化”（不改算法但能省时间）
-
-1. **强制节点类型不互换（你已做了）**：`ent <-> op` 置极大代价，这能减少无意义映射。
-2. **提高 op label 错误的惩罚**（可选）：
-
-   * 你的评估如果更关心 operator 对不对，把 `op label 不同` 的替换代价从 `1.0` 调到 `2.0~5.0`，更符合“结构语义”。
-
----
-
-如果你希望我再进一步把速度榨干：我可以给你加一个**“快筛下界”**（operator 频次差、度分布差），当下界已经 ≥ 当前 best 时直接跳过该重启（会让并行尝试更有效）。但在 50 triples 这个规模下，上面的并行随机重启通常已经够快、实现也最稳。
+如果你是在集群（SLURM）上跑、192 个 CPU node 是“多节点”而不是单机多核，也可以告诉我你们的调度方式（比如每节点多少核），我给你一个“多节点并行重启”的作业脚本模板（每节点跑一批 restarts，最终汇总取最小 GED）。

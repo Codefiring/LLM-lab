@@ -1,0 +1,1401 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,180185,e=>{"use strict";let t,i;var a,r,s,o,n,l,d,u,h,c,m,p,v,E,b,g,f,A,y,w,I,k,T,_,M,S,L,R,C,D,x,P,N,U,O,H,W,$,V,B,F,G,j,q,Q,K,z,Z,Y,X,J,ee,et,ei,ea,er,es,eo,en,el,ed,eu,eh,ec,em,ep,ev,eE,eb,eg,ef,eA,ey,ew,eI,ek,eT,e_,eM,eS,eL,eR,eC,eD,ex,eP,eN,eU,eO,eH,eW,e$,eV,eB,eF,eG,ej,eq,eQ,eK,ez,eZ,eY,eX,eJ,e0,e1,e2,e3,e5,e4,e7,e8,e6,e9,te,tt,ti,ta,tr,ts,to,tn,tl,td,tu,th,tc,tm,tp,tv,tE,tb,tg,tf,tA,ty,tw,tI,tk,tT,t_=e.i(920065),tM=e.i(772140),tS=e.i(946928);let tL=(0,tS.default)("maximize",[["path",{d:"M8 3H5a2 2 0 0 0-2 2v3",key:"1dcmit"}],["path",{d:"M21 8V5a2 2 0 0 0-2-2h-3",key:"1e4gt3"}],["path",{d:"M3 16v3a2 2 0 0 0 2 2h3",key:"wsl5sc"}],["path",{d:"M16 21h3a2 2 0 0 0 2-2v-3",key:"18trek"}]]),tR=(0,tS.default)("minimize",[["path",{d:"M8 3v3a2 2 0 0 1-2 2H3",key:"hohbtr"}],["path",{d:"M21 8h-3a2 2 0 0 1-2-2V3",key:"5jw1f3"}],["path",{d:"M3 16h3a2 2 0 0 1 2 2v3",key:"198tvr"}],["path",{d:"M16 21v-3a2 2 0 0 1 2-2h3",key:"ph8mxp"}]]),tC=(0,tS.default)("pause",[["rect",{x:"14",y:"3",width:"5",height:"18",rx:"1",key:"kaeet6"}],["rect",{x:"5",y:"3",width:"5",height:"18",rx:"1",key:"1wsw3u"}]]),tD=(0,tS.default)("play",[["path",{d:"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",key:"10ikf1"}]]),tx=(0,tS.default)("volume-2",[["path",{d:"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z",key:"uqj9uw"}],["path",{d:"M16 9a5 5 0 0 1 0 6",key:"1q6k2b"}],["path",{d:"M19.364 18.364a9 9 0 0 0 0-12.728",key:"ijwkga"}]]),tP=(0,tS.default)("volume-x",[["path",{d:"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z",key:"uqj9uw"}],["line",{x1:"22",x2:"16",y1:"9",y2:"15",key:"1ewh16"}],["line",{x1:"16",x2:"22",y1:"9",y2:"15",key:"5ykzw1"}]]);var tN=e.i(38562);let tU=new Set(["style","children","ref","key","suppressContentEditableWarning","suppressHydrationWarning","dangerouslySetInnerHTML"]),tO={className:"class",htmlFor:"for"};function tH(e){return e.toLowerCase()}function tW(e){return"boolean"==typeof e?e?"":void 0:"function"==typeof e?void 0:"object"!=typeof e||null===e?e:void 0}function t$({react:e,tagName:t,elementClass:i,events:a,displayName:r,defaultProps:s,toAttributeName:o=tH,toAttributeValue:n=tW}){let l=Number.parseInt(e.version)>=19,d=e.forwardRef((r,d)=>{let u=e.useRef(null),h=e.useRef(new Map),c={},m={},p={},v={};for(let[e,t]of Object.entries(r)){if(tU.has(e)){p[e]=t;continue}let a=o(tO[e]??e);if(i.prototype&&e in i.prototype&&!(e in(globalThis.HTMLElement?.prototype??{}))&&!i.observedAttributes?.some(e=>e===a)){v[e]=t;continue}if(e.startsWith("on")){c[e]=t;continue}let r=n(t);a&&null!=r&&(m[a]=String(r),l||(p[a]=r)),a&&l&&(r!==tW(t)?p[a]=r:p[a]=t)}if("undefined"!=typeof window){for(let t in c){let i=c[t],r=t.endsWith("Capture"),s=(a?.[t]??t.slice(2).toLowerCase()).slice(0,r?-7:void 0);e.useLayoutEffect(()=>{let e=u?.current;if(e&&"function"==typeof i)return e.addEventListener(s,i,r),()=>{e.removeEventListener(s,i,r)}},[u?.current,i])}e.useLayoutEffect(()=>{if(null===u.current)return;let e=new Map;for(let t in v)tV(u.current,t,v[t]),h.current.delete(t),e.set(t,v[t]);for(let[e,t]of h.current)tV(u.current,e,void 0);h.current=e})}if("undefined"==typeof window&&i?.getTemplateHTML&&i?.shadowRootOptions){let{mode:t,delegatesFocus:a}=i.shadowRootOptions;p.children=[e.createElement("template",{shadowrootmode:t,shadowrootdelegatesfocus:a,dangerouslySetInnerHTML:{__html:i.getTemplateHTML(m,r)},key:"ce-la-react-ssr-template-shadow-root"}),p.children]}return e.createElement(t,{...s,...p,ref:e.useCallback(e=>{u.current=e,"function"==typeof d?d(e):null!==d&&(d.current=e)},[d])},p.children)});return d.displayName=r??i.name,d}function tV(e,t,i){e[t]=i,null==i&&t in(globalThis.HTMLElement?.prototype??{})&&e.removeAttribute(t)}let tB={MEDIA_PLAY_REQUEST:"mediaplayrequest",MEDIA_PAUSE_REQUEST:"mediapauserequest",MEDIA_MUTE_REQUEST:"mediamuterequest",MEDIA_UNMUTE_REQUEST:"mediaunmuterequest",MEDIA_LOOP_REQUEST:"medialooprequest",MEDIA_VOLUME_REQUEST:"mediavolumerequest",MEDIA_SEEK_REQUEST:"mediaseekrequest",MEDIA_AIRPLAY_REQUEST:"mediaairplayrequest",MEDIA_ENTER_FULLSCREEN_REQUEST:"mediaenterfullscreenrequest",MEDIA_EXIT_FULLSCREEN_REQUEST:"mediaexitfullscreenrequest",MEDIA_PREVIEW_REQUEST:"mediapreviewrequest",MEDIA_ENTER_PIP_REQUEST:"mediaenterpiprequest",MEDIA_EXIT_PIP_REQUEST:"mediaexitpiprequest",MEDIA_ENTER_CAST_REQUEST:"mediaentercastrequest",MEDIA_EXIT_CAST_REQUEST:"mediaexitcastrequest",MEDIA_SHOW_TEXT_TRACKS_REQUEST:"mediashowtexttracksrequest",MEDIA_HIDE_TEXT_TRACKS_REQUEST:"mediahidetexttracksrequest",MEDIA_SHOW_SUBTITLES_REQUEST:"mediashowsubtitlesrequest",MEDIA_DISABLE_SUBTITLES_REQUEST:"mediadisablesubtitlesrequest",MEDIA_TOGGLE_SUBTITLES_REQUEST:"mediatogglesubtitlesrequest",MEDIA_PLAYBACK_RATE_REQUEST:"mediaplaybackraterequest",MEDIA_RENDITION_REQUEST:"mediarenditionrequest",MEDIA_AUDIO_TRACK_REQUEST:"mediaaudiotrackrequest",MEDIA_SEEK_TO_LIVE_REQUEST:"mediaseektoliverequest",REGISTER_MEDIA_STATE_RECEIVER:"registermediastatereceiver",UNREGISTER_MEDIA_STATE_RECEIVER:"unregistermediastatereceiver"},tF={MEDIA_CHROME_ATTRIBUTES:"mediachromeattributes",MEDIA_CONTROLLER:"mediacontroller"},tG={MEDIA_AIRPLAY_UNAVAILABLE:"mediaAirplayUnavailable",MEDIA_AUDIO_TRACK_ENABLED:"mediaAudioTrackEnabled",MEDIA_AUDIO_TRACK_LIST:"mediaAudioTrackList",MEDIA_AUDIO_TRACK_UNAVAILABLE:"mediaAudioTrackUnavailable",MEDIA_BUFFERED:"mediaBuffered",MEDIA_CAST_UNAVAILABLE:"mediaCastUnavailable",MEDIA_CHAPTERS_CUES:"mediaChaptersCues",MEDIA_CURRENT_TIME:"mediaCurrentTime",MEDIA_DURATION:"mediaDuration",MEDIA_ENDED:"mediaEnded",MEDIA_ERROR:"mediaError",MEDIA_ERROR_CODE:"mediaErrorCode",MEDIA_ERROR_MESSAGE:"mediaErrorMessage",MEDIA_FULLSCREEN_UNAVAILABLE:"mediaFullscreenUnavailable",MEDIA_HAS_PLAYED:"mediaHasPlayed",MEDIA_HEIGHT:"mediaHeight",MEDIA_IS_AIRPLAYING:"mediaIsAirplaying",MEDIA_IS_CASTING:"mediaIsCasting",MEDIA_IS_FULLSCREEN:"mediaIsFullscreen",MEDIA_IS_PIP:"mediaIsPip",MEDIA_LOADING:"mediaLoading",MEDIA_MUTED:"mediaMuted",MEDIA_LOOP:"mediaLoop",MEDIA_PAUSED:"mediaPaused",MEDIA_PIP_UNAVAILABLE:"mediaPipUnavailable",MEDIA_PLAYBACK_RATE:"mediaPlaybackRate",MEDIA_PREVIEW_CHAPTER:"mediaPreviewChapter",MEDIA_PREVIEW_COORDS:"mediaPreviewCoords",MEDIA_PREVIEW_IMAGE:"mediaPreviewImage",MEDIA_PREVIEW_TIME:"mediaPreviewTime",MEDIA_RENDITION_LIST:"mediaRenditionList",MEDIA_RENDITION_SELECTED:"mediaRenditionSelected",MEDIA_RENDITION_UNAVAILABLE:"mediaRenditionUnavailable",MEDIA_SEEKABLE:"mediaSeekable",MEDIA_STREAM_TYPE:"mediaStreamType",MEDIA_SUBTITLES_LIST:"mediaSubtitlesList",MEDIA_SUBTITLES_SHOWING:"mediaSubtitlesShowing",MEDIA_TARGET_LIVE_WINDOW:"mediaTargetLiveWindow",MEDIA_TIME_IS_LIVE:"mediaTimeIsLive",MEDIA_VOLUME:"mediaVolume",MEDIA_VOLUME_LEVEL:"mediaVolumeLevel",MEDIA_VOLUME_UNAVAILABLE:"mediaVolumeUnavailable",MEDIA_LANG:"mediaLang",MEDIA_WIDTH:"mediaWidth"},tj=Object.entries(tG),tq=tj.reduce((e,[t,i])=>(e[t]=i.toLowerCase(),e),{}),tQ=tj.reduce((e,[t,i])=>(e[t]=i.toLowerCase(),e),{USER_INACTIVE_CHANGE:"userinactivechange",BREAKPOINTS_CHANGE:"breakpointchange",BREAKPOINTS_COMPUTED:"breakpointscomputed"}),tK=Object.entries(tQ).reduce((e,[t,i])=>{let a=tq[t];return a&&(e[i]=a),e},{userinactivechange:"userinactive"}),tz=Object.entries(tq).reduce((e,[t,i])=>{let a=tQ[t];return a&&(e[i]=a),e},{userinactive:"userinactivechange"}),tZ={SUBTITLES:"subtitles",CAPTIONS:"captions",DESCRIPTIONS:"descriptions",CHAPTERS:"chapters",METADATA:"metadata"},tY={DISABLED:"disabled",HIDDEN:"hidden",SHOWING:"showing"},tX={HAVE_NOTHING:0,HAVE_METADATA:1,HAVE_CURRENT_DATA:2,HAVE_FUTURE_DATA:3,HAVE_ENOUGH_DATA:4},tJ={MOUSE:"mouse",PEN:"pen",TOUCH:"touch"},t0={UNAVAILABLE:"unavailable",UNSUPPORTED:"unsupported"},t1={LIVE:"live",ON_DEMAND:"on-demand",UNKNOWN:"unknown"},t2={HIGH:"high",MEDIUM:"medium",LOW:"low",OFF:"off"},t3={INLINE:"inline",FULLSCREEN:"fullscreen",PICTURE_IN_PICTURE:"picture-in-picture"};function t5(e){if(e){let{id:t,width:i,height:a}=e;return[t,i,a].filter(e=>null!=e).join(":")}}function t4(e){if(e){let{id:t,kind:i,language:a,label:r}=e;return[t,i,a,r].filter(e=>null!=e).join(":")}}function t7(e){return"number"==typeof e&&!Number.isNaN(e)&&Number.isFinite(e)}e.s(["AttributeToStateChangeEventMap",()=>tz,"AvailabilityStates",()=>t0,"MediaStateChangeEvents",()=>tQ,"MediaStateReceiverAttributes",()=>tF,"MediaUIAttributes",()=>tq,"MediaUIEvents",()=>tB,"MediaUIProps",()=>tG,"PointerTypes",()=>tJ,"ReadyStates",()=>tX,"StateChangeEventToAttributeMap",()=>tK,"StreamTypes",()=>t1,"TextTrackKinds",()=>tZ,"TextTrackModes",()=>tY,"VolumeLevels",()=>t2,"WebkitPresentationModes",()=>t3],767011),e.i(767011);let t8=e=>new Promise(t=>setTimeout(t,e)),t6=[{singular:"hour",plural:"hours"},{singular:"minute",plural:"minutes"},{singular:"second",plural:"seconds"}],t9=e=>{if(!t7(e))return"";let t=Math.abs(e),i=t!==e,a=new Date(0,0,0,0,0,t,0),r=[a.getHours(),a.getMinutes(),a.getSeconds()].map((e,t)=>{let i;return e&&(i=1===e?t6[t].singular:t6[t].plural,`${e} ${i}`)}).filter(e=>e).join(", ");return`${r}${i?" remaining":""}`};function ie(e,t){let i=!1;e<0&&(i=!0,e=0-e);let a=Math.floor((e=e<0?0:e)%60),r=Math.floor(e/60%60),s=Math.floor(e/3600),o=Math.floor(t/60%60),n=Math.floor(t/3600);return(isNaN(e)||e===1/0)&&(s=r=a="0"),r=(((s=s>0||n>0?s+":":"")||o>=10)&&r<10?"0"+r:r)+":",(i?"-":"")+s+r+(a=a<10?"0"+a:a)}let it=Object.freeze({length:0,start(e){let t=e>>>0;if(t>=this.length)throw new DOMException(`Failed to execute 'start' on 'TimeRanges': The index provided (${t}) is greater than or equal to the maximum bound (${this.length}).`);return 0},end(e){let t=e>>>0;if(t>=this.length)throw new DOMException(`Failed to execute 'end' on 'TimeRanges': The index provided (${t}) is greater than or equal to the maximum bound (${this.length}).`);return 0}});function ii(e=it){return Array.from(e).map((t,i)=>[Number(e.start(i).toFixed(3)),Number(e.end(i).toFixed(3))].join(":")).join(" ")}e.s(["emptyTimeRanges",()=>it,"formatAsTimePhrase",()=>t9,"formatTime",()=>ie,"serializeTimeRanges",()=>ii],607499),e.i(607499);let ia={en:{"Start airplay":"Start airplay","Stop airplay":"Stop airplay",Audio:"Audio",Captions:"Captions","Enable captions":"Enable captions","Disable captions":"Disable captions","Start casting":"Start casting","Stop casting":"Stop casting","Enter fullscreen mode":"Enter fullscreen mode","Exit fullscreen mode":"Exit fullscreen mode",Mute:"Mute",Unmute:"Unmute",Loop:"Loop","Enter picture in picture mode":"Enter picture in picture mode","Exit picture in picture mode":"Exit picture in picture mode",Play:"Play",Pause:"Pause","Playback rate":"Playback rate","Playback rate {playbackRate}":"Playback rate {playbackRate}",Quality:"Quality","Seek backward":"Seek backward","Seek forward":"Seek forward",Settings:"Settings",Auto:"Auto","audio player":"audio player","video player":"video player",volume:"volume",seek:"seek","closed captions":"closed captions","current playback rate":"current playback rate","playback time":"playback time","media loading":"media loading",settings:"settings","audio tracks":"audio tracks",quality:"quality",play:"play",pause:"pause",mute:"mute",unmute:"unmute","chapter: {chapterName}":"chapter: {chapterName}",live:"live",Off:"Off","start airplay":"start airplay","stop airplay":"stop airplay","start casting":"start casting","stop casting":"stop casting","enter fullscreen mode":"enter fullscreen mode","exit fullscreen mode":"exit fullscreen mode","enter picture in picture mode":"enter picture in picture mode","exit picture in picture mode":"exit picture in picture mode","seek to live":"seek to live","playing live":"playing live","seek back {seekOffset} seconds":"seek back {seekOffset} seconds","seek forward {seekOffset} seconds":"seek forward {seekOffset} seconds","Network Error":"Network Error","Decode Error":"Decode Error","Source Not Supported":"Source Not Supported","Encryption Error":"Encryption Error","A network error caused the media download to fail.":"A network error caused the media download to fail.","A media error caused playback to be aborted. The media could be corrupt or your browser does not support this format.":"A media error caused playback to be aborted. The media could be corrupt or your browser does not support this format.","An unsupported error occurred. The server or network failed, or your browser does not support this format.":"An unsupported error occurred. The server or network failed, or your browser does not support this format.","The media is encrypted and there are no keys to decrypt it.":"The media is encrypted and there are no keys to decrypt it."}},ir=(null==(a=globalThis.navigator)?void 0:a.language)||"en",is=(e,t={})=>(e=>{var t,i,a;let[r]=ir.split("-");return(null==(t=ia[ir])?void 0:t[e])||(null==(i=ia[r])?void 0:i[e])||(null==(a=ia.en)?void 0:a[e])||e})(e).replace(/\{(\w+)\}/g,(e,i)=>i in t?String(t[i]):`{${i}}`);class io{addEventListener(){}removeEventListener(){}dispatchEvent(){return!0}}class il extends io{}class id extends il{constructor(){super(...arguments),this.role=null}}let iu={createElement:function(){return new ih.HTMLElement},createElementNS:function(){return new ih.HTMLElement},addEventListener(){},removeEventListener(){},dispatchEvent:e=>!1},ih={ResizeObserver:class{observe(){}unobserve(){}disconnect(){}},document:iu,Node:il,Element:id,HTMLElement:class extends id{constructor(){super(...arguments),this.innerHTML=""}get content(){return new ih.DocumentFragment}},DocumentFragment:class extends io{},customElements:{get:function(){},define:function(){},whenDefined:function(){}},localStorage:{getItem:e=>null,setItem(e,t){},removeItem(e){}},CustomEvent:function(){},getComputedStyle:function(){},navigator:{languages:[],get userAgent(){return""}},matchMedia:e=>({matches:!1,media:e}),DOMParser:class{parseFromString(e,t){return{body:{textContent:e}}}}},ic="global"in globalThis&&(null==globalThis?void 0:globalThis.global)===globalThis||"undefined"==typeof window||void 0===window.customElements,im=Object.keys(ih).every(e=>e in globalThis),ip=ic&&!im?ih:globalThis,iv=ic&&!im?iu:globalThis.document,iE=new WeakMap,ib=e=>{let t=iE.get(e);return t||iE.set(e,t=new Set),t},ig=new ip.ResizeObserver(e=>{for(let t of e)for(let e of ib(t.target))e(t)});function iA(e,t){ib(e).add(t),ig.observe(e)}function iy(e,t){let i=ib(e);i.delete(t),i.size||ig.unobserve(e)}function iw(e){let t={};for(let i of e)t[i.name]=i.value;return t}let iI=(e,t,i=".value")=>{let a=e.querySelector(i);a&&(a.textContent=t)},ik=(e,t)=>{let i,a;return(i=`slot[name="${t}"]`,!(a=e.shadowRoot.querySelector(i))?[]:a.children)[0]},iT=(e,t)=>!!e&&!!t&&(null!=e&&!!e.contains(t)||iT(e,t.getRootNode().host)),i_=(e,t)=>{if(!e)return null;let i=e.closest(t);return i||i_(e.getRootNode().host,t)};function iM(e,{depth:t=3,checkOpacity:i=!0,checkVisibilityCSS:a=!0}={}){if(e.checkVisibility)return e.checkVisibility({checkOpacity:i,checkVisibilityCSS:a});let r=e;for(;r&&t>0;){let e=getComputedStyle(r);if(i&&"0"===e.opacity||a&&"hidden"===e.visibility||"none"===e.display)return!1;r=r.parentElement,t--}return!0}function iS(e,t){let i=function(e,t){var i,a;let r;for(r of null!=(i=e.querySelectorAll("style:not([media])"))?i:[]){let e;try{e=null==(a=r.sheet)?void 0:a.cssRules}catch{continue}for(let i of null!=e?e:[])if(t(i.selectorText))return i}}(e,e=>e===t);return i||iL(e,t)}function iL(e,t){var i,a;let r=null!=(i=e.querySelectorAll("style:not([media])"))?i:[],s=null==r?void 0:r[r.length-1];return(null==s?void 0:s.sheet)?(null==s||s.sheet.insertRule(`${t}{}`,s.sheet.cssRules.length),null==(a=s.sheet.cssRules)?void 0:a[s.sheet.cssRules.length-1]):(console.warn("Media Chrome: No style sheet found on style tag of",e),{style:{setProperty:()=>{},removeProperty:()=>"",getPropertyValue:()=>""}})}function iR(e,t,i=NaN){let a=e.getAttribute(t);return null!=a?+a:i}function iC(e,t,i){let a=+i;if(null==i||Number.isNaN(a)){e.hasAttribute(t)&&e.removeAttribute(t);return}iR(e,t,void 0)!==a&&e.setAttribute(t,`${a}`)}function iD(e,t){return e.hasAttribute(t)}function ix(e,t,i){if(null==i){e.hasAttribute(t)&&e.removeAttribute(t);return}iD(e,t)!=i&&e.toggleAttribute(t,i)}function iP(e,t,i=null){var a;return null!=(a=e.getAttribute(t))?a:i}function iN(e,t,i){if(null==i){e.hasAttribute(t)&&e.removeAttribute(t);return}let a=`${i}`;iP(e,t,void 0)!==a&&e.setAttribute(t,a)}var iU=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},iO=(e,t,i)=>(iU(e,t,"read from private field"),i?i.call(e):t.get(e)),iH=(e,t,i,a)=>(iU(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);class iW extends ip.HTMLElement{constructor(){if(super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,r,void 0),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}}static get observedAttributes(){return[tF.MEDIA_CONTROLLER,tq.MEDIA_PAUSED]}attributeChangedCallback(e,t,i){var a,s,o,n,l;e===tF.MEDIA_CONTROLLER&&(t&&(null==(s=null==(a=iO(this,r))?void 0:a.unassociateElement)||s.call(a,this),iH(this,r,null)),i&&this.isConnected&&(iH(this,r,null==(o=this.getRootNode())?void 0:o.getElementById(i)),null==(l=null==(n=iO(this,r))?void 0:n.associateElement)||l.call(n,this)))}connectedCallback(){var e,t,i,a,s,o;let n;this.tabIndex=-1,this.setAttribute("aria-hidden","true"),iH(this,r,(s=this,(n=s.getAttribute(tF.MEDIA_CONTROLLER))?null==(o=s.getRootNode())?void 0:o.getElementById(n):i_(s,"media-controller"))),this.getAttribute(tF.MEDIA_CONTROLLER)&&(null==(t=null==(e=iO(this,r))?void 0:e.associateElement)||t.call(e,this)),null==(i=iO(this,r))||i.addEventListener("pointerdown",this),null==(a=iO(this,r))||a.addEventListener("click",this)}disconnectedCallback(){var e,t,i,a;this.getAttribute(tF.MEDIA_CONTROLLER)&&(null==(t=null==(e=iO(this,r))?void 0:e.unassociateElement)||t.call(e,this)),null==(i=iO(this,r))||i.removeEventListener("pointerdown",this),null==(a=iO(this,r))||a.removeEventListener("click",this),iH(this,r,null)}handleEvent(e){var t;let i=null==(t=e.composedPath())?void 0:t[0];if(["video","media-controller"].includes(null==i?void 0:i.localName)){if("pointerdown"===e.type)this._pointerType=e.pointerType;else if("click"===e.type){let{clientX:t,clientY:i}=e,{left:a,top:r,width:s,height:o}=this.getBoundingClientRect(),n=t-a,l=i-r;if(n<0||l<0||n>s||l>o||0===s&&0===o)return;let d=this._pointerType||"mouse";if(this._pointerType=void 0,d===tJ.TOUCH)return void this.handleTap(e);if(d===tJ.MOUSE||d===tJ.PEN)return void this.handleMouseClick(e)}}}get mediaPaused(){return iD(this,tq.MEDIA_PAUSED)}set mediaPaused(e){ix(this,tq.MEDIA_PAUSED,e)}handleTap(e){}handleMouseClick(e){let t=this.mediaPaused?tB.MEDIA_PLAY_REQUEST:tB.MEDIA_PAUSE_REQUEST;this.dispatchEvent(new ip.CustomEvent(t,{composed:!0,bubbles:!0}))}}r=new WeakMap,iW.shadowRootOptions={mode:"open"},iW.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        display: var(--media-control-display, var(--media-gesture-receiver-display, inline-block));
+        box-sizing: border-box;
+      }
+    </style>
+  `},ip.customElements.get("media-gesture-receiver")||ip.customElements.define("media-gesture-receiver",iW);var i$=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},iV=(e,t,i)=>(i$(e,t,"read from private field"),i?i.call(e):t.get(e)),iB=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},iF=(e,t,i,a)=>(i$(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i),iG=(e,t,i)=>(i$(e,t,"access private method"),i);let ij="audio",iq="autohide",iQ="breakpoints",iK="gesturesdisabled",iz="keyboardcontrol",iZ="noautohide",iY="userinactive",iX="autohideovercontrols",iJ=Object.values(tq);function i0(e,t){var i,a,r;if(!e.isConnected)return;let s=Object.fromEntries((null!=(i=e.getAttribute(iQ))?i:"sm:384 md:576 lg:768 xl:960").split(/\s+/).map(e=>e.split(":"))),o=(a=s,r=t,Object.keys(a).filter(e=>r>=parseInt(a[e]))),n=!1;if(Object.keys(s).forEach(t=>{if(o.includes(t)){e.hasAttribute(`breakpoint${t}`)||(e.setAttribute(`breakpoint${t}`,""),n=!0);return}e.hasAttribute(`breakpoint${t}`)&&(e.removeAttribute(`breakpoint${t}`),n=!0)}),n){let t=new CustomEvent(tQ.BREAKPOINTS_CHANGE,{detail:o});e.dispatchEvent(t)}e.breakpointsComputed||(e.breakpointsComputed=!0,e.dispatchEvent(new CustomEvent(tQ.BREAKPOINTS_COMPUTED,{bubbles:!0,composed:!0})))}class i1 extends ip.HTMLElement{constructor(){if(super(),iB(this,u),iB(this,p),iB(this,E),iB(this,g),iB(this,A),iB(this,w),iB(this,s,0),iB(this,o,null),iB(this,n,null),iB(this,l,void 0),this.breakpointsComputed=!1,iB(this,d,new MutationObserver(iG(this,u,h).bind(this))),iB(this,c,!1),iB(this,m,e=>{iV(this,c)||(setTimeout(()=>{i0(e.target,e.contentRect.width),iF(this,c,!1)},0),iF(this,c,!0))}),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes),t=this.constructor.getTemplateHTML(e);this.shadowRoot.setHTMLUnsafe?this.shadowRoot.setHTMLUnsafe(t):this.shadowRoot.innerHTML=t}const e=this.querySelector(":scope > slot[slot=media]");e&&e.addEventListener("slotchange",()=>{if(!e.assignedElements({flatten:!0}).length){iV(this,o)&&this.mediaUnsetCallback(iV(this,o));return}this.handleMediaUpdated(this.media)})}static get observedAttributes(){return[iq,iK].concat(iJ).filter(e=>![tq.MEDIA_RENDITION_LIST,tq.MEDIA_AUDIO_TRACK_LIST,tq.MEDIA_CHAPTERS_CUES,tq.MEDIA_WIDTH,tq.MEDIA_HEIGHT,tq.MEDIA_ERROR,tq.MEDIA_ERROR_MESSAGE].includes(e))}attributeChangedCallback(e,t,i){e.toLowerCase()==iq&&(this.autohide=i)}get media(){let e=this.querySelector(":scope > [slot=media]");return(null==e?void 0:e.nodeName)=="SLOT"&&(e=e.assignedElements({flatten:!0})[0]),e}async handleMediaUpdated(e){e&&(iF(this,o,e),e.localName.includes("-")&&await ip.customElements.whenDefined(e.localName),this.mediaSetCallback(e))}connectedCallback(){var e;iV(this,d).observe(this,{childList:!0,subtree:!0}),iA(this,iV(this,m));let t=null!=this.getAttribute(ij)?is("audio player"):is("video player");this.setAttribute("role","region"),this.setAttribute("aria-label",t),this.handleMediaUpdated(this.media),this.setAttribute(iY,""),i0(this,this.getBoundingClientRect().width),this.addEventListener("pointerdown",this),this.addEventListener("pointermove",this),this.addEventListener("pointerup",this),this.addEventListener("mouseleave",this),this.addEventListener("keyup",this),null==(e=ip.window)||e.addEventListener("mouseup",this)}disconnectedCallback(){var e;iV(this,d).disconnect(),iy(this,iV(this,m)),this.media&&this.mediaUnsetCallback(this.media),null==(e=ip.window)||e.removeEventListener("mouseup",this)}mediaSetCallback(e){}mediaUnsetCallback(e){iF(this,o,null)}handleEvent(e){switch(e.type){case"pointerdown":iF(this,s,e.timeStamp);break;case"pointermove":iG(this,p,v).call(this,e);break;case"pointerup":iG(this,E,b).call(this,e);break;case"mouseleave":iG(this,g,f).call(this);break;case"mouseup":this.removeAttribute(iz);break;case"keyup":iG(this,w,I).call(this),this.setAttribute(iz,"")}}set autohide(e){let t=Number(e);iF(this,l,isNaN(t)?0:t)}get autohide(){return(void 0===iV(this,l)?2:iV(this,l)).toString()}get breakpoints(){return iP(this,iQ)}set breakpoints(e){iN(this,iQ,e)}get audio(){return iD(this,ij)}set audio(e){ix(this,ij,e)}get gesturesDisabled(){return iD(this,iK)}set gesturesDisabled(e){ix(this,iK,e)}get keyboardControl(){return iD(this,iz)}set keyboardControl(e){ix(this,iz,e)}get noAutohide(){return iD(this,iZ)}set noAutohide(e){ix(this,iZ,e)}get autohideOverControls(){return iD(this,iX)}set autohideOverControls(e){ix(this,iX,e)}get userInteractive(){return iD(this,iY)}set userInteractive(e){ix(this,iY,e)}}s=new WeakMap,o=new WeakMap,n=new WeakMap,l=new WeakMap,d=new WeakMap,u=new WeakSet,h=function(e){let t=this.media;for(let i of e)if("childList"===i.type){for(let e of i.removedNodes){if("media"!=e.slot||i.target!=this)continue;let a=i.previousSibling&&i.previousSibling.previousElementSibling;if(a&&t){let t="media"!==a.slot;for(;null!==(a=a.previousSibling);)"media"==a.slot&&(t=!1);t&&this.mediaUnsetCallback(e)}else this.mediaUnsetCallback(e)}if(t)for(let e of i.addedNodes)e===t&&this.handleMediaUpdated(t)}},c=new WeakMap,m=new WeakMap,p=new WeakSet,v=function(e){if("mouse"!==e.pointerType&&e.timeStamp-iV(this,s)<250)return;iG(this,A,y).call(this),clearTimeout(iV(this,n));let t=this.hasAttribute(iX);([this,this.media].includes(e.target)||t)&&iG(this,w,I).call(this)},E=new WeakSet,b=function(e){if("touch"===e.pointerType){let t=!this.hasAttribute(iY);[this,this.media].includes(e.target)&&t?iG(this,g,f).call(this):iG(this,w,I).call(this)}else e.composedPath().some(e=>["media-play-button","media-fullscreen-button"].includes(null==e?void 0:e.localName))&&iG(this,w,I).call(this)},g=new WeakSet,f=function(){if(0>iV(this,l)||this.hasAttribute(iY))return;this.setAttribute(iY,"");let e=new ip.CustomEvent(tQ.USER_INACTIVE_CHANGE,{composed:!0,bubbles:!0,detail:!0});this.dispatchEvent(e)},A=new WeakSet,y=function(){if(!this.hasAttribute(iY))return;this.removeAttribute(iY);let e=new ip.CustomEvent(tQ.USER_INACTIVE_CHANGE,{composed:!0,bubbles:!0,detail:!1});this.dispatchEvent(e)},w=new WeakSet,I=function(){iG(this,A,y).call(this),clearTimeout(iV(this,n));let e=parseInt(this.autohide);e<0||iF(this,n,setTimeout(()=>{iG(this,g,f).call(this)},1e3*e))},i1.shadowRootOptions={mode:"open"},i1.getTemplateHTML=function(e){return`
+    <style>
+      
+      :host([${tq.MEDIA_IS_FULLSCREEN}]) ::slotted([slot=media]) {
+        outline: none;
+      }
+
+      :host {
+        box-sizing: border-box;
+        position: relative;
+        display: inline-block;
+        line-height: 0;
+        background-color: var(--media-background-color, #000);
+        overflow: hidden;
+      }
+
+      :host(:not([${ij}])) [part~=layer]:not([part~=media-layer]) {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        pointer-events: none;
+        background: none;
+      }
+
+      slot[name=media] {
+        display: var(--media-slot-display, contents);
+      }
+
+      
+      :host([${ij}]) slot[name=media] {
+        display: var(--media-slot-display, none);
+      }
+
+      
+      :host([${ij}]) [part~=layer][part~=gesture-layer] {
+        height: 0;
+        display: block;
+      }
+
+      
+      :host(:not([${ij}])[${iK}]) ::slotted([slot=gestures-chrome]),
+          :host(:not([${ij}])[${iK}]) media-gesture-receiver[slot=gestures-chrome] {
+        display: none;
+      }
+
+      
+      ::slotted(:not([slot=media]):not([slot=poster]):not(media-loading-indicator):not([role=dialog]):not([hidden])) {
+        pointer-events: auto;
+      }
+
+      :host(:not([${ij}])) *[part~=layer][part~=centered-layer] {
+        align-items: center;
+        justify-content: center;
+      }
+
+      :host(:not([${ij}])) ::slotted(media-gesture-receiver[slot=gestures-chrome]),
+      :host(:not([${ij}])) media-gesture-receiver[slot=gestures-chrome] {
+        align-self: stretch;
+        flex-grow: 1;
+      }
+
+      slot[name=middle-chrome] {
+        display: inline;
+        flex-grow: 1;
+        pointer-events: none;
+        background: none;
+      }
+
+      
+      ::slotted([slot=media]),
+      ::slotted([slot=poster]) {
+        width: 100%;
+        height: 100%;
+      }
+
+      
+      :host(:not([${ij}])) .spacer {
+        flex-grow: 1;
+      }
+
+      
+      :host(:-webkit-full-screen) {
+        
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      
+      ::slotted(:not([slot=media]):not([slot=poster]):not([${iZ}]):not([hidden]):not([role=dialog])) {
+        opacity: 1;
+        transition: var(--media-control-transition-in, opacity 0.25s);
+      }
+
+      
+      :host([${iY}]:not([${tq.MEDIA_PAUSED}]):not([${tq.MEDIA_IS_AIRPLAYING}]):not([${tq.MEDIA_IS_CASTING}]):not([${ij}])) ::slotted(:not([slot=media]):not([slot=poster]):not([${iZ}]):not([role=dialog])) {
+        opacity: 0;
+        transition: var(--media-control-transition-out, opacity 1s);
+      }
+
+      :host([${iY}]:not([${iZ}]):not([${tq.MEDIA_PAUSED}]):not([${tq.MEDIA_IS_CASTING}]):not([${ij}])) ::slotted([slot=media]) {
+        cursor: none;
+      }
+
+      :host([${iY}][${iX}]:not([${iZ}]):not([${tq.MEDIA_PAUSED}]):not([${tq.MEDIA_IS_CASTING}]):not([${ij}])) * {
+        --media-cursor: none;
+        cursor: none;
+      }
+
+
+      ::slotted(media-control-bar)  {
+        align-self: stretch;
+      }
+
+      
+      :host(:not([${ij}])[${tq.MEDIA_HAS_PLAYED}]) slot[name=poster] {
+        display: none;
+      }
+
+      ::slotted([role=dialog]) {
+        width: 100%;
+        height: 100%;
+        align-self: center;
+      }
+
+      ::slotted([role=menu]) {
+        align-self: end;
+      }
+    </style>
+
+    <slot name="media" part="layer media-layer"></slot>
+    <slot name="poster" part="layer poster-layer"></slot>
+    <slot name="gestures-chrome" part="layer gesture-layer">
+      <media-gesture-receiver slot="gestures-chrome">
+        <template shadowrootmode="${iW.shadowRootOptions.mode}">
+          ${iW.getTemplateHTML({})}
+        </template>
+      </media-gesture-receiver>
+    </slot>
+    <span part="layer vertical-layer">
+      <slot name="top-chrome" part="top chrome"></slot>
+      <slot name="middle-chrome" part="middle chrome"></slot>
+      <slot name="centered-chrome" part="layer centered-layer center centered chrome"></slot>
+      
+      <slot part="bottom chrome"></slot>
+    </span>
+    <slot name="dialog" part="layer dialog-layer"></slot>
+  `},ip.customElements.get("media-container")||ip.customElements.define("media-container",i1);var i2=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},i3=(e,t,i)=>(i2(e,t,"read from private field"),i?i.call(e):t.get(e)),i5=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},i4=(e,t,i,a)=>(i2(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);class i7{constructor(e,t,{defaultValue:i}={defaultValue:void 0}){i5(this,S),i5(this,k,void 0),i5(this,T,void 0),i5(this,_,void 0),i5(this,M,new Set),i4(this,k,e),i4(this,T,t),i4(this,_,new Set(i))}[Symbol.iterator](){return i3(this,S,L).values()}get length(){return i3(this,S,L).size}get value(){var e;return null!=(e=[...i3(this,S,L)].join(" "))?e:""}set value(e){var t;e!==this.value&&(i4(this,M,new Set),this.add(...null!=(t=null==e?void 0:e.split(" "))?t:[]))}toString(){return this.value}item(e){return[...i3(this,S,L)][e]}values(){return i3(this,S,L).values()}forEach(e,t){i3(this,S,L).forEach(e,t)}add(...e){var t,i;e.forEach(e=>i3(this,M).add(e)),(""!==this.value||(null==(t=i3(this,k))?void 0:t.hasAttribute(`${i3(this,T)}`)))&&(null==(i=i3(this,k))||i.setAttribute(`${i3(this,T)}`,`${this.value}`))}remove(...e){var t;e.forEach(e=>i3(this,M).delete(e)),null==(t=i3(this,k))||t.setAttribute(`${i3(this,T)}`,`${this.value}`)}contains(e){return i3(this,S,L).has(e)}toggle(e,t){if(void 0!==t)if(t)return this.add(e),!0;else return this.remove(e),!1;return this.contains(e)?(this.remove(e),!1):(this.add(e),!0)}replace(e,t){return this.remove(e),this.add(t),e===t}}k=new WeakMap,T=new WeakMap,_=new WeakMap,M=new WeakMap,S=new WeakSet,L=function(){return i3(this,M).size?i3(this,M):i3(this,_)};let i8=(e="")=>{let[t,i,a]=e.split(":"),r=a?decodeURIComponent(a):void 0;return{kind:"cc"===t?tZ.CAPTIONS:tZ.SUBTITLES,language:i,label:r}},i6=(e="",t={})=>((e="")=>e.split(/\s+/))(e).map(e=>{let i=i8(e);return{...t,...i}}),i9=e=>e?Array.isArray(e)?e.map(e=>"string"==typeof e?i8(e):e):"string"==typeof e?i6(e):[e]:[],ae=({kind:e,label:t,language:i}={kind:"subtitles"})=>t?`${"captions"===e?"cc":"sb"}:${i}:${encodeURIComponent(t)}`:i,at=(e=[])=>Array.prototype.map.call(e,ae).join(" "),ai=e=>{let t=Object.entries(e).map(([e,t])=>i=>i[e]===t);return e=>t.every(t=>t(e))},aa=(e,t=[],i=[])=>{let a=i9(i).map(ai);Array.from(t).filter(e=>a.some(t=>t(e))).forEach(t=>{t.mode=e})},ar=(e,t=()=>!0)=>{if(!(null==e?void 0:e.textTracks))return[];let i="function"==typeof t?t:ai(t);return Array.from(e.textTracks).filter(i)},as="exitFullscreen"in iv?"exitFullscreen":"webkitExitFullscreen"in iv?"webkitExitFullscreen":"webkitCancelFullScreen"in iv?"webkitCancelFullScreen":void 0,ao="fullscreenElement"in iv?"fullscreenElement":"webkitFullscreenElement"in iv?"webkitFullscreenElement":void 0,an="fullscreenEnabled"in iv?"fullscreenEnabled":"webkitFullscreenEnabled"in iv?"webkitFullscreenEnabled":void 0,al=()=>{var e;return t||(t=null==(e=null==iv?void 0:iv.createElement)?void 0:e.call(iv,"video"))},ad=async(e=al())=>{if(!e)return!1;let t=e.volume;e.volume=t/2+.1;let i=new AbortController,a=await Promise.race([au(e,i.signal),ah(e,t)]);return i.abort(),a},au=(e,t)=>new Promise(i=>{e.addEventListener("volumechange",()=>i(!0),{signal:t})}),ah=async(e,t)=>{for(let i=0;i<10;i++){if(e.volume===t)return!1;await t8(10)}return e.volume!==t},ac=/.*Version\/.*Safari\/.*/.test(ip.navigator.userAgent),am=(e=al())=>(!ip.matchMedia("(display-mode: standalone)").matches||!ac)&&"function"==typeof(null==e?void 0:e.requestPictureInPicture),ap=(e=al())=>(e=>{let{documentElement:t,media:i}=e;return!!(null==t?void 0:t[an])||i&&"webkitSupportsFullscreen"in i})({documentElement:iv,media:e}),av=ap(),aE=am(),ab=!!ip.WebKitPlaybackTargetAvailabilityEvent,ag=!!ip.chrome,af=e=>ar(e.media,e=>[tZ.SUBTITLES,tZ.CAPTIONS].includes(e.kind)).sort((e,t)=>e.kind>=t.kind?1:-1),aA=e=>ar(e.media,e=>e.mode===tY.SHOWING&&[tZ.SUBTITLES,tZ.CAPTIONS].includes(e.kind)),ay=(e,t)=>{let i=af(e),a=aA(e),r=!!a.length;if(i.length){if(!1===t||r&&!0!==t)aa(tY.DISABLED,i,a);else if(!0===t||!r&&!1!==t){let t=i[0],{options:r}=e;if(!(null==r?void 0:r.noSubtitlesLangPref)){let e=globalThis.localStorage.getItem("media-chrome-pref-subtitles-lang"),a=e?[e,...globalThis.navigator.languages]:globalThis.navigator.languages,r=i.filter(e=>a.some(t=>e.language.toLowerCase().startsWith(t.split("-")[0]))).sort((e,t)=>a.findIndex(t=>e.language.toLowerCase().startsWith(t.split("-")[0]))-a.findIndex(e=>t.language.toLowerCase().startsWith(e.split("-")[0])));r[0]&&(t=r[0])}let{language:s,label:o,kind:n}=t;aa(tY.DISABLED,i,a),aa(tY.SHOWING,i,[{language:s,label:o,kind:n}])}}},aw=(e,t)=>e===t||null!=e&&null!=t&&typeof e==typeof t&&(!!("number"==typeof e&&Number.isNaN(e)&&Number.isNaN(t))||"object"==typeof e&&(Array.isArray(e)?aI(e,t):Object.entries(e).every(([e,i])=>e in t&&aw(i,t[e])))),aI=(e,t)=>{let i=Array.isArray(e),a=Array.isArray(t);return i===a&&(!i&&!a||e.length===t.length&&e.every((e,i)=>aw(e,t[i])))},ak=Object.values(t1),aT=ad().then(e=>i=e),a_=async(...e)=>{await Promise.all(e.filter(e=>e).map(async e=>{if(!("localName"in e&&e instanceof ip.HTMLElement))return;let t=e.localName;if(!t.includes("-"))return;let i=ip.customElements.get(t);i&&e instanceof i||(await ip.customElements.whenDefined(t),ip.customElements.upgrade(e))}))},aM=new ip.DOMParser,aS={mediaError:{get(e,t){let{media:i}=e;if((null==t?void 0:t.type)!=="playing")return null==i?void 0:i.error},mediaEvents:["emptied","error","playing"]},mediaErrorCode:{get(e,t){var i;let{media:a}=e;if((null==t?void 0:t.type)!=="playing")return null==(i=null==a?void 0:a.error)?void 0:i.code},mediaEvents:["emptied","error","playing"]},mediaErrorMessage:{get(e,t){var i,a;let{media:r}=e;if((null==t?void 0:t.type)!=="playing")return null!=(a=null==(i=null==r?void 0:r.error)?void 0:i.message)?a:""},mediaEvents:["emptied","error","playing"]},mediaWidth:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.videoWidth)?t:0},mediaEvents:["resize"]},mediaHeight:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.videoHeight)?t:0},mediaEvents:["resize"]},mediaPaused:{get(e){var t;let{media:i}=e;return null==(t=null==i?void 0:i.paused)||t},set(e,t){var i;let{media:a}=t;a&&(e?a.pause():null==(i=a.play())||i.catch(()=>{}))},mediaEvents:["play","playing","pause","emptied"]},mediaHasPlayed:{get(e,t){let{media:i}=e;return!!i&&(t?"playing"===t.type:!i.paused)},mediaEvents:["playing","emptied"]},mediaEnded:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.ended)&&t},mediaEvents:["seeked","ended","emptied"]},mediaPlaybackRate:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.playbackRate)?t:1},set(e,t){let{media:i}=t;!i||Number.isFinite(+e)&&(i.playbackRate=+e)},mediaEvents:["ratechange","loadstart"]},mediaMuted:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.muted)&&t},set(e,t){let{media:i,options:{noMutedPref:a}={}}=t;if(i){i.muted=e;try{let t=null!==ip.localStorage.getItem("media-chrome-pref-muted"),r=i.hasAttribute("muted");if(a){t&&ip.localStorage.removeItem("media-chrome-pref-muted");return}if(r&&!t)return;ip.localStorage.setItem("media-chrome-pref-muted",e?"true":"false")}catch(e){console.debug("Error setting muted pref",e)}}},mediaEvents:["volumechange"],stateOwnersUpdateHandlers:[(e,t)=>{let{options:{noMutedPref:i}}=t,{media:a}=t;if(a&&!a.muted&&!i)try{let i="true"===ip.localStorage.getItem("media-chrome-pref-muted");aS.mediaMuted.set(i,t),e(i)}catch(e){console.debug("Error getting muted pref",e)}}]},mediaLoop:{get(e){let{media:t}=e;return null==t?void 0:t.loop},set(e,t){let{media:i}=t;i&&(i.loop=e)},mediaEvents:["medialooprequest"]},mediaVolume:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.volume)?t:1},set(e,t){let{media:i,options:{noVolumePref:a}={}}=t;if(i){try{null==e?ip.localStorage.removeItem("media-chrome-pref-volume"):i.hasAttribute("muted")||a||ip.localStorage.setItem("media-chrome-pref-volume",e.toString())}catch(e){console.debug("Error setting volume pref",e)}Number.isFinite(+e)&&(i.volume=+e)}},mediaEvents:["volumechange"],stateOwnersUpdateHandlers:[(e,t)=>{let{options:{noVolumePref:i}}=t;if(!i)try{let{media:i}=t;if(!i)return;let a=ip.localStorage.getItem("media-chrome-pref-volume");if(null==a)return;aS.mediaVolume.set(+a,t),e(+a)}catch(e){console.debug("Error getting volume pref",e)}}]},mediaVolumeLevel:{get(e){let{media:t}=e;return void 0===(null==t?void 0:t.volume)?"high":t.muted||0===t.volume?"off":t.volume<.5?"low":t.volume<.75?"medium":"high"},mediaEvents:["volumechange"]},mediaCurrentTime:{get(e){var t;let{media:i}=e;return null!=(t=null==i?void 0:i.currentTime)?t:0},set(e,t){let{media:i}=t;i&&t7(e)&&(i.currentTime=e)},mediaEvents:["timeupdate","loadedmetadata"]},mediaDuration:{get(e){let{media:t,options:{defaultDuration:i}={}}=e;return i&&(!t||!t.duration||Number.isNaN(t.duration)||!Number.isFinite(t.duration))?i:Number.isFinite(null==t?void 0:t.duration)?t.duration:NaN},mediaEvents:["durationchange","loadedmetadata","emptied"]},mediaLoading:{get(e){let{media:t}=e;return(null==t?void 0:t.readyState)<3},mediaEvents:["waiting","playing","emptied"]},mediaSeekable:{get(e){var t;let{media:i}=e;if(!(null==(t=null==i?void 0:i.seekable)?void 0:t.length))return;let a=i.seekable.start(0),r=i.seekable.end(i.seekable.length-1);if(a||r)return[Number(a.toFixed(3)),Number(r.toFixed(3))]},mediaEvents:["loadedmetadata","emptied","progress","seekablechange"]},mediaBuffered:{get(e){var t;let{media:i}=e,a=null!=(t=null==i?void 0:i.buffered)?t:[];return Array.from(a).map((e,t)=>[Number(a.start(t).toFixed(3)),Number(a.end(t).toFixed(3))])},mediaEvents:["progress","emptied"]},mediaStreamType:{get(e){let{media:t,options:{defaultStreamType:i}={}}=e,a=[t1.LIVE,t1.ON_DEMAND].includes(i)?i:void 0;if(!t)return a;let{streamType:r}=t;if(ak.includes(r))return r===t1.UNKNOWN?a:r;let s=t.duration;return s===1/0?t1.LIVE:Number.isFinite(s)?t1.ON_DEMAND:a},mediaEvents:["emptied","durationchange","loadedmetadata","streamtypechange"]},mediaTargetLiveWindow:{get(e){let{media:t}=e;if(!t)return NaN;let{targetLiveWindow:i}=t,a=aS.mediaStreamType.get(e);return(null==i||Number.isNaN(i))&&a===t1.LIVE?0:i},mediaEvents:["emptied","durationchange","loadedmetadata","streamtypechange","targetlivewindowchange"]},mediaTimeIsLive:{get(e){let{media:t,options:{liveEdgeOffset:i=10}={}}=e;if(!t)return!1;if("number"==typeof t.liveEdgeStart)return!Number.isNaN(t.liveEdgeStart)&&t.currentTime>=t.liveEdgeStart;if(aS.mediaStreamType.get(e)!==t1.LIVE)return!1;let a=t.seekable;if(!a)return!0;if(!a.length)return!1;let r=a.end(a.length-1)-i;return t.currentTime>=r},mediaEvents:["playing","timeupdate","progress","waiting","emptied"]},mediaSubtitlesList:{get:e=>af(e).map(({kind:e,label:t,language:i})=>({kind:e,label:t,language:i})),mediaEvents:["loadstart"],textTracksEvents:["addtrack","removetrack"]},mediaSubtitlesShowing:{get:e=>aA(e).map(({kind:e,label:t,language:i})=>({kind:e,label:t,language:i})),mediaEvents:["loadstart"],textTracksEvents:["addtrack","removetrack","change"],stateOwnersUpdateHandlers:[(e,t)=>{var i,a;let{media:r,options:s}=t;if(!r)return;let o=e=>{var i;s.defaultSubtitles&&(e&&![tZ.CAPTIONS,tZ.SUBTITLES].includes(null==(i=null==e?void 0:e.track)?void 0:i.kind)||ay(t,!0))};return r.addEventListener("loadstart",o),null==(i=r.textTracks)||i.addEventListener("addtrack",o),null==(a=r.textTracks)||a.addEventListener("removetrack",o),()=>{var e,t;r.removeEventListener("loadstart",o),null==(e=r.textTracks)||e.removeEventListener("addtrack",o),null==(t=r.textTracks)||t.removeEventListener("removetrack",o)}}]},mediaChaptersCues:{get(e){var t;let{media:i}=e;if(!i)return[];let[a]=ar(i,{kind:tZ.CHAPTERS});return Array.from(null!=(t=null==a?void 0:a.cues)?t:[]).map(({text:e,startTime:t,endTime:i})=>({text:e&&aM.parseFromString(e,"text/html").body.textContent||e,startTime:t,endTime:i}))},mediaEvents:["loadstart","loadedmetadata"],textTracksEvents:["addtrack","removetrack","change"],stateOwnersUpdateHandlers:[(e,t)=>{var i;let{media:a}=t;if(!a)return;let r=a.querySelector('track[kind="chapters"][default][src]'),s=null==(i=a.shadowRoot)?void 0:i.querySelector(':is(video,audio) > track[kind="chapters"][default][src]');return null==r||r.addEventListener("load",e),null==s||s.addEventListener("load",e),()=>{null==r||r.removeEventListener("load",e),null==s||s.removeEventListener("load",e)}}]},mediaIsPip:{get(e){var t,i;let{media:a,documentElement:r}=e;if(!a||!r||!r.pictureInPictureElement)return!1;if(r.pictureInPictureElement===a)return!0;if(r.pictureInPictureElement instanceof HTMLMediaElement)return!!(null==(t=a.localName)?void 0:t.includes("-"))&&iT(a,r.pictureInPictureElement);if(r.pictureInPictureElement.localName.includes("-")){let e=r.pictureInPictureElement.shadowRoot;for(;null==e?void 0:e.pictureInPictureElement;){if(e.pictureInPictureElement===a)return!0;e=null==(i=e.pictureInPictureElement)?void 0:i.shadowRoot}}return!1},set(e,t){let{media:i}=t;if(i)if(e){if(!iv.pictureInPictureEnabled)return void console.warn("MediaChrome: Picture-in-picture is not enabled");if(!i.requestPictureInPicture)return void console.warn("MediaChrome: The current media does not support picture-in-picture");let e=()=>{console.warn("MediaChrome: The media is not ready for picture-in-picture. It must have a readyState > 0.")};i.requestPictureInPicture().catch(t=>{if(11===t.code){if(!i.src)return void console.warn("MediaChrome: The media is not ready for picture-in-picture. It must have a src set.");if(0===i.readyState&&"none"===i.preload){let t=()=>{i.removeEventListener("loadedmetadata",a),i.preload="none"},a=()=>{i.requestPictureInPicture().catch(e),t()};i.addEventListener("loadedmetadata",a),i.preload="metadata",setTimeout(()=>{0===i.readyState&&e(),t()},1e3)}else throw t}else throw t})}else iv.pictureInPictureElement&&iv.exitPictureInPicture()},mediaEvents:["enterpictureinpicture","leavepictureinpicture"]},mediaRenditionList:{get(e){var t;let{media:i}=e;return[...null!=(t=null==i?void 0:i.videoRenditions)?t:[]].map(e=>({...e}))},mediaEvents:["emptied","loadstart"],videoRenditionsEvents:["addrendition","removerendition"]},mediaRenditionSelected:{get(e){var t,i,a;let{media:r}=e;return null==(a=null==(i=null==r?void 0:r.videoRenditions)?void 0:i[null==(t=r.videoRenditions)?void 0:t.selectedIndex])?void 0:a.id},set(e,t){let{media:i}=t;if(!(null==i?void 0:i.videoRenditions))return void console.warn("MediaController: Rendition selection not supported by this media.");let a=Array.prototype.findIndex.call(i.videoRenditions,t=>t.id==e);i.videoRenditions.selectedIndex!=a&&(i.videoRenditions.selectedIndex=a)},mediaEvents:["emptied"],videoRenditionsEvents:["addrendition","removerendition","change"]},mediaAudioTrackList:{get(e){var t;let{media:i}=e;return[...null!=(t=null==i?void 0:i.audioTracks)?t:[]]},mediaEvents:["emptied","loadstart"],audioTracksEvents:["addtrack","removetrack"]},mediaAudioTrackEnabled:{get(e){var t,i;let{media:a}=e;return null==(i=[...null!=(t=null==a?void 0:a.audioTracks)?t:[]].find(e=>e.enabled))?void 0:i.id},set(e,t){let{media:i}=t;if(!(null==i?void 0:i.audioTracks))return void console.warn("MediaChrome: Audio track selection not supported by this media.");for(let t of i.audioTracks)t.enabled=e==t.id},mediaEvents:["emptied"],audioTracksEvents:["addtrack","removetrack","change"]},mediaIsFullscreen:{get:e=>(e=>{var t;let{media:i,documentElement:a,fullscreenElement:r=i}=e;if(!i||!a)return!1;let s=(e=>{let{documentElement:t,media:i}=e,a=null==t?void 0:t[ao];return!a&&"webkitDisplayingFullscreen"in i&&"webkitPresentationMode"in i&&i.webkitDisplayingFullscreen&&i.webkitPresentationMode===t3.FULLSCREEN?i:a})(e);if(!s)return!1;if(s===r||s===i)return!0;if(s.localName.includes("-")){let e=s.shadowRoot;if(!(ao in e))return iT(s,r);for(;null==e?void 0:e[ao];){if(e[ao]===r)return!0;e=null==(t=e[ao])?void 0:t.shadowRoot}}return!1})(e),set(e,t,i){var a;e?((e=>{var t;let{media:i,fullscreenElement:a}=e;try{let e=a&&"requestFullscreen"in a?"requestFullscreen":a&&"webkitRequestFullScreen"in a?"webkitRequestFullScreen":void 0;if(e){let i=null==(t=a[e])?void 0:t.call(a);if(i instanceof Promise)return i.catch(()=>{})}else(null==i?void 0:i.webkitEnterFullscreen)?i.webkitEnterFullscreen():(null==i?void 0:i.requestFullscreen)&&i.requestFullscreen()}catch(e){console.error(e)}})(t),i.detail&&(null==(a=t.media)||a.focus())):(e=>{var t;let{documentElement:i}=e;if(as){let e=null==(t=null==i?void 0:i[as])?void 0:t.call(i);if(e instanceof Promise)return e.catch(()=>{})}})(t)},rootEvents:["fullscreenchange","webkitfullscreenchange"],mediaEvents:["webkitbeginfullscreen","webkitendfullscreen","webkitpresentationmodechanged"]},mediaIsCasting:{get(e){var t;let{media:i}=e;return!!(null==i?void 0:i.remote)&&(null==(t=i.remote)?void 0:t.state)!=="disconnected"&&!!i.remote.state},set(e,t){var i,a;let{media:r}=t;if(r&&(!e||(null==(i=r.remote)?void 0:i.state)==="disconnected")&&(e||(null==(a=r.remote)?void 0:a.state)==="connected")){if("function"!=typeof r.remote.prompt)return void console.warn("MediaChrome: Casting is not supported in this environment");r.remote.prompt().catch(()=>{})}},remoteEvents:["connect","connecting","disconnect"]},mediaIsAirplaying:{get:()=>!1,set(e,t){let{media:i}=t;if(i){if(!(i.webkitShowPlaybackTargetPicker&&ip.WebKitPlaybackTargetAvailabilityEvent))return void console.error("MediaChrome: received a request to select AirPlay but AirPlay is not supported in this environment");i.webkitShowPlaybackTargetPicker()}},mediaEvents:["webkitcurrentplaybacktargetiswirelesschanged"]},mediaFullscreenUnavailable:{get(e){let{media:t}=e;if(!av||!ap(t))return t0.UNSUPPORTED}},mediaPipUnavailable:{get(e){let{media:t}=e;return aE&&am(t)?(null==t?void 0:t.disablePictureInPicture)?t0.UNAVAILABLE:void 0:t0.UNSUPPORTED}},mediaVolumeUnavailable:{get(e){let{media:t}=e;if(!1===i||(null==t?void 0:t.volume)==void 0)return t0.UNSUPPORTED},stateOwnersUpdateHandlers:[e=>{null==i&&aT.then(t=>e(t?void 0:t0.UNSUPPORTED))}]},mediaCastUnavailable:{get(e,{availability:t="not-available"}={}){var i;let{media:a}=e;return ag&&(null==(i=null==a?void 0:a.remote)?void 0:i.state)?null!=t&&"available"!==t?t0.UNAVAILABLE:void 0:t0.UNSUPPORTED},stateOwnersUpdateHandlers:[(e,t)=>{var i;let{media:a}=t;if(a)return a.disableRemotePlayback||a.hasAttribute("disableremoteplayback")||null==(i=null==a?void 0:a.remote)||i.watchAvailability(t=>{e({availability:t?"available":"not-available"})}).catch(t=>{"NotSupportedError"===t.name?e({availability:null}):e({availability:"not-available"})}),()=>{var e;null==(e=null==a?void 0:a.remote)||e.cancelWatchAvailability().catch(()=>{})}}]},mediaAirplayUnavailable:{get:(e,t)=>ab?(null==t?void 0:t.availability)==="not-available"?t0.UNAVAILABLE:void 0:t0.UNSUPPORTED,mediaEvents:["webkitplaybacktargetavailabilitychanged"],stateOwnersUpdateHandlers:[(e,t)=>{var i;let{media:a}=t;if(a)return a.disableRemotePlayback||a.hasAttribute("disableremoteplayback")||null==(i=null==a?void 0:a.remote)||i.watchAvailability(t=>{e({availability:t?"available":"not-available"})}).catch(t=>{"NotSupportedError"===t.name?e({availability:null}):e({availability:"not-available"})}),()=>{var e;null==(e=null==a?void 0:a.remote)||e.cancelWatchAvailability().catch(()=>{})}}]},mediaRenditionUnavailable:{get(e){var t;let{media:i}=e;return(null==i?void 0:i.videoRenditions)?(null==(t=i.videoRenditions)?void 0:t.length)?void 0:t0.UNAVAILABLE:t0.UNSUPPORTED},mediaEvents:["emptied","loadstart"],videoRenditionsEvents:["addrendition","removerendition"]},mediaAudioTrackUnavailable:{get(e){var t,i;let{media:a}=e;return(null==a?void 0:a.audioTracks)?(null!=(i=null==(t=a.audioTracks)?void 0:t.length)?i:0)<=1?t0.UNAVAILABLE:void 0:t0.UNSUPPORTED},mediaEvents:["emptied","loadstart"],audioTracksEvents:["addtrack","removetrack"]},mediaLang:{get(e){let{options:{mediaLang:t}={}}=e;return null!=t?t:"en"}}},aL={[tB.MEDIA_PREVIEW_REQUEST](e,t,{detail:i}){var a,r,s;let o,n,{media:l}=t,d=null!=i?i:void 0;if(l&&null!=d){let[e]=ar(l,{kind:tZ.METADATA,label:"thumbnails"}),t=Array.prototype.find.call(null!=(a=null==e?void 0:e.cues)?a:[],(e,t,i)=>0===t?e.endTime>d:t===i.length-1?e.startTime<=d:e.startTime<=d&&e.endTime>d);if(t){let e=/'^(?:[a-z]+:)?\/\//i.test(t.text)||null==(r=null==l?void 0:l.querySelector('track[label="thumbnails"]'))?void 0:r.src,i=new URL(t.text,e);n=new URLSearchParams(i.hash).get("#xywh").split(",").map(e=>+e),o=i.href}}let u=e.mediaDuration.get(t),h=null==(s=e.mediaChaptersCues.get(t).find((e,t,i)=>t===i.length-1&&u===e.endTime?e.startTime<=d&&e.endTime>=d:e.startTime<=d&&e.endTime>d))?void 0:s.text;return null!=i&&null==h&&(h=""),{mediaPreviewTime:d,mediaPreviewImage:o,mediaPreviewCoords:n,mediaPreviewChapter:h}},[tB.MEDIA_PAUSE_REQUEST](e,t){e.mediaPaused.set(!0,t)},[tB.MEDIA_PLAY_REQUEST](e,t){var i,a,r,s;let o=e.mediaStreamType.get(t)===t1.LIVE,n=!(null==(i=t.options)?void 0:i.noAutoSeekToLive),l=e.mediaTargetLiveWindow.get(t)>0;if(o&&n&&!l){let i=null==(a=e.mediaSeekable.get(t))?void 0:a[1];if(i){let a=null!=(s=null==(r=t.options)?void 0:r.seekToLiveOffset)?s:0;e.mediaCurrentTime.set(i-a,t)}}e.mediaPaused.set(!1,t)},[tB.MEDIA_PLAYBACK_RATE_REQUEST](e,t,{detail:i}){e.mediaPlaybackRate.set(i,t)},[tB.MEDIA_MUTE_REQUEST](e,t){e.mediaMuted.set(!0,t)},[tB.MEDIA_UNMUTE_REQUEST](e,t){e.mediaVolume.get(t)||e.mediaVolume.set(.25,t),e.mediaMuted.set(!1,t)},[tB.MEDIA_LOOP_REQUEST](e,t,{detail:i}){let a=!!i;return e.mediaLoop.set(a,t),{mediaLoop:a}},[tB.MEDIA_VOLUME_REQUEST](e,t,{detail:i}){i&&e.mediaMuted.get(t)&&e.mediaMuted.set(!1,t),e.mediaVolume.set(i,t)},[tB.MEDIA_SEEK_REQUEST](e,t,{detail:i}){e.mediaCurrentTime.set(i,t)},[tB.MEDIA_SEEK_TO_LIVE_REQUEST](e,t){var i,a,r;let s=null==(i=e.mediaSeekable.get(t))?void 0:i[1];if(Number.isNaN(Number(s)))return;let o=null!=(r=null==(a=t.options)?void 0:a.seekToLiveOffset)?r:0;e.mediaCurrentTime.set(s-o,t)},[tB.MEDIA_SHOW_SUBTITLES_REQUEST](e,t,{detail:i}){var a;let{options:r}=t,s=af(t),o=i9(i),n=null==(a=o[0])?void 0:a.language;n&&!r.noSubtitlesLangPref&&ip.localStorage.setItem("media-chrome-pref-subtitles-lang",n),aa(tY.SHOWING,s,o)},[tB.MEDIA_DISABLE_SUBTITLES_REQUEST](e,t,{detail:i}){let a=af(t);aa(tY.DISABLED,a,null!=i?i:[])},[tB.MEDIA_TOGGLE_SUBTITLES_REQUEST](e,t,{detail:i}){ay(t,i)},[tB.MEDIA_RENDITION_REQUEST](e,t,{detail:i}){e.mediaRenditionSelected.set(i,t)},[tB.MEDIA_AUDIO_TRACK_REQUEST](e,t,{detail:i}){e.mediaAudioTrackEnabled.set(i,t)},[tB.MEDIA_ENTER_PIP_REQUEST](e,t){e.mediaIsFullscreen.get(t)&&e.mediaIsFullscreen.set(!1,t),e.mediaIsPip.set(!0,t)},[tB.MEDIA_EXIT_PIP_REQUEST](e,t){e.mediaIsPip.set(!1,t)},[tB.MEDIA_ENTER_FULLSCREEN_REQUEST](e,t,i){e.mediaIsPip.get(t)&&e.mediaIsPip.set(!1,t),e.mediaIsFullscreen.set(!0,t,i)},[tB.MEDIA_EXIT_FULLSCREEN_REQUEST](e,t){e.mediaIsFullscreen.set(!1,t)},[tB.MEDIA_ENTER_CAST_REQUEST](e,t){e.mediaIsFullscreen.get(t)&&e.mediaIsFullscreen.set(!1,t),e.mediaIsCasting.set(!0,t)},[tB.MEDIA_EXIT_CAST_REQUEST](e,t){e.mediaIsCasting.set(!1,t)},[tB.MEDIA_AIRPLAY_REQUEST](e,t){e.mediaIsAirplaying.set(!0,t)}};var aR=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},aC=(e,t,i)=>(aR(e,t,"read from private field"),i?i.call(e):t.get(e)),aD=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},ax=(e,t,i,a)=>(aR(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i),aP=(e,t,i)=>(aR(e,t,"access private method"),i);let aN=["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Enter"," ","f","m","k","c","l","j",">","<","p"],aU="defaultsubtitles",aO="defaultstreamtype",aH="defaultduration",aW="fullscreenelement",a$="hotkeys",aV="keyboardbackwardseekoffset",aB="keyboardforwardseekoffset",aF="keyboarddownvolumestep",aG="keyboardupvolumestep",aj="keysused",aq="lang",aQ="loop",aK="liveedgeoffset",az="noautoseektolive",aZ="nodefaultstore",aY="nohotkeys",aX="nomutedpref",aJ="nosubtitleslangpref",a0="novolumepref",a1="seektoliveoffset";class a2 extends i1{constructor(){super(),aD(this,H),aD(this,$),aD(this,B),aD(this,G),this.mediaStateReceivers=[],this.associatedElementSubscriptions=new Map,aD(this,R,new i7(this,a$)),aD(this,C,void 0),aD(this,D,void 0),aD(this,x,null),aD(this,P,void 0),aD(this,N,void 0),aD(this,U,e=>{var t;null==(t=aC(this,D))||t.dispatch(e)}),aD(this,O,void 0),this.associateElement(this);let e={};ax(this,P,t=>{Object.entries(t).forEach(([t,i])=>{if(t in e&&e[t]===i)return;this.propagateMediaState(t,i);let a=t.toLowerCase(),r=new ip.CustomEvent(tz[a],{composed:!0,detail:i});this.dispatchEvent(r)}),e=t}),this.hasAttribute(aY)?this.disableHotkeys():this.enableHotkeys()}static get observedAttributes(){return super.observedAttributes.concat(aY,a$,aO,aU,aH,aX,a0,aq,aQ)}get mediaStore(){return aC(this,D)}set mediaStore(e){var t,i;(aC(this,D)&&(null==(t=aC(this,N))||t.call(this),ax(this,N,void 0)),ax(this,D,e),aC(this,D)||this.hasAttribute(aZ))?ax(this,N,null==(i=aC(this,D))?void 0:i.subscribe(aC(this,P))):aP(this,H,W).call(this)}get fullscreenElement(){var e;return null!=(e=aC(this,C))?e:this}set fullscreenElement(e){var t;this.hasAttribute(aW)&&this.removeAttribute(aW),ax(this,C,e),null==(t=aC(this,D))||t.dispatch({type:"fullscreenelementchangerequest",detail:this.fullscreenElement})}get defaultSubtitles(){return iD(this,aU)}set defaultSubtitles(e){ix(this,aU,e)}get defaultStreamType(){return iP(this,aO)}set defaultStreamType(e){iN(this,aO,e)}get defaultDuration(){return iR(this,aH)}set defaultDuration(e){iC(this,aH,e)}get noHotkeys(){return iD(this,aY)}set noHotkeys(e){ix(this,aY,e)}get keysUsed(){return iP(this,aj)}set keysUsed(e){iN(this,aj,e)}get liveEdgeOffset(){return iR(this,aK)}set liveEdgeOffset(e){iC(this,aK,e)}get noAutoSeekToLive(){return iD(this,az)}set noAutoSeekToLive(e){ix(this,az,e)}get noVolumePref(){return iD(this,a0)}set noVolumePref(e){ix(this,a0,e)}get noMutedPref(){return iD(this,aX)}set noMutedPref(e){ix(this,aX,e)}get noSubtitlesLangPref(){return iD(this,aJ)}set noSubtitlesLangPref(e){ix(this,aJ,e)}get noDefaultStore(){return iD(this,aZ)}set noDefaultStore(e){ix(this,aZ,e)}attributeChangedCallback(e,t,i){var a,r,s,o,n,l,d,u,h,c,m,p;if(super.attributeChangedCallback(e,t,i),e===aY)i!==t&&""===i?(this.hasAttribute(a$)&&console.warn("Media Chrome: Both `hotkeys` and `nohotkeys` have been set. All hotkeys will be disabled."),this.disableHotkeys()):i!==t&&null===i&&this.enableHotkeys();else if(e===a$)aC(this,R).value=i;else if(e===aU&&i!==t)null==(a=aC(this,D))||a.dispatch({type:"optionschangerequest",detail:{defaultSubtitles:this.hasAttribute(aU)}});else if(e===aO)null==(s=aC(this,D))||s.dispatch({type:"optionschangerequest",detail:{defaultStreamType:null!=(r=this.getAttribute(aO))?r:void 0}});else if(e===aK)null==(o=aC(this,D))||o.dispatch({type:"optionschangerequest",detail:{liveEdgeOffset:this.hasAttribute(aK)?+this.getAttribute(aK):void 0,seekToLiveOffset:this.hasAttribute(a1)?void 0:+this.getAttribute(aK)}});else if(e===a1)null==(n=aC(this,D))||n.dispatch({type:"optionschangerequest",detail:{seekToLiveOffset:this.hasAttribute(a1)?+this.getAttribute(a1):void 0}});else if(e===az)null==(l=aC(this,D))||l.dispatch({type:"optionschangerequest",detail:{noAutoSeekToLive:this.hasAttribute(az)}});else if(e===aW){let e=i?null==(d=this.getRootNode())?void 0:d.getElementById(i):void 0;ax(this,C,e),null==(u=aC(this,D))||u.dispatch({type:"fullscreenelementchangerequest",detail:this.fullscreenElement})}else e===aq&&i!==t?(ir=i,null==(h=aC(this,D))||h.dispatch({type:"optionschangerequest",detail:{mediaLang:i}})):e===aQ&&i!==t?null==(c=aC(this,D))||c.dispatch({type:tB.MEDIA_LOOP_REQUEST,detail:null!=i}):e===a0&&i!==t?null==(m=aC(this,D))||m.dispatch({type:"optionschangerequest",detail:{noVolumePref:this.hasAttribute(a0)}}):e===aX&&i!==t&&(null==(p=aC(this,D))||p.dispatch({type:"optionschangerequest",detail:{noMutedPref:this.hasAttribute(aX)}}))}connectedCallback(){var e,t;aC(this,D)||this.hasAttribute(aZ)||aP(this,H,W).call(this),null==(e=aC(this,D))||e.dispatch({type:"documentelementchangerequest",detail:iv}),super.connectedCallback(),aC(this,D)&&!aC(this,N)&&ax(this,N,null==(t=aC(this,D))?void 0:t.subscribe(aC(this,P))),void 0!==aC(this,O)&&aC(this,D)&&this.media&&setTimeout(()=>{var e,t,i;(null==(t=null==(e=this.media)?void 0:e.textTracks)?void 0:t.length)&&(null==(i=aC(this,D))||i.dispatch({type:tB.MEDIA_TOGGLE_SUBTITLES_REQUEST,detail:aC(this,O)}))},0),this.hasAttribute(aY)?this.disableHotkeys():this.enableHotkeys()}disconnectedCallback(){var e,t,i,a,r;if(null==(e=super.disconnectedCallback)||e.call(this),aC(this,D)){let e=aC(this,D).getState();ax(this,O,!!(null==(t=e.mediaSubtitlesShowing)?void 0:t.length)),null==(i=aC(this,D))||i.dispatch({type:"documentelementchangerequest",detail:void 0}),null==(a=aC(this,D))||a.dispatch({type:tB.MEDIA_TOGGLE_SUBTITLES_REQUEST,detail:!1})}aC(this,N)&&(null==(r=aC(this,N))||r.call(this),ax(this,N,void 0))}mediaSetCallback(e){var t;super.mediaSetCallback(e),null==(t=aC(this,D))||t.dispatch({type:"mediaelementchangerequest",detail:e}),e.hasAttribute("tabindex")||(e.tabIndex=-1)}mediaUnsetCallback(e){var t;super.mediaUnsetCallback(e),null==(t=aC(this,D))||t.dispatch({type:"mediaelementchangerequest",detail:void 0})}propagateMediaState(e,t){rt(this.mediaStateReceivers,e,t)}associateElement(e){if(!e)return;let{associatedElementSubscriptions:t}=this;if(t.has(e))return;let i=ri(e,this.registerMediaStateReceiver.bind(this),this.unregisterMediaStateReceiver.bind(this));Object.values(tB).forEach(t=>{e.addEventListener(t,aC(this,U))}),t.set(e,i)}unassociateElement(e){if(!e)return;let{associatedElementSubscriptions:t}=this;t.has(e)&&(t.get(e)(),t.delete(e),Object.values(tB).forEach(t=>{e.removeEventListener(t,aC(this,U))}))}registerMediaStateReceiver(e){if(!e)return;let t=this.mediaStateReceivers;!(t.indexOf(e)>-1)&&(t.push(e),aC(this,D)&&Object.entries(aC(this,D).getState()).forEach(([t,i])=>{rt([e],t,i)}))}unregisterMediaStateReceiver(e){let t=this.mediaStateReceivers,i=t.indexOf(e);i<0||t.splice(i,1)}enableHotkeys(){this.addEventListener("keydown",aP(this,B,F))}disableHotkeys(){this.removeEventListener("keydown",aP(this,B,F)),this.removeEventListener("keyup",aP(this,$,V))}get hotkeys(){return iP(this,a$)}set hotkeys(e){iN(this,a$,e)}keyboardShortcutHandler(e){var t,i,a,r,s,o,n,l,d;let u,h,c,m=e.target;if(!((null!=(a=null!=(i=null==(t=m.getAttribute(aj))?void 0:t.split(" "))?i:null==m?void 0:m.keysUsed)?a:[]).map(e=>"Space"===e?" ":e).filter(Boolean).includes(e.key)||aC(this,R).contains(`no${e.key.toLowerCase()}`)||" "===e.key&&aC(this,R).contains("nospace"))&&!(e.shiftKey&&("/"===e.key||"?"===e.key)&&aC(this,R).contains("noshift+/")))switch(e.key){case" ":case"k":u=aC(this,D).getState().mediaPaused?tB.MEDIA_PLAY_REQUEST:tB.MEDIA_PAUSE_REQUEST,this.dispatchEvent(new ip.CustomEvent(u,{composed:!0,bubbles:!0}));break;case"m":u="off"===this.mediaStore.getState().mediaVolumeLevel?tB.MEDIA_UNMUTE_REQUEST:tB.MEDIA_MUTE_REQUEST,this.dispatchEvent(new ip.CustomEvent(u,{composed:!0,bubbles:!0}));break;case"f":u=this.mediaStore.getState().mediaIsFullscreen?tB.MEDIA_EXIT_FULLSCREEN_REQUEST:tB.MEDIA_ENTER_FULLSCREEN_REQUEST,this.dispatchEvent(new ip.CustomEvent(u,{composed:!0,bubbles:!0}));break;case"c":this.dispatchEvent(new ip.CustomEvent(tB.MEDIA_TOGGLE_SUBTITLES_REQUEST,{composed:!0,bubbles:!0}));break;case"ArrowLeft":case"j":{let e=this.hasAttribute(aV)?+this.getAttribute(aV):10;h=Math.max((null!=(r=this.mediaStore.getState().mediaCurrentTime)?r:0)-e,0),c=new ip.CustomEvent(tB.MEDIA_SEEK_REQUEST,{composed:!0,bubbles:!0,detail:h}),this.dispatchEvent(c);break}case"ArrowRight":case"l":{let e=this.hasAttribute(aB)?+this.getAttribute(aB):10;h=Math.max((null!=(s=this.mediaStore.getState().mediaCurrentTime)?s:0)+e,0),c=new ip.CustomEvent(tB.MEDIA_SEEK_REQUEST,{composed:!0,bubbles:!0,detail:h}),this.dispatchEvent(c);break}case"ArrowUp":{let e=this.hasAttribute(aG)?+this.getAttribute(aG):.025;h=Math.min((null!=(o=this.mediaStore.getState().mediaVolume)?o:1)+e,1),c=new ip.CustomEvent(tB.MEDIA_VOLUME_REQUEST,{composed:!0,bubbles:!0,detail:h}),this.dispatchEvent(c);break}case"ArrowDown":{let e=this.hasAttribute(aF)?+this.getAttribute(aF):.025;h=Math.max((null!=(n=this.mediaStore.getState().mediaVolume)?n:1)-e,0),c=new ip.CustomEvent(tB.MEDIA_VOLUME_REQUEST,{composed:!0,bubbles:!0,detail:h}),this.dispatchEvent(c);break}case"<":h=Math.max((null!=(l=this.mediaStore.getState().mediaPlaybackRate)?l:1)-.25,.25).toFixed(2),c=new ip.CustomEvent(tB.MEDIA_PLAYBACK_RATE_REQUEST,{composed:!0,bubbles:!0,detail:h}),this.dispatchEvent(c);break;case">":h=Math.min((null!=(d=this.mediaStore.getState().mediaPlaybackRate)?d:1)+.25,2).toFixed(2),c=new ip.CustomEvent(tB.MEDIA_PLAYBACK_RATE_REQUEST,{composed:!0,bubbles:!0,detail:h}),this.dispatchEvent(c);break;case"/":case"?":e.shiftKey&&aP(this,G,j).call(this);break;case"p":u=this.mediaStore.getState().mediaIsPip?tB.MEDIA_EXIT_PIP_REQUEST:tB.MEDIA_ENTER_PIP_REQUEST,c=new ip.CustomEvent(u,{composed:!0,bubbles:!0}),this.dispatchEvent(c)}}}R=new WeakMap,C=new WeakMap,D=new WeakMap,x=new WeakMap,P=new WeakMap,N=new WeakMap,U=new WeakMap,O=new WeakMap,H=new WeakSet,W=function(){var e;this.mediaStore=(({media:e,fullscreenElement:t,documentElement:i,stateMediator:a=aS,requestMap:r=aL,options:s={},monitorStateOwnersOnlyWithSubscriptions:o=!0})=>{let n,l=[],d={options:{...s}},u=Object.freeze({mediaPreviewTime:void 0,mediaPreviewImage:void 0,mediaPreviewCoords:void 0,mediaPreviewChapter:void 0}),h=e=>{void 0==e||aw(e,u)||(u=Object.freeze({...u,...e}),l.forEach(e=>e(u)))},c=()=>{h(Object.entries(a).reduce((e,[t,{get:i}])=>(e[t]=i(d),e),{}))},m={},p=async(e,t)=>{var i,r,s,u,p,v,E,b,g,f,A,y,w,I,k,T;let _=!!n;if(n={...d,...null!=n?n:{},...e},_)return;await a_(...Object.values(e));let M=l.length>0&&0===t&&o,S=d.media!==n.media,L=(null==(i=d.media)?void 0:i.textTracks)!==(null==(r=n.media)?void 0:r.textTracks),R=(null==(s=d.media)?void 0:s.videoRenditions)!==(null==(u=n.media)?void 0:u.videoRenditions),C=(null==(p=d.media)?void 0:p.audioTracks)!==(null==(v=n.media)?void 0:v.audioTracks),D=(null==(E=d.media)?void 0:E.remote)!==(null==(b=n.media)?void 0:b.remote),x=d.documentElement!==n.documentElement,P=!!d.media&&(S||M),N=!!(null==(g=d.media)?void 0:g.textTracks)&&(L||M),U=!!(null==(f=d.media)?void 0:f.videoRenditions)&&(R||M),O=!!(null==(A=d.media)?void 0:A.audioTracks)&&(C||M),H=!!(null==(y=d.media)?void 0:y.remote)&&(D||M),W=!!d.documentElement&&(x||M),$=P||N||U||O||H||W,V=0===l.length&&1===t&&o,B=!!n.media&&(S||V),F=!!(null==(w=n.media)?void 0:w.textTracks)&&(L||V),G=!!(null==(I=n.media)?void 0:I.videoRenditions)&&(R||V),j=!!(null==(k=n.media)?void 0:k.audioTracks)&&(C||V),q=!!(null==(T=n.media)?void 0:T.remote)&&(D||V),Q=!!n.documentElement&&(x||V),K=B||F||G||j||q||Q;if(!($||K)){Object.entries(n).forEach(([e,t])=>{d[e]=t}),c(),n=void 0;return}Object.entries(a).forEach(([e,{get:t,mediaEvents:i=[],textTracksEvents:a=[],videoRenditionsEvents:r=[],audioTracksEvents:s=[],remoteEvents:o=[],rootEvents:l=[],stateOwnersUpdateHandlers:u=[]}])=>{let c;m[e]||(m[e]={});let p=i=>{h({[e]:t(d,i)})};c=m[e].mediaEvents,i.forEach(t=>{c&&P&&(d.media.removeEventListener(t,c),m[e].mediaEvents=void 0),B&&(n.media.addEventListener(t,p),m[e].mediaEvents=p)}),c=m[e].textTracksEvents,a.forEach(t=>{var i,a;c&&N&&(null==(i=d.media.textTracks)||i.removeEventListener(t,c),m[e].textTracksEvents=void 0),F&&(null==(a=n.media.textTracks)||a.addEventListener(t,p),m[e].textTracksEvents=p)}),c=m[e].videoRenditionsEvents,r.forEach(t=>{var i,a;c&&U&&(null==(i=d.media.videoRenditions)||i.removeEventListener(t,c),m[e].videoRenditionsEvents=void 0),G&&(null==(a=n.media.videoRenditions)||a.addEventListener(t,p),m[e].videoRenditionsEvents=p)}),c=m[e].audioTracksEvents,s.forEach(t=>{var i,a;c&&O&&(null==(i=d.media.audioTracks)||i.removeEventListener(t,c),m[e].audioTracksEvents=void 0),j&&(null==(a=n.media.audioTracks)||a.addEventListener(t,p),m[e].audioTracksEvents=p)}),c=m[e].remoteEvents,o.forEach(t=>{var i,a;c&&H&&(null==(i=d.media.remote)||i.removeEventListener(t,c),m[e].remoteEvents=void 0),q&&(null==(a=n.media.remote)||a.addEventListener(t,p),m[e].remoteEvents=p)}),c=m[e].rootEvents,l.forEach(t=>{c&&W&&(d.documentElement.removeEventListener(t,c),m[e].rootEvents=void 0),Q&&(n.documentElement.addEventListener(t,p),m[e].rootEvents=p)});let v=m[e].stateOwnersUpdateHandlers;if(v&&$&&(Array.isArray(v)?v:[v]).forEach(e=>{"function"==typeof e&&e()}),K){let t=u.map(e=>e(p,n)).filter(e=>"function"==typeof e);m[e].stateOwnersUpdateHandlers=1===t.length?t[0]:t}else $&&(m[e].stateOwnersUpdateHandlers=void 0)}),Object.entries(n).forEach(([e,t])=>{d[e]=t}),c(),n=void 0};return p({media:e,fullscreenElement:t,documentElement:i,options:s}),{dispatch(e){let{type:t,detail:i}=e;r[t]&&null==u.mediaErrorCode?h(r[t](a,d,e)):"mediaelementchangerequest"===t?p({media:i}):"fullscreenelementchangerequest"===t?p({fullscreenElement:i}):"documentelementchangerequest"===t?p({documentElement:i}):"optionschangerequest"===t&&(Object.entries(null!=i?i:{}).forEach(([e,t])=>{d.options[e]=t}),c())},getState:()=>u,subscribe:e=>(p({},l.length+1),l.push(e),e(u),()=>{let t=l.indexOf(e);t>=0&&(p({},l.length-1),l.splice(t,1))})}})({media:this.media,fullscreenElement:this.fullscreenElement,options:{defaultSubtitles:this.hasAttribute(aU),defaultDuration:this.hasAttribute(aH)?+this.getAttribute(aH):void 0,defaultStreamType:null!=(e=this.getAttribute(aO))?e:void 0,liveEdgeOffset:this.hasAttribute(aK)?+this.getAttribute(aK):void 0,seekToLiveOffset:this.hasAttribute(a1)?+this.getAttribute(a1):this.hasAttribute(aK)?+this.getAttribute(aK):void 0,noAutoSeekToLive:this.hasAttribute(az),noVolumePref:this.hasAttribute(a0),noMutedPref:this.hasAttribute(aX),noSubtitlesLangPref:this.hasAttribute(aJ)}})},$=new WeakSet,V=function(e){let{key:t,shiftKey:i}=e;i&&("/"===t||"?"===t)||aN.includes(t)?this.keyboardShortcutHandler(e):this.removeEventListener("keyup",aP(this,$,V))},B=new WeakSet,F=function(e){var t;let{metaKey:i,altKey:a,key:r,shiftKey:s}=e,o=s&&("/"===r||"?"===r);if(o&&(null==(t=aC(this,x))?void 0:t.open)||i||a||!o&&!aN.includes(r))return void this.removeEventListener("keyup",aP(this,$,V));let n=e.target,l=n instanceof HTMLElement&&("media-volume-range"===n.tagName.toLowerCase()||"media-time-range"===n.tagName.toLowerCase());![" ","ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(r)||aC(this,R).contains(`no${r.toLowerCase()}`)||" "===r&&aC(this,R).contains("nospace")||l||e.preventDefault(),this.addEventListener("keyup",aP(this,$,V),{once:!0})},G=new WeakSet,j=function(){aC(this,x)||(ax(this,x,iv.createElement("media-keyboard-shortcuts-dialog")),this.appendChild(aC(this,x))),aC(this,x).open=!0};let a3=Object.values(tq),a5=Object.values(tG),a4=e=>{var t,i,a,r;let{observedAttributes:s}=e.constructor;!s&&(null==(t=e.nodeName)?void 0:t.includes("-"))&&(ip.customElements.upgrade(e),{observedAttributes:s}=e.constructor);let o=null==(r=null==(a=null==(i=null==e?void 0:e.getAttribute)?void 0:i.call(e,tF.MEDIA_CHROME_ATTRIBUTES))?void 0:a.split)?void 0:r.call(a,/\s+/);return Array.isArray(s||o)?(s||o).filter(e=>a3.includes(e)):[]},a7=e=>{var t,i;return(null==(t=e.nodeName)?void 0:t.includes("-"))&&ip.customElements.get(null==(i=e.nodeName)?void 0:i.toLowerCase())&&!(e instanceof ip.customElements.get(e.nodeName.toLowerCase()))&&ip.customElements.upgrade(e),a5.some(t=>t in e)||!!a4(e).length},a8=e=>{var t;return null==(t=null==e?void 0:e.join)?void 0:t.call(e,":")},a6={[tq.MEDIA_SUBTITLES_LIST]:at,[tq.MEDIA_SUBTITLES_SHOWING]:at,[tq.MEDIA_SEEKABLE]:a8,[tq.MEDIA_BUFFERED]:e=>null==e?void 0:e.map(a8).join(" "),[tq.MEDIA_PREVIEW_COORDS]:e=>null==e?void 0:e.join(" "),[tq.MEDIA_RENDITION_LIST]:function(e){return null==e?void 0:e.map(t5).join(" ")},[tq.MEDIA_AUDIO_TRACK_LIST]:function(e){return null==e?void 0:e.map(t4).join(" ")}},a9=async(e,t,i)=>{var a,r;if(e.isConnected||await t8(0),"boolean"==typeof i||null==i)return ix(e,t,i);if("number"==typeof i)return iC(e,t,i);if("string"==typeof i)return iN(e,t,i);if(Array.isArray(i)&&!i.length)return e.removeAttribute(t);let s=null!=(r=null==(a=a6[t])?void 0:a.call(a6,i))?r:i;return e.setAttribute(t,s)},re=(e,t)=>{var i;if(null==(i=e.closest)?void 0:i.call(e,'*[slot="media"]'))return;let a=(e,t)=>{var i,a;a7(e)&&t(e);let{children:r=[]}=null!=e?e:{};[...r,...null!=(a=null==(i=null==e?void 0:e.shadowRoot)?void 0:i.children)?a:[]].forEach(e=>re(e,t))},r=null==e?void 0:e.nodeName.toLowerCase();r.includes("-")&&!a7(e)?ip.customElements.whenDefined(r).then(()=>{a(e,t)}):a(e,t)},rt=(e,t,i)=>{e.forEach(e=>{if(t in e){e[t]=i;return}let a=a4(e),r=t.toLowerCase();a.includes(r)&&a9(e,r,i)})},ri=(e,t,i)=>{re(e,t);let a=e=>{var i;t(null!=(i=null==e?void 0:e.composedPath()[0])?i:e.target)},r=e=>{var t;i(null!=(t=null==e?void 0:e.composedPath()[0])?t:e.target)};e.addEventListener(tB.REGISTER_MEDIA_STATE_RECEIVER,a),e.addEventListener(tB.UNREGISTER_MEDIA_STATE_RECEIVER,r);let s=[],o=e=>{let a=e.target;"media"!==a.name&&(s.forEach(e=>re(e,i)),(s=[...a.assignedElements({flatten:!0})]).forEach(e=>re(e,t)))};e.addEventListener("slotchange",o);let n=new MutationObserver(e=>{e.forEach(e=>{let{addedNodes:a=[],removedNodes:r=[],type:s,target:o,attributeName:n}=e;"childList"===s?(Array.prototype.forEach.call(a,e=>re(e,t)),Array.prototype.forEach.call(r,e=>re(e,i))):"attributes"===s&&n===tF.MEDIA_CHROME_ATTRIBUTES&&(a7(o)?t(o):i(o))})});return n.observe(e,{childList:!0,attributes:!0,subtree:!0}),()=>{re(e,i),e.removeEventListener("slotchange",o),n.disconnect(),e.removeEventListener(tB.REGISTER_MEDIA_STATE_RECEIVER,a),e.removeEventListener(tB.UNREGISTER_MEDIA_STATE_RECEIVER,r)}};ip.customElements.get("media-controller")||ip.customElements.define("media-controller",a2);let ra="placement",rr="bounds";class rs extends ip.HTMLElement{constructor(){if(super(),this.updateXOffset=()=>{var e,t;if(!iM(this,{checkOpacity:!1,checkVisibilityCSS:!1}))return;let i=this.placement;if("left"===i||"right"===i)return void this.style.removeProperty("--media-tooltip-offset-x");let a=getComputedStyle(this),r=null!=(e=i_(this,"#"+this.bounds))?e:null!=(t=function(e){var t,i,a;let{MEDIA_CONTROLLER:r}=tF,s=e.getAttribute(r);if(s){let r;return null==(t=(r=null==(a=null==(i=e)?void 0:i.getRootNode)?void 0:a.call(i))instanceof ShadowRoot||r instanceof Document?r:null)?void 0:t.getElementById(s)}}(this))?t:i_(this,"media-controller");if(!r)return;let{x:s,width:o}=r.getBoundingClientRect(),{x:n,width:l}=this.getBoundingClientRect(),d=a.getPropertyValue("--media-tooltip-offset-x"),u=d?parseFloat(d.replace("px","")):0,h=a.getPropertyValue("--media-tooltip-container-margin"),c=h?parseFloat(h.replace("px","")):0,m=n-s+u-c,p=n+l-(s+o)+u+c;m<0?this.style.setProperty("--media-tooltip-offset-x",`${m}px`):p>0?this.style.setProperty("--media-tooltip-offset-x",`${p}px`):this.style.removeProperty("--media-tooltip-offset-x")},!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}if(this.arrowEl=this.shadowRoot.querySelector("#arrow"),Object.prototype.hasOwnProperty.call(this,"placement")){const e=this.placement;delete this.placement,this.placement=e}}static get observedAttributes(){return[ra,rr]}get placement(){return iP(this,ra)}set placement(e){iN(this,ra,e)}get bounds(){return iP(this,rr)}set bounds(e){iN(this,rr,e)}}rs.shadowRootOptions={mode:"open"},rs.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        --_tooltip-background-color: var(--media-tooltip-background-color, var(--media-secondary-color, rgba(20, 20, 30, .7)));
+        --_tooltip-background: var(--media-tooltip-background, var(--_tooltip-background-color));
+        --_tooltip-arrow-half-width: calc(var(--media-tooltip-arrow-width, 12px) / 2);
+        --_tooltip-arrow-height: var(--media-tooltip-arrow-height, 5px);
+        --_tooltip-arrow-background: var(--media-tooltip-arrow-color, var(--_tooltip-background-color));
+        position: relative;
+        pointer-events: none;
+        display: var(--media-tooltip-display, inline-flex);
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        z-index: var(--media-tooltip-z-index, 1);
+        background: var(--_tooltip-background);
+        color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+        font: var(--media-font,
+          var(--media-font-weight, 400)
+          var(--media-font-size, 13px) /
+          var(--media-text-content-height, var(--media-control-height, 18px))
+          var(--media-font-family, helvetica neue, segoe ui, roboto, arial, sans-serif));
+        padding: var(--media-tooltip-padding, .35em .7em);
+        border: var(--media-tooltip-border, none);
+        border-radius: var(--media-tooltip-border-radius, 5px);
+        filter: var(--media-tooltip-filter, drop-shadow(0 0 4px rgba(0, 0, 0, .2)));
+        white-space: var(--media-tooltip-white-space, nowrap);
+      }
+
+      :host([hidden]) {
+        display: none;
+      }
+
+      img, svg {
+        display: inline-block;
+      }
+
+      #arrow {
+        position: absolute;
+        width: 0px;
+        height: 0px;
+        border-style: solid;
+        display: var(--media-tooltip-arrow-display, block);
+      }
+
+      :host(:not([placement])),
+      :host([placement="top"]) {
+        position: absolute;
+        bottom: calc(100% + var(--media-tooltip-distance, 12px));
+        left: 50%;
+        transform: translate(calc(-50% - var(--media-tooltip-offset-x, 0px)), 0);
+      }
+      :host(:not([placement])) #arrow,
+      :host([placement="top"]) #arrow {
+        top: 100%;
+        left: 50%;
+        border-width: var(--_tooltip-arrow-height) var(--_tooltip-arrow-half-width) 0 var(--_tooltip-arrow-half-width);
+        border-color: var(--_tooltip-arrow-background) transparent transparent transparent;
+        transform: translate(calc(-50% + var(--media-tooltip-offset-x, 0px)), 0);
+      }
+
+      :host([placement="right"]) {
+        position: absolute;
+        left: calc(100% + var(--media-tooltip-distance, 12px));
+        top: 50%;
+        transform: translate(0, -50%);
+      }
+      :host([placement="right"]) #arrow {
+        top: 50%;
+        right: 100%;
+        border-width: var(--_tooltip-arrow-half-width) var(--_tooltip-arrow-height) var(--_tooltip-arrow-half-width) 0;
+        border-color: transparent var(--_tooltip-arrow-background) transparent transparent;
+        transform: translate(0, -50%);
+      }
+
+      :host([placement="bottom"]) {
+        position: absolute;
+        top: calc(100% + var(--media-tooltip-distance, 12px));
+        left: 50%;
+        transform: translate(calc(-50% - var(--media-tooltip-offset-x, 0px)), 0);
+      }
+      :host([placement="bottom"]) #arrow {
+        bottom: 100%;
+        left: 50%;
+        border-width: 0 var(--_tooltip-arrow-half-width) var(--_tooltip-arrow-height) var(--_tooltip-arrow-half-width);
+        border-color: transparent transparent var(--_tooltip-arrow-background) transparent;
+        transform: translate(calc(-50% + var(--media-tooltip-offset-x, 0px)), 0);
+      }
+
+      :host([placement="left"]) {
+        position: absolute;
+        right: calc(100% + var(--media-tooltip-distance, 12px));
+        top: 50%;
+        transform: translate(0, -50%);
+      }
+      :host([placement="left"]) #arrow {
+        top: 50%;
+        left: 100%;
+        border-width: var(--_tooltip-arrow-half-width) 0 var(--_tooltip-arrow-half-width) var(--_tooltip-arrow-height);
+        border-color: transparent transparent transparent var(--_tooltip-arrow-background);
+        transform: translate(0, -50%);
+      }
+      
+      :host([placement="none"]) #arrow {
+        display: none;
+      }
+    </style>
+    <slot></slot>
+    <div id="arrow"></div>
+  `},ip.customElements.get("media-tooltip")||ip.customElements.define("media-tooltip",rs);var ro=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},rn=(e,t,i)=>(ro(e,t,"read from private field"),i?i.call(e):t.get(e)),rl=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},rd=(e,t,i,a)=>(ro(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);let ru="tooltipplacement",rh="disabled",rc="notooltip";class rm extends ip.HTMLElement{constructor(){if(super(),rl(this,Y),rl(this,q,void 0),this.preventClick=!1,this.tooltipEl=null,rl(this,Q,e=>{this.preventClick||this.handleClick(e),setTimeout(rn(this,K),0)}),rl(this,K,()=>{var e,t;null==(t=null==(e=this.tooltipEl)?void 0:e.updateXOffset)||t.call(e)}),rl(this,z,e=>{let{key:t}=e;this.keysUsed.includes(t)?this.preventClick||this.handleClick(e):this.removeEventListener("keyup",rn(this,z))}),rl(this,Z,e=>{let{metaKey:t,altKey:i,key:a}=e;t||i||!this.keysUsed.includes(a)?this.removeEventListener("keyup",rn(this,z)):this.addEventListener("keyup",rn(this,z),{once:!0})}),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes),t=this.constructor.getTemplateHTML(e);this.shadowRoot.setHTMLUnsafe?this.shadowRoot.setHTMLUnsafe(t):this.shadowRoot.innerHTML=t}this.tooltipEl=this.shadowRoot.querySelector("media-tooltip")}static get observedAttributes(){return["disabled",ru,tF.MEDIA_CONTROLLER,tq.MEDIA_LANG]}enable(){this.addEventListener("click",rn(this,Q)),this.addEventListener("keydown",rn(this,Z)),this.tabIndex=0}disable(){this.removeEventListener("click",rn(this,Q)),this.removeEventListener("keydown",rn(this,Z)),this.removeEventListener("keyup",rn(this,z)),this.tabIndex=-1}attributeChangedCallback(e,t,i){var a,r,s,o,n;e===tF.MEDIA_CONTROLLER?(t&&(null==(r=null==(a=rn(this,q))?void 0:a.unassociateElement)||r.call(a,this),rd(this,q,null)),i&&this.isConnected&&(rd(this,q,null==(s=this.getRootNode())?void 0:s.getElementById(i)),null==(n=null==(o=rn(this,q))?void 0:o.associateElement)||n.call(o,this))):"disabled"===e&&i!==t?null==i?this.enable():this.disable():e===ru&&this.tooltipEl&&i!==t?this.tooltipEl.placement=i:e===tq.MEDIA_LANG&&(this.shadowRoot.querySelector('slot[name="tooltip-content"]').innerHTML=this.constructor.getTooltipContentHTML()),rn(this,K).call(this)}connectedCallback(){var e,t,i;let{style:a}=iS(this.shadowRoot,":host");a.setProperty("display",`var(--media-control-display, var(--${this.localName}-display, inline-flex))`),this.hasAttribute("disabled")?this.disable():this.enable(),this.setAttribute("role","button");let r=this.getAttribute(tF.MEDIA_CONTROLLER);r&&(rd(this,q,null==(e=this.getRootNode())?void 0:e.getElementById(r)),null==(i=null==(t=rn(this,q))?void 0:t.associateElement)||i.call(t,this)),ip.customElements.whenDefined("media-tooltip").then(()=>{var e,t;return(e=Y,t=X,ro(this,e,"access private method"),t).call(this)})}disconnectedCallback(){var e,t;this.disable(),null==(t=null==(e=rn(this,q))?void 0:e.unassociateElement)||t.call(e,this),rd(this,q,null),this.removeEventListener("mouseenter",rn(this,K)),this.removeEventListener("focus",rn(this,K)),this.removeEventListener("click",rn(this,Q))}get keysUsed(){return["Enter"," "]}get tooltipPlacement(){return iP(this,ru)}set tooltipPlacement(e){iN(this,ru,e)}get mediaController(){return iP(this,tF.MEDIA_CONTROLLER)}set mediaController(e){iN(this,tF.MEDIA_CONTROLLER,e)}get disabled(){return iD(this,rh)}set disabled(e){ix(this,rh,e)}get noTooltip(){return iD(this,rc)}set noTooltip(e){ix(this,rc,e)}handleClick(e){}}q=new WeakMap,Q=new WeakMap,K=new WeakMap,z=new WeakMap,Z=new WeakMap,Y=new WeakSet,X=function(){this.addEventListener("mouseenter",rn(this,K)),this.addEventListener("focus",rn(this,K)),this.addEventListener("click",rn(this,Q));let e=this.tooltipPlacement;e&&this.tooltipEl&&(this.tooltipEl.placement=e)},rm.shadowRootOptions={mode:"open"},rm.getTemplateHTML=function(e,t={}){return`
+    <style>
+      :host {
+        position: relative;
+        font: var(--media-font,
+          var(--media-font-weight, bold)
+          var(--media-font-size, 14px) /
+          var(--media-text-content-height, var(--media-control-height, 24px))
+          var(--media-font-family, helvetica neue, segoe ui, roboto, arial, sans-serif));
+        color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+        background: var(--media-control-background, var(--media-secondary-color, rgb(20 20 30 / .7)));
+        padding: var(--media-button-padding, var(--media-control-padding, 10px));
+        justify-content: var(--media-button-justify-content, center);
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        box-sizing: border-box;
+        transition: background .15s linear;
+        pointer-events: auto;
+        cursor: var(--media-cursor, pointer);
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      
+      :host(:focus-visible) {
+        box-shadow: var(--media-focus-box-shadow, inset 0 0 0 2px rgb(27 127 204 / .9));
+        outline: 0;
+      }
+      
+      :host(:where(:focus)) {
+        box-shadow: none;
+        outline: 0;
+      }
+
+      :host(:hover) {
+        background: var(--media-control-hover-background, rgba(50 50 70 / .7));
+      }
+
+      svg, img, ::slotted(svg), ::slotted(img) {
+        width: var(--media-button-icon-width);
+        height: var(--media-button-icon-height, var(--media-control-height, 24px));
+        transform: var(--media-button-icon-transform);
+        transition: var(--media-button-icon-transition);
+        fill: var(--media-icon-color, var(--media-primary-color, rgb(238 238 238)));
+        vertical-align: middle;
+        max-width: 100%;
+        max-height: 100%;
+        min-width: 100%;
+      }
+
+      media-tooltip {
+        
+        max-width: 0;
+        overflow-x: clip;
+        opacity: 0;
+        transition: opacity .3s, max-width 0s 9s;
+      }
+
+      :host(:hover) media-tooltip,
+      :host(:focus-visible) media-tooltip {
+        max-width: 100vw;
+        opacity: 1;
+        transition: opacity .3s;
+      }
+
+      :host([notooltip]) slot[name="tooltip"] {
+        display: none;
+      }
+    </style>
+
+    ${this.getSlotTemplateHTML(e,t)}
+
+    <slot name="tooltip">
+      <media-tooltip part="tooltip" aria-hidden="true">
+        <template shadowrootmode="${rs.shadowRootOptions.mode}">
+          ${rs.getTemplateHTML({})}
+        </template>
+        <slot name="tooltip-content">
+          ${this.getTooltipContentHTML(e)}
+        </slot>
+      </media-tooltip>
+    </slot>
+  `},rm.getSlotTemplateHTML=function(e,t){return`
+    <slot></slot>
+  `},rm.getTooltipContentHTML=function(){return""},ip.customElements.get("media-chrome-button")||ip.customElements.define("media-chrome-button",rm);let rp=`<svg aria-hidden="true" viewBox="0 0 26 24">
+  <path d="M22.13 3H3.87a.87.87 0 0 0-.87.87v13.26a.87.87 0 0 0 .87.87h3.4L9 16H5V5h16v11h-4l1.72 2h3.4a.87.87 0 0 0 .87-.87V3.87a.87.87 0 0 0-.86-.87Zm-8.75 11.44a.5.5 0 0 0-.76 0l-4.91 5.73a.5.5 0 0 0 .38.83h9.82a.501.501 0 0 0 .38-.83l-4.91-5.73Z"/>
+</svg>
+`,rv=e=>{let t=e.mediaIsAirplaying?is("stop airplay"):is("start airplay");e.setAttribute("aria-label",t)};class rE extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_IS_AIRPLAYING,tq.MEDIA_AIRPLAY_UNAVAILABLE]}connectedCallback(){super.connectedCallback(),rv(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_IS_AIRPLAYING&&rv(this)}get mediaIsAirplaying(){return iD(this,tq.MEDIA_IS_AIRPLAYING)}set mediaIsAirplaying(e){ix(this,tq.MEDIA_IS_AIRPLAYING,e)}get mediaAirplayUnavailable(){return iP(this,tq.MEDIA_AIRPLAY_UNAVAILABLE)}set mediaAirplayUnavailable(e){iN(this,tq.MEDIA_AIRPLAY_UNAVAILABLE,e)}handleClick(){let e=new ip.CustomEvent(tB.MEDIA_AIRPLAY_REQUEST,{composed:!0,bubbles:!0});this.dispatchEvent(e)}}rE.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host([${tq.MEDIA_IS_AIRPLAYING}]) slot[name=icon] slot:not([name=exit]) {
+        display: none !important;
+      }
+
+      
+      :host(:not([${tq.MEDIA_IS_AIRPLAYING}])) slot[name=icon] slot:not([name=enter]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_IS_AIRPLAYING}]) slot[name=tooltip-enter],
+      :host(:not([${tq.MEDIA_IS_AIRPLAYING}])) slot[name=tooltip-exit] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="enter">${rp}</slot>
+      <slot name="exit">${rp}</slot>
+    </slot>
+  `},rE.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-enter">${is("start airplay")}</slot>
+    <slot name="tooltip-exit">${is("stop airplay")}</slot>
+  `},ip.customElements.get("media-airplay-button")||ip.customElements.define("media-airplay-button",rE);let rb=`<svg aria-hidden="true" viewBox="0 0 26 24">
+  <path d="M22.83 5.68a2.58 2.58 0 0 0-2.3-2.5c-3.62-.24-11.44-.24-15.06 0a2.58 2.58 0 0 0-2.3 2.5c-.23 4.21-.23 8.43 0 12.64a2.58 2.58 0 0 0 2.3 2.5c3.62.24 11.44.24 15.06 0a2.58 2.58 0 0 0 2.3-2.5c.23-4.21.23-8.43 0-12.64Zm-11.39 9.45a3.07 3.07 0 0 1-1.91.57 3.06 3.06 0 0 1-2.34-1 3.75 3.75 0 0 1-.92-2.67 3.92 3.92 0 0 1 .92-2.77 3.18 3.18 0 0 1 2.43-1 2.94 2.94 0 0 1 2.13.78c.364.359.62.813.74 1.31l-1.43.35a1.49 1.49 0 0 0-1.51-1.17 1.61 1.61 0 0 0-1.29.58 2.79 2.79 0 0 0-.5 1.89 3 3 0 0 0 .49 1.93 1.61 1.61 0 0 0 1.27.58 1.48 1.48 0 0 0 1-.37 2.1 2.1 0 0 0 .59-1.14l1.4.44a3.23 3.23 0 0 1-1.07 1.69Zm7.22 0a3.07 3.07 0 0 1-1.91.57 3.06 3.06 0 0 1-2.34-1 3.75 3.75 0 0 1-.92-2.67 3.88 3.88 0 0 1 .93-2.77 3.14 3.14 0 0 1 2.42-1 3 3 0 0 1 2.16.82 2.8 2.8 0 0 1 .73 1.31l-1.43.35a1.49 1.49 0 0 0-1.51-1.21 1.61 1.61 0 0 0-1.29.58A2.79 2.79 0 0 0 15 12a3 3 0 0 0 .49 1.93 1.61 1.61 0 0 0 1.27.58 1.44 1.44 0 0 0 1-.37 2.1 2.1 0 0 0 .6-1.15l1.4.44a3.17 3.17 0 0 1-1.1 1.7Z"/>
+</svg>`,rg=`<svg aria-hidden="true" viewBox="0 0 26 24">
+  <path d="M17.73 14.09a1.4 1.4 0 0 1-1 .37 1.579 1.579 0 0 1-1.27-.58A3 3 0 0 1 15 12a2.8 2.8 0 0 1 .5-1.85 1.63 1.63 0 0 1 1.29-.57 1.47 1.47 0 0 1 1.51 1.2l1.43-.34A2.89 2.89 0 0 0 19 9.07a3 3 0 0 0-2.14-.78 3.14 3.14 0 0 0-2.42 1 3.91 3.91 0 0 0-.93 2.78 3.74 3.74 0 0 0 .92 2.66 3.07 3.07 0 0 0 2.34 1 3.07 3.07 0 0 0 1.91-.57 3.17 3.17 0 0 0 1.07-1.74l-1.4-.45c-.083.43-.3.822-.62 1.12Zm-7.22 0a1.43 1.43 0 0 1-1 .37 1.58 1.58 0 0 1-1.27-.58A3 3 0 0 1 7.76 12a2.8 2.8 0 0 1 .5-1.85 1.63 1.63 0 0 1 1.29-.57 1.47 1.47 0 0 1 1.51 1.2l1.43-.34a2.81 2.81 0 0 0-.74-1.32 2.94 2.94 0 0 0-2.13-.78 3.18 3.18 0 0 0-2.43 1 4 4 0 0 0-.92 2.78 3.74 3.74 0 0 0 .92 2.66 3.07 3.07 0 0 0 2.34 1 3.07 3.07 0 0 0 1.91-.57 3.23 3.23 0 0 0 1.07-1.74l-1.4-.45a2.06 2.06 0 0 1-.6 1.07Zm12.32-8.41a2.59 2.59 0 0 0-2.3-2.51C18.72 3.05 15.86 3 13 3c-2.86 0-5.72.05-7.53.17a2.59 2.59 0 0 0-2.3 2.51c-.23 4.207-.23 8.423 0 12.63a2.57 2.57 0 0 0 2.3 2.5c1.81.13 4.67.19 7.53.19 2.86 0 5.72-.06 7.53-.19a2.57 2.57 0 0 0 2.3-2.5c.23-4.207.23-8.423 0-12.63Zm-1.49 12.53a1.11 1.11 0 0 1-.91 1.11c-1.67.11-4.45.18-7.43.18-2.98 0-5.76-.07-7.43-.18a1.11 1.11 0 0 1-.91-1.11c-.21-4.14-.21-8.29 0-12.43a1.11 1.11 0 0 1 .91-1.11C7.24 4.56 10 4.49 13 4.49s5.76.07 7.43.18a1.11 1.11 0 0 1 .91 1.11c.21 4.14.21 8.29 0 12.43Z"/>
+</svg>`,rf=e=>{var t;e.setAttribute("aria-checked",(!!(null==(t=e.mediaSubtitlesShowing)?void 0:t.length)||e.hasAttribute(tq.MEDIA_SUBTITLES_SHOWING)).toString())};class rA extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_SUBTITLES_LIST,tq.MEDIA_SUBTITLES_SHOWING]}connectedCallback(){super.connectedCallback(),this.setAttribute("role","switch"),this.setAttribute("aria-label",is("closed captions")),rf(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_SUBTITLES_SHOWING&&rf(this)}get mediaSubtitlesList(){return ry(this,tq.MEDIA_SUBTITLES_LIST)}set mediaSubtitlesList(e){rw(this,tq.MEDIA_SUBTITLES_LIST,e)}get mediaSubtitlesShowing(){return ry(this,tq.MEDIA_SUBTITLES_SHOWING)}set mediaSubtitlesShowing(e){rw(this,tq.MEDIA_SUBTITLES_SHOWING,e)}handleClick(){this.dispatchEvent(new ip.CustomEvent(tB.MEDIA_TOGGLE_SUBTITLES_REQUEST,{composed:!0,bubbles:!0}))}}rA.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host([aria-checked="true"]) slot[name=off] {
+        display: none !important;
+      }
+
+      
+      :host(:not([aria-checked="true"])) slot[name=on] {
+        display: none !important;
+      }
+
+      :host([aria-checked="true"]) slot[name=tooltip-enable],
+      :host(:not([aria-checked="true"])) slot[name=tooltip-disable] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="on">${rb}</slot>
+      <slot name="off">${rg}</slot>
+    </slot>
+  `},rA.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-enable">${is("Enable captions")}</slot>
+    <slot name="tooltip-disable">${is("Disable captions")}</slot>
+  `};let ry=(e,t)=>{let i=e.getAttribute(t);return i?i6(i):[]},rw=(e,t,i)=>{if(!(null==i?void 0:i.length))return void e.removeAttribute(t);let a=at(i);e.getAttribute(t)!==a&&e.setAttribute(t,a)};ip.customElements.get("media-captions-button")||ip.customElements.define("media-captions-button",rA);let rI=e=>{let t=e.mediaIsCasting?is("stop casting"):is("start casting");e.setAttribute("aria-label",t)};class rk extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_IS_CASTING,tq.MEDIA_CAST_UNAVAILABLE]}connectedCallback(){super.connectedCallback(),rI(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_IS_CASTING&&rI(this)}get mediaIsCasting(){return iD(this,tq.MEDIA_IS_CASTING)}set mediaIsCasting(e){ix(this,tq.MEDIA_IS_CASTING,e)}get mediaCastUnavailable(){return iP(this,tq.MEDIA_CAST_UNAVAILABLE)}set mediaCastUnavailable(e){iN(this,tq.MEDIA_CAST_UNAVAILABLE,e)}handleClick(){let e=this.mediaIsCasting?tB.MEDIA_EXIT_CAST_REQUEST:tB.MEDIA_ENTER_CAST_REQUEST;this.dispatchEvent(new ip.CustomEvent(e,{composed:!0,bubbles:!0}))}}rk.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host([${tq.MEDIA_IS_CASTING}]) slot[name=icon] slot:not([name=exit]) {
+        display: none !important;
+      }
+
+      
+      :host(:not([${tq.MEDIA_IS_CASTING}])) slot[name=icon] slot:not([name=enter]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_IS_CASTING}]) slot[name=tooltip-enter],
+      :host(:not([${tq.MEDIA_IS_CASTING}])) slot[name=tooltip-exit] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="enter"><svg aria-hidden="true" viewBox="0 0 24 24"><g><path class="cast_caf_icon_arch0" d="M1,18 L1,21 L4,21 C4,19.3 2.66,18 1,18 L1,18 Z"/><path class="cast_caf_icon_arch1" d="M1,14 L1,16 C3.76,16 6,18.2 6,21 L8,21 C8,17.13 4.87,14 1,14 L1,14 Z"/><path class="cast_caf_icon_arch2" d="M1,10 L1,12 C5.97,12 10,16.0 10,21 L12,21 C12,14.92 7.07,10 1,10 L1,10 Z"/><path class="cast_caf_icon_box" d="M21,3 L3,3 C1.9,3 1,3.9 1,5 L1,8 L3,8 L3,5 L21,5 L21,19 L14,19 L14,21 L21,21 C22.1,21 23,20.1 23,19 L23,5 C23,3.9 22.1,3 21,3 L21,3 Z"/></g></svg></slot>
+      <slot name="exit"><svg aria-hidden="true" viewBox="0 0 24 24"><g><path class="cast_caf_icon_arch0" d="M1,18 L1,21 L4,21 C4,19.3 2.66,18 1,18 L1,18 Z"/><path class="cast_caf_icon_arch1" d="M1,14 L1,16 C3.76,16 6,18.2 6,21 L8,21 C8,17.13 4.87,14 1,14 L1,14 Z"/><path class="cast_caf_icon_arch2" d="M1,10 L1,12 C5.97,12 10,16.0 10,21 L12,21 C12,14.92 7.07,10 1,10 L1,10 Z"/><path class="cast_caf_icon_box" d="M21,3 L3,3 C1.9,3 1,3.9 1,5 L1,8 L3,8 L3,5 L21,5 L21,19 L14,19 L14,21 L21,21 C22.1,21 23,20.1 23,19 L23,5 C23,3.9 22.1,3 21,3 L21,3 Z"/><path class="cast_caf_icon_boxfill" d="M5,7 L5,8.63 C8,8.6 13.37,14 13.37,17 L19,17 L19,7 Z"/></g></svg></slot>
+    </slot>
+  `},rk.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-enter">${is("Start casting")}</slot>
+    <slot name="tooltip-exit">${is("Stop casting")}</slot>
+  `},ip.customElements.get("media-cast-button")||ip.customElements.define("media-cast-button",rk);var rT=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},r_=(e,t,i)=>(rT(e,t,"read from private field"),i?i.call(e):t.get(e)),rM=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},rS=(e,t,i,a)=>(rT(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i),rL=(e,t,i)=>(rT(e,t,"access private method"),i);let rR="open";class rC extends ip.HTMLElement{constructor(){super(),rM(this,ei),rM(this,er),rM(this,eo),rM(this,el),rM(this,eu),rM(this,ec),rM(this,J,!1),rM(this,ee,null),rM(this,et,null),this.addEventListener("invoke",this),this.addEventListener("focusout",this),this.addEventListener("keydown",this)}static get observedAttributes(){return[rR,"anchor"]}get open(){return iD(this,rR)}set open(e){ix(this,rR,e)}handleEvent(e){switch(e.type){case"invoke":rL(this,el,ed).call(this,e);break;case"focusout":rL(this,eu,eh).call(this,e);break;case"keydown":rL(this,ec,em).call(this,e)}}connectedCallback(){rL(this,ei,ea).call(this),this.role||(this.role="dialog")}attributeChangedCallback(e,t,i){rL(this,ei,ea).call(this),e===rR&&i!==t&&(this.open?rL(this,er,es).call(this):rL(this,eo,en).call(this))}focus(){rS(this,ee,function e(t=document){var i;let a=null==t?void 0:t.activeElement;return a?null!=(i=e(a.shadowRoot))?i:a:null}());let e=!this.dispatchEvent(new Event("focus",{composed:!0,cancelable:!0})),t=!this.dispatchEvent(new Event("focusin",{composed:!0,bubbles:!0,cancelable:!0}));if(e||t)return;let i=this.querySelector('[autofocus], [tabindex]:not([tabindex="-1"]), [role="menu"]');null==i||i.focus()}get keysUsed(){return["Escape","Tab"]}}J=new WeakMap,ee=new WeakMap,et=new WeakMap,ei=new WeakSet,ea=function(){if(!r_(this,J)&&(rS(this,J,!0),!this.shadowRoot)){this.attachShadow(this.constructor.shadowRootOptions);let e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e),queueMicrotask(()=>{let{style:e}=iS(this.shadowRoot,":host");e.setProperty("transition","display .15s, visibility .15s, opacity .15s ease-in, transform .15s ease-in")})}},er=new WeakSet,es=function(){var e;null==(e=r_(this,et))||e.setAttribute("aria-expanded","true"),this.dispatchEvent(new Event("open",{composed:!0,bubbles:!0})),this.addEventListener("transitionend",()=>this.focus(),{once:!0})},eo=new WeakSet,en=function(){var e;null==(e=r_(this,et))||e.setAttribute("aria-expanded","false"),this.dispatchEvent(new Event("close",{composed:!0,bubbles:!0}))},el=new WeakSet,ed=function(e){rS(this,et,e.relatedTarget),iT(this,e.relatedTarget)||(this.open=!this.open)},eu=new WeakSet,eh=function(e){var t;!iT(this,e.relatedTarget)&&(null==(t=r_(this,ee))||t.focus(),r_(this,et)&&r_(this,et)!==e.relatedTarget&&this.open&&(this.open=!1))},ec=new WeakSet,em=function(e){var t,i,a,r,s;let{key:o,ctrlKey:n,altKey:l,metaKey:d}=e;n||l||d||this.keysUsed.includes(o)&&(e.preventDefault(),e.stopPropagation(),"Tab"===o?(e.shiftKey?null==(i=null==(t=this.previousElementSibling)?void 0:t.focus)||i.call(t):null==(r=null==(a=this.nextElementSibling)?void 0:a.focus)||r.call(a),this.blur()):"Escape"===o&&(null==(s=r_(this,ee))||s.focus(),this.open=!1))},rC.shadowRootOptions={mode:"open"},rC.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        font: var(--media-font,
+          var(--media-font-weight, normal)
+          var(--media-font-size, 14px) /
+          var(--media-text-content-height, var(--media-control-height, 24px))
+          var(--media-font-family, helvetica neue, segoe ui, roboto, arial, sans-serif));
+        color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+        display: var(--media-dialog-display, inline-flex);
+        justify-content: center;
+        align-items: center;
+        
+        transition-behavior: allow-discrete;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(2px) scale(.99);
+        pointer-events: none;
+      }
+
+      :host([open]) {
+        transition: display .2s, visibility 0s, opacity .2s ease-out, transform .15s ease-out;
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      #content {
+        display: flex;
+        position: relative;
+        box-sizing: border-box;
+        width: min(320px, 100%);
+        word-wrap: break-word;
+        max-height: 100%;
+        overflow: auto;
+        text-align: center;
+        line-height: 1.4;
+      }
+    </style>
+    ${this.getSlotTemplateHTML(e)}
+  `},rC.getSlotTemplateHTML=function(e){return`
+    <slot id="content"></slot>
+  `},ip.customElements.get("media-chrome-dialog")||ip.customElements.define("media-chrome-dialog",rC);var rD=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},rx=(e,t,i)=>(rD(e,t,"read from private field"),i?i.call(e):t.get(e)),rP=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},rN=(e,t,i,a)=>(rD(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i),rU=(e,t,i)=>(rD(e,t,"access private method"),i);class rO extends ip.HTMLElement{constructor(){if(super(),rP(this,eI),rP(this,eT),rP(this,eM),rP(this,eL),rP(this,eC),rP(this,ex),rP(this,eN),rP(this,eO),rP(this,ep,void 0),rP(this,ev,void 0),rP(this,eE,void 0),rP(this,eb,void 0),rP(this,eg,{}),rP(this,ef,[]),rP(this,eA,()=>{if(this.range.matches(":focus-visible")){let{style:e}=iS(this.shadowRoot,":host");e.setProperty("--_focus-visible-box-shadow","var(--_focus-box-shadow)")}}),rP(this,ey,()=>{let{style:e}=iS(this.shadowRoot,":host");e.removeProperty("--_focus-visible-box-shadow")}),rP(this,ew,()=>{let e=this.shadowRoot.querySelector("#segments-clipping");e&&e.parentNode.append(e)}),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes),t=this.constructor.getTemplateHTML(e);this.shadowRoot.setHTMLUnsafe?this.shadowRoot.setHTMLUnsafe(t):this.shadowRoot.innerHTML=t}this.container=this.shadowRoot.querySelector("#container"),rN(this,eE,this.shadowRoot.querySelector("#startpoint")),rN(this,eb,this.shadowRoot.querySelector("#endpoint")),this.range=this.shadowRoot.querySelector("#range"),this.appearance=this.shadowRoot.querySelector("#appearance")}static get observedAttributes(){return["disabled","aria-disabled",tF.MEDIA_CONTROLLER]}attributeChangedCallback(e,t,i){var a,r,s,o,n;e===tF.MEDIA_CONTROLLER?(t&&(null==(r=null==(a=rx(this,ep))?void 0:a.unassociateElement)||r.call(a,this),rN(this,ep,null)),i&&this.isConnected&&(rN(this,ep,null==(s=this.getRootNode())?void 0:s.getElementById(i)),null==(n=null==(o=rx(this,ep))?void 0:o.associateElement)||n.call(o,this))):("disabled"===e||"aria-disabled"===e&&t!==i)&&(null==i?(this.range.removeAttribute(e),rU(this,eT,e_).call(this)):(this.range.setAttribute(e,i),rU(this,eM,eS).call(this)))}connectedCallback(){var e,t,i;let{style:a}=iS(this.shadowRoot,":host");a.setProperty("display",`var(--media-control-display, var(--${this.localName}-display, inline-flex))`),rx(this,eg).pointer=iS(this.shadowRoot,"#pointer"),rx(this,eg).progress=iS(this.shadowRoot,"#progress"),rx(this,eg).thumb=iS(this.shadowRoot,'#thumb, ::slotted([slot="thumb"])'),rx(this,eg).activeSegment=iS(this.shadowRoot,"#segments-clipping rect:nth-child(0)");let r=this.getAttribute(tF.MEDIA_CONTROLLER);r&&(rN(this,ep,null==(e=this.getRootNode())?void 0:e.getElementById(r)),null==(i=null==(t=rx(this,ep))?void 0:t.associateElement)||i.call(t,this)),this.updateBar(),this.shadowRoot.addEventListener("focusin",rx(this,eA)),this.shadowRoot.addEventListener("focusout",rx(this,ey)),rU(this,eT,e_).call(this),iA(this.container,rx(this,ew))}disconnectedCallback(){var e,t;rU(this,eM,eS).call(this),null==(t=null==(e=rx(this,ep))?void 0:e.unassociateElement)||t.call(e,this),rN(this,ep,null),this.shadowRoot.removeEventListener("focusin",rx(this,eA)),this.shadowRoot.removeEventListener("focusout",rx(this,ey)),iy(this.container,rx(this,ew))}updatePointerBar(e){var t;null==(t=rx(this,eg).pointer)||t.style.setProperty("width",`${100*this.getPointerRatio(e)}%`)}updateBar(){var e,t;let i=100*this.range.valueAsNumber;null==(e=rx(this,eg).progress)||e.style.setProperty("width",`${i}%`),null==(t=rx(this,eg).thumb)||t.style.setProperty("left",`${i}%`)}updateSegments(e){let t=this.shadowRoot.querySelector("#segments-clipping");if(t.textContent="",this.container.classList.toggle("segments",!!(null==e?void 0:e.length)),!(null==e?void 0:e.length))return;let i=[...new Set([+this.range.min,...e.flatMap(e=>[e.start,e.end]),+this.range.max])];rN(this,ef,[...i]);let a=i.pop();for(let[e,r]of i.entries()){let[s,o]=[0===e,e===i.length-1],n=s?"calc(var(--segments-gap) / -1)":`${100*r}%`,l=o?a:i[e+1],d=`calc(${(l-r)*100}%${s||o?"":" - var(--segments-gap)"})`,u=iv.createElementNS("http://www.w3.org/2000/svg","rect"),h=iL(this.shadowRoot,`#segments-clipping rect:nth-child(${e+1})`);h.style.setProperty("x",n),h.style.setProperty("width",d),t.append(u)}}getPointerRatio(e){var t,i,a,r;let s,o,n;return t=e.clientX,i=e.clientY,a=rx(this,eE).getBoundingClientRect(),s=(r=rx(this,eb).getBoundingClientRect()).x-a.x,0==(n=s*s+(o=r.y-a.y)*o)?0:Math.max(0,Math.min(1,((t-a.x)*s+(i-a.y)*o)/n))}get dragging(){return this.hasAttribute("dragging")}handleEvent(e){switch(e.type){case"pointermove":rU(this,eO,eH).call(this,e);break;case"input":this.updateBar();break;case"pointerenter":rU(this,eC,eD).call(this,e);break;case"pointerdown":rU(this,eL,eR).call(this,e);break;case"pointerup":rU(this,ex,eP).call(this);break;case"pointerleave":rU(this,eN,eU).call(this)}}get keysUsed(){return["ArrowUp","ArrowRight","ArrowDown","ArrowLeft"]}}ep=new WeakMap,ev=new WeakMap,eE=new WeakMap,eb=new WeakMap,eg=new WeakMap,ef=new WeakMap,eA=new WeakMap,ey=new WeakMap,ew=new WeakMap,eI=new WeakSet,ek=function(e){let t=rx(this,eg).activeSegment;if(!t)return;let i=this.getPointerRatio(e),a=rx(this,ef).findIndex((e,t,a)=>{let r=a[t+1];return null!=r&&i>=e&&i<=r}),r=`#segments-clipping rect:nth-child(${a+1})`;t.selectorText==r&&t.style.transform||(t.selectorText=r,t.style.setProperty("transform","var(--media-range-segment-hover-transform, scaleY(2))"))},eT=new WeakSet,e_=function(){this.hasAttribute("disabled")||(this.addEventListener("input",this),this.addEventListener("pointerdown",this),this.addEventListener("pointerenter",this))},eM=new WeakSet,eS=function(){var e,t;this.removeEventListener("input",this),this.removeEventListener("pointerdown",this),this.removeEventListener("pointerenter",this),null==(e=ip.window)||e.removeEventListener("pointerup",this),null==(t=ip.window)||t.removeEventListener("pointermove",this)},eL=new WeakSet,eR=function(e){var t;rN(this,ev,e.composedPath().includes(this.range)),null==(t=ip.window)||t.addEventListener("pointerup",this)},eC=new WeakSet,eD=function(e){var t;"mouse"!==e.pointerType&&rU(this,eL,eR).call(this,e),this.addEventListener("pointerleave",this),null==(t=ip.window)||t.addEventListener("pointermove",this)},ex=new WeakSet,eP=function(){var e;null==(e=ip.window)||e.removeEventListener("pointerup",this),this.toggleAttribute("dragging",!1),this.range.disabled=this.hasAttribute("disabled")},eN=new WeakSet,eU=function(){var e,t;this.removeEventListener("pointerleave",this),null==(e=ip.window)||e.removeEventListener("pointermove",this),this.toggleAttribute("dragging",!1),this.range.disabled=this.hasAttribute("disabled"),null==(t=rx(this,eg).activeSegment)||t.style.removeProperty("transform")},eO=new WeakSet,eH=function(e){("pen"!==e.pointerType||0!==e.buttons)&&(this.toggleAttribute("dragging",1===e.buttons||"mouse"!==e.pointerType),this.updatePointerBar(e),rU(this,eI,ek).call(this,e),this.dragging&&("mouse"!==e.pointerType||!rx(this,ev))&&(this.range.disabled=!0,this.range.valueAsNumber=this.getPointerRatio(e),this.range.dispatchEvent(new Event("input",{bubbles:!0,composed:!0}))))},rO.shadowRootOptions={mode:"open"},rO.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        --_focus-box-shadow: var(--media-focus-box-shadow, inset 0 0 0 2px rgb(27 127 204 / .9));
+        --_media-range-padding: var(--media-range-padding, var(--media-control-padding, 10px));
+
+        box-shadow: var(--_focus-visible-box-shadow, none);
+        background: var(--media-control-background, var(--media-secondary-color, rgb(20 20 30 / .7)));
+        height: calc(var(--media-control-height, 24px) + 2 * var(--_media-range-padding));
+        display: inline-flex;
+        align-items: center;
+        
+        vertical-align: middle;
+        box-sizing: border-box;
+        position: relative;
+        width: 100px;
+        transition: background .15s linear;
+        cursor: var(--media-cursor, pointer);
+        pointer-events: auto;
+        touch-action: none; 
+      }
+
+      
+      input[type=range]:focus {
+        outline: 0;
+      }
+      input[type=range]:focus::-webkit-slider-runnable-track {
+        outline: 0;
+      }
+
+      :host(:hover) {
+        background: var(--media-control-hover-background, rgb(50 50 70 / .7));
+      }
+
+      #leftgap {
+        padding-left: var(--media-range-padding-left, var(--_media-range-padding));
+      }
+
+      #rightgap {
+        padding-right: var(--media-range-padding-right, var(--_media-range-padding));
+      }
+
+      #startpoint,
+      #endpoint {
+        position: absolute;
+      }
+
+      #endpoint {
+        right: 0;
+      }
+
+      #container {
+        
+        width: var(--media-range-track-width, 100%);
+        transform: translate(var(--media-range-track-translate-x, 0px), var(--media-range-track-translate-y, 0px));
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        min-width: 40px;
+      }
+
+      #range {
+        
+        display: var(--media-time-range-hover-display, block);
+        bottom: var(--media-time-range-hover-bottom, -7px);
+        height: var(--media-time-range-hover-height, max(100% + 7px, 25px));
+        width: 100%;
+        position: absolute;
+        cursor: var(--media-cursor, pointer);
+
+        -webkit-appearance: none; 
+        -webkit-tap-highlight-color: transparent;
+        background: transparent; 
+        margin: 0;
+        z-index: 1;
+      }
+
+      @media (hover: hover) {
+        #range {
+          bottom: var(--media-time-range-hover-bottom, -5px);
+          height: var(--media-time-range-hover-height, max(100% + 5px, 20px));
+        }
+      }
+
+      
+      
+      #range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        background: transparent;
+        width: .1px;
+        height: .1px;
+      }
+
+      
+      #range::-moz-range-thumb {
+        background: transparent;
+        border: transparent;
+        width: .1px;
+        height: .1px;
+      }
+
+      #appearance {
+        height: var(--media-range-track-height, 4px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        position: absolute;
+        
+        will-change: transform;
+      }
+
+      #track {
+        background: var(--media-range-track-background, rgb(255 255 255 / .2));
+        border-radius: var(--media-range-track-border-radius, 1px);
+        border: var(--media-range-track-border, none);
+        outline: var(--media-range-track-outline);
+        outline-offset: var(--media-range-track-outline-offset);
+        backdrop-filter: var(--media-range-track-backdrop-filter);
+        -webkit-backdrop-filter: var(--media-range-track-backdrop-filter);
+        box-shadow: var(--media-range-track-box-shadow, none);
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #progress,
+      #pointer {
+        position: absolute;
+        height: 100%;
+        will-change: width;
+      }
+
+      #progress {
+        background: var(--media-range-bar-color, var(--media-primary-color, rgb(238 238 238)));
+        transition: var(--media-range-track-transition);
+      }
+
+      #pointer {
+        background: var(--media-range-track-pointer-background);
+        border-right: var(--media-range-track-pointer-border-right);
+        transition: visibility .25s, opacity .25s;
+        visibility: hidden;
+        opacity: 0;
+      }
+
+      @media (hover: hover) {
+        :host(:hover) #pointer {
+          transition: visibility .5s, opacity .5s;
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
+      #thumb,
+      ::slotted([slot=thumb]) {
+        width: var(--media-range-thumb-width, 10px);
+        height: var(--media-range-thumb-height, 10px);
+        transition: var(--media-range-thumb-transition);
+        transform: var(--media-range-thumb-transform, none);
+        opacity: var(--media-range-thumb-opacity, 1);
+        translate: -50%;
+        position: absolute;
+        left: 0;
+        cursor: var(--media-cursor, pointer);
+      }
+
+      #thumb {
+        border-radius: var(--media-range-thumb-border-radius, 10px);
+        background: var(--media-range-thumb-background, var(--media-primary-color, rgb(238 238 238)));
+        box-shadow: var(--media-range-thumb-box-shadow, 1px 1px 1px transparent);
+        border: var(--media-range-thumb-border, none);
+      }
+
+      :host([disabled]) #thumb {
+        background-color: #777;
+      }
+
+      .segments #appearance {
+        height: var(--media-range-segment-hover-height, 7px);
+      }
+
+      #track {
+        clip-path: url(#segments-clipping);
+      }
+
+      #segments {
+        --segments-gap: var(--media-range-segments-gap, 2px);
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+
+      #segments-clipping {
+        transform: translateX(calc(var(--segments-gap) / 2));
+      }
+
+      #segments-clipping:empty {
+        display: none;
+      }
+
+      #segments-clipping rect {
+        height: var(--media-range-track-height, 4px);
+        y: calc((var(--media-range-segment-hover-height, 7px) - var(--media-range-track-height, 4px)) / 2);
+        transition: var(--media-range-segment-transition, transform .1s ease-in-out);
+        transform: var(--media-range-segment-transform, scaleY(1));
+        transform-origin: center;
+      }
+    </style>
+    <div id="leftgap"></div>
+    <div id="container">
+      <div id="startpoint"></div>
+      <div id="endpoint"></div>
+      <div id="appearance">
+        <div id="track" part="track">
+          <div id="pointer"></div>
+          <div id="progress" part="progress"></div>
+        </div>
+        <slot name="thumb">
+          <div id="thumb" part="thumb"></div>
+        </slot>
+        <svg id="segments"><clipPath id="segments-clipping"></clipPath></svg>
+      </div>
+      <input id="range" type="range" min="0" max="1" step="any" value="0">
+    </div>
+    <div id="rightgap"></div>
+  `},ip.customElements.get("media-chrome-range")||ip.customElements.define("media-chrome-range",rO);var rH=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},rW=(e,t,i)=>(rH(e,t,"read from private field"),i?i.call(e):t.get(e)),r$=(e,t,i,a)=>(rH(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);class rV extends ip.HTMLElement{constructor(){if(super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eW,void 0),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}}static get observedAttributes(){return[tF.MEDIA_CONTROLLER]}attributeChangedCallback(e,t,i){var a,r,s,o,n;e===tF.MEDIA_CONTROLLER&&(t&&(null==(r=null==(a=rW(this,eW))?void 0:a.unassociateElement)||r.call(a,this),r$(this,eW,null)),i&&this.isConnected&&(r$(this,eW,null==(s=this.getRootNode())?void 0:s.getElementById(i)),null==(n=null==(o=rW(this,eW))?void 0:o.associateElement)||n.call(o,this)))}connectedCallback(){var e,t,i;let a=this.getAttribute(tF.MEDIA_CONTROLLER);a&&(r$(this,eW,null==(e=this.getRootNode())?void 0:e.getElementById(a)),null==(i=null==(t=rW(this,eW))?void 0:t.associateElement)||i.call(t,this))}disconnectedCallback(){var e,t;null==(t=null==(e=rW(this,eW))?void 0:e.unassociateElement)||t.call(e,this),r$(this,eW,null)}}eW=new WeakMap,rV.shadowRootOptions={mode:"open"},rV.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        
+        box-sizing: border-box;
+        display: var(--media-control-display, var(--media-control-bar-display, inline-flex));
+        color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+        --media-loading-indicator-icon-height: 44px;
+      }
+
+      ::slotted(media-time-range),
+      ::slotted(media-volume-range) {
+        min-height: 100%;
+      }
+
+      ::slotted(media-time-range),
+      ::slotted(media-clip-selector) {
+        flex-grow: 1;
+      }
+
+      ::slotted([role="menu"]) {
+        position: absolute;
+      }
+    </style>
+
+    <slot></slot>
+  `},ip.customElements.get("media-control-bar")||ip.customElements.define("media-control-bar",rV);var rB=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},rF=(e,t,i)=>(rB(e,t,"read from private field"),i?i.call(e):t.get(e)),rG=(e,t,i,a)=>(rB(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);class rj extends ip.HTMLElement{constructor(){if(super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,e$,void 0),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}}static get observedAttributes(){return[tF.MEDIA_CONTROLLER]}attributeChangedCallback(e,t,i){var a,r,s,o,n;e===tF.MEDIA_CONTROLLER&&(t&&(null==(r=null==(a=rF(this,e$))?void 0:a.unassociateElement)||r.call(a,this),rG(this,e$,null)),i&&this.isConnected&&(rG(this,e$,null==(s=this.getRootNode())?void 0:s.getElementById(i)),null==(n=null==(o=rF(this,e$))?void 0:o.associateElement)||n.call(o,this)))}connectedCallback(){var e,t,i;let{style:a}=iS(this.shadowRoot,":host");a.setProperty("display",`var(--media-control-display, var(--${this.localName}-display, inline-flex))`);let r=this.getAttribute(tF.MEDIA_CONTROLLER);r&&(rG(this,e$,null==(e=this.getRootNode())?void 0:e.getElementById(r)),null==(i=null==(t=rF(this,e$))?void 0:t.associateElement)||i.call(t,this))}disconnectedCallback(){var e,t;null==(t=null==(e=rF(this,e$))?void 0:e.unassociateElement)||t.call(e,this),rG(this,e$,null)}}e$=new WeakMap,rj.shadowRootOptions={mode:"open"},rj.getTemplateHTML=function(e,t={}){return`
+    <style>
+      :host {
+        font: var(--media-font,
+          var(--media-font-weight, normal)
+          var(--media-font-size, 14px) /
+          var(--media-text-content-height, var(--media-control-height, 24px))
+          var(--media-font-family, helvetica neue, segoe ui, roboto, arial, sans-serif));
+        color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+        background: var(--media-text-background, var(--media-control-background, var(--media-secondary-color, rgb(20 20 30 / .7))));
+        padding: var(--media-control-padding, 10px);
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        vertical-align: middle;
+        box-sizing: border-box;
+        text-align: center;
+        pointer-events: auto;
+      }
+
+      
+      :host(:focus-visible) {
+        box-shadow: inset 0 0 0 2px rgb(27 127 204 / .9);
+        outline: 0;
+      }
+
+      
+      :host(:where(:focus)) {
+        box-shadow: none;
+        outline: 0;
+      }
+    </style>
+
+    ${this.getSlotTemplateHTML(e,t)}
+  `},rj.getSlotTemplateHTML=function(e,t){return`
+    <slot></slot>
+  `},ip.customElements.get("media-text-display")||ip.customElements.define("media-text-display",rj);var rq=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},rQ=(e,t,i)=>(rq(e,t,"read from private field"),i?i.call(e):t.get(e));class rK extends rj{constructor(){var e;super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eV,void 0),((e,t,i,a)=>(rq(e,t,"write to private field"),a?a.call(e,i):t.set(e,i)))(this,eV,this.shadowRoot.querySelector("slot")),rQ(this,eV).textContent=ie(null!=(e=this.mediaDuration)?e:0)}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_DURATION]}attributeChangedCallback(e,t,i){e===tq.MEDIA_DURATION&&(rQ(this,eV).textContent=ie(+i)),super.attributeChangedCallback(e,t,i)}get mediaDuration(){return iR(this,tq.MEDIA_DURATION)}set mediaDuration(e){iC(this,tq.MEDIA_DURATION,e)}}eV=new WeakMap,rK.getSlotTemplateHTML=function(e,t){return`
+    <slot>${ie(t.mediaDuration)}</slot>
+  `},ip.customElements.get("media-duration-display")||ip.customElements.define("media-duration-display",rK);let rz={2:is("Network Error"),3:is("Decode Error"),4:is("Source Not Supported"),5:is("Encryption Error")},rZ={2:is("A network error caused the media download to fail."),3:is("A media error caused playback to be aborted. The media could be corrupt or your browser does not support this format."),4:is("An unsupported error occurred. The server or network failed, or your browser does not support this format."),5:is("The media is encrypted and there are no keys to decrypt it.")},rY=e=>{var t,i;return 1===e.code?null:{title:null!=(t=rz[e.code])?t:`Error ${e.code}`,message:null!=(i=rZ[e.code])?i:e.message}};var rX=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)};function rJ(e){var t;let{title:i,message:a}=null!=(t=rY(e))?t:{},r="";return i&&(r+=`<slot name="error-${e.code}-title"><h3>${i}</h3></slot>`),a&&(r+=`<slot name="error-${e.code}-message"><p>${a}</p></slot>`),r}let r0=[tq.MEDIA_ERROR_CODE,tq.MEDIA_ERROR_MESSAGE];class r1 extends rC{constructor(){super(...arguments),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eB,null)}static get observedAttributes(){return[...super.observedAttributes,...r0]}formatErrorMessage(e){return this.constructor.formatErrorMessage(e)}attributeChangedCallback(e,t,i){var a;if(super.attributeChangedCallback(e,t,i),!r0.includes(e))return;let r=null!=(a=this.mediaError)?a:{code:this.mediaErrorCode,message:this.mediaErrorMessage};this.open=r.code&&null!==rY(r),this.open&&(this.shadowRoot.querySelector("slot").name=`error-${this.mediaErrorCode}`,this.shadowRoot.querySelector("#content").innerHTML=this.formatErrorMessage(r))}get mediaError(){var e,t;return rX(this,e=eB,"read from private field"),t?t.call(this):e.get(this)}set mediaError(e){var t,i;rX(this,t=eB,"write to private field"),i?i.call(this,e):t.set(this,e)}get mediaErrorCode(){return iR(this,"mediaerrorcode")}set mediaErrorCode(e){iC(this,"mediaerrorcode",e)}get mediaErrorMessage(){return iP(this,"mediaerrormessage")}set mediaErrorMessage(e){iN(this,"mediaerrormessage",e)}}eB=new WeakMap,r1.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host {
+        background: rgb(20 20 30 / .8);
+      }
+
+      #content {
+        display: block;
+        padding: 1.2em 1.5em;
+      }
+
+      h3,
+      p {
+        margin-block: 0 .3em;
+      }
+    </style>
+    <slot name="error-${e.mediaerrorcode}" id="content">
+      ${rJ({code:+e.mediaerrorcode,message:e.mediaerrormessage})}
+    </slot>
+  `},r1.formatErrorMessage=rJ,ip.customElements.get("media-error-dialog")||ip.customElements.define("media-error-dialog",r1);var r2=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot read from private field");return i?i.call(e):t.get(e)},r3=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)};class r5 extends rC{constructor(){super(...arguments),r3(this,eF,e=>{var t;if(!this.open)return;let i=null==(t=this.shadowRoot)?void 0:t.querySelector("#content");if(!i)return;let a=e.composedPath(),r=a[0]===this||a.includes(this),s=a.includes(i);r&&!s&&(this.open=!1)}),r3(this,eG,e=>{if(!this.open)return;let t=e.shiftKey&&("/"===e.key||"?"===e.key);"Escape"!==e.key&&!t||e.ctrlKey||e.altKey||e.metaKey||(this.open=!1,e.preventDefault(),e.stopPropagation())})}connectedCallback(){super.connectedCallback(),this.open&&(this.addEventListener("click",r2(this,eF)),document.addEventListener("keydown",r2(this,eG)))}disconnectedCallback(){this.removeEventListener("click",r2(this,eF)),document.removeEventListener("keydown",r2(this,eG))}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),"open"===e&&(this.open?(this.addEventListener("click",r2(this,eF)),document.addEventListener("keydown",r2(this,eG))):(this.removeEventListener("click",r2(this,eF)),document.removeEventListener("keydown",r2(this,eG))))}}eF=new WeakMap,eG=new WeakMap,r5.getSlotTemplateHTML=function(e){let t;return`
+    <style>
+      :host {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        background: rgb(20 20 30 / .8);
+        backdrop-filter: blur(10px);
+      }
+
+      #content {
+        display: block;
+        width: clamp(400px, 40vw, 700px);
+        max-width: 90vw;
+        text-align: left;
+      }
+
+      h2 {
+        margin: 0 0 1.5rem 0;
+        font-size: 1.5rem;
+        font-weight: 500;
+        text-align: center;
+      }
+
+      .shortcuts-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .shortcuts-table tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .shortcuts-table tr:last-child {
+        border-bottom: none;
+      }
+
+      .shortcuts-table td {
+        padding: 0.75rem 0.5rem;
+      }
+
+      .shortcuts-table td:first-child {
+        text-align: right;
+        padding-right: 1rem;
+        width: 40%;
+        min-width: 120px;
+      }
+
+      .shortcuts-table td:last-child {
+        padding-left: 1rem;
+      }
+
+      .key {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        font-weight: 500;
+        min-width: 1.5rem;
+        text-align: center;
+        margin: 0 0.2rem;
+      }
+
+      .description {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+      }
+
+      .key-combo {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.3rem;
+      }
+
+      .key-separator {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+      }
+    </style>
+    <slot id="content">
+      ${t=[{keys:["Space","k"],description:"Toggle Playback"},{keys:["m"],description:"Toggle mute"},{keys:["f"],description:"Toggle fullscreen"},{keys:["c"],description:"Toggle captions or subtitles, if available"},{keys:["p"],description:"Toggle Picture in Picture"},{keys:["←","j"],description:"Seek back 10s"},{keys:["→","l"],description:"Seek forward 10s"},{keys:["↑"],description:"Turn volume up"},{keys:["↓"],description:"Turn volume down"},{keys:["< (SHIFT+,)"],description:"Decrease playback rate"},{keys:["> (SHIFT+.)"],description:"Increase playback rate"}].map(({keys:e,description:t})=>{let i=e.map((e,t)=>t>0?`<span class="key-separator">or</span><span class="key">${e}</span>`:`<span class="key">${e}</span>`).join("");return`
+      <tr>
+        <td>
+          <div class="key-combo">${i}</div>
+        </td>
+        <td class="description">${t}</td>
+      </tr>
+    `}).join(""),`
+    <h2>Keyboard Shortcuts</h2>
+    <table class="shortcuts-table">${t}</table>
+  `}
+    </slot>
+  `},ip.customElements.get("media-keyboard-shortcuts-dialog")||ip.customElements.define("media-keyboard-shortcuts-dialog",r5);var r4=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)};let r7=`<svg aria-hidden="true" viewBox="0 0 26 24">
+  <path d="M16 3v2.5h3.5V9H22V3h-6ZM4 9h2.5V5.5H10V3H4v6Zm15.5 9.5H16V21h6v-6h-2.5v3.5ZM6.5 15H4v6h6v-2.5H6.5V15Z"/>
+</svg>`,r8=`<svg aria-hidden="true" viewBox="0 0 26 24">
+  <path d="M18.5 6.5V3H16v6h6V6.5h-3.5ZM16 21h2.5v-3.5H22V15h-6v6ZM4 17.5h3.5V21H10v-6H4v2.5Zm3.5-11H4V9h6V3H7.5v3.5Z"/>
+</svg>`,r6=e=>{let t=e.mediaIsFullscreen?is("exit fullscreen mode"):is("enter fullscreen mode");e.setAttribute("aria-label",t)};class r9 extends rm{constructor(){super(...arguments),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,ej,null)}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_IS_FULLSCREEN,tq.MEDIA_FULLSCREEN_UNAVAILABLE]}connectedCallback(){super.connectedCallback(),r6(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_IS_FULLSCREEN&&r6(this)}get mediaFullscreenUnavailable(){return iP(this,tq.MEDIA_FULLSCREEN_UNAVAILABLE)}set mediaFullscreenUnavailable(e){iN(this,tq.MEDIA_FULLSCREEN_UNAVAILABLE,e)}get mediaIsFullscreen(){return iD(this,tq.MEDIA_IS_FULLSCREEN)}set mediaIsFullscreen(e){ix(this,tq.MEDIA_IS_FULLSCREEN,e)}handleClick(e){var t,i,a,r;r4(this,t=ej,"write to private field"),i?i.call(this,e):t.set(this,e);let s=(r4(this,a=ej,"read from private field"),(r?r.call(this):a.get(this))instanceof PointerEvent),o=this.mediaIsFullscreen?new ip.CustomEvent(tB.MEDIA_EXIT_FULLSCREEN_REQUEST,{composed:!0,bubbles:!0}):new ip.CustomEvent(tB.MEDIA_ENTER_FULLSCREEN_REQUEST,{composed:!0,bubbles:!0,detail:s});this.dispatchEvent(o)}}ej=new WeakMap,r9.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host([${tq.MEDIA_IS_FULLSCREEN}]) slot[name=icon] slot:not([name=exit]) {
+        display: none !important;
+      }
+
+      
+      :host(:not([${tq.MEDIA_IS_FULLSCREEN}])) slot[name=icon] slot:not([name=enter]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_IS_FULLSCREEN}]) slot[name=tooltip-enter],
+      :host(:not([${tq.MEDIA_IS_FULLSCREEN}])) slot[name=tooltip-exit] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="enter">${r7}</slot>
+      <slot name="exit">${r8}</slot>
+    </slot>
+  `},r9.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-enter">${is("Enter fullscreen mode")}</slot>
+    <slot name="tooltip-exit">${is("Exit fullscreen mode")}</slot>
+  `},ip.customElements.get("media-fullscreen-button")||ip.customElements.define("media-fullscreen-button",r9);let{MEDIA_TIME_IS_LIVE:se,MEDIA_PAUSED:st}=tq,{MEDIA_SEEK_TO_LIVE_REQUEST:si,MEDIA_PLAY_REQUEST:sa}=tB,sr=e=>{var t;let i=e.mediaPaused||!e.mediaTimeIsLive,a=i?is("seek to live"):is("playing live");e.setAttribute("aria-label",a);let r=null==(t=e.shadowRoot)?void 0:t.querySelector('slot[name="text"]');r&&(r.textContent=is("live")),i?e.removeAttribute("aria-disabled"):e.setAttribute("aria-disabled","true")};class ss extends rm{static get observedAttributes(){return[...super.observedAttributes,se,st]}connectedCallback(){super.connectedCallback(),sr(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),sr(this)}get mediaPaused(){return iD(this,tq.MEDIA_PAUSED)}set mediaPaused(e){ix(this,tq.MEDIA_PAUSED,e)}get mediaTimeIsLive(){return iD(this,tq.MEDIA_TIME_IS_LIVE)}set mediaTimeIsLive(e){ix(this,tq.MEDIA_TIME_IS_LIVE,e)}handleClick(){(this.mediaPaused||!this.mediaTimeIsLive)&&(this.dispatchEvent(new ip.CustomEvent(si,{composed:!0,bubbles:!0})),this.hasAttribute(st)&&this.dispatchEvent(new ip.CustomEvent(sa,{composed:!0,bubbles:!0})))}}ss.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host { --media-tooltip-display: none; }
+      
+      slot[name=indicator] > *,
+      :host ::slotted([slot=indicator]) {
+        
+        min-width: auto;
+        fill: var(--media-live-button-icon-color, rgb(140, 140, 140));
+        color: var(--media-live-button-icon-color, rgb(140, 140, 140));
+      }
+
+      :host([${se}]:not([${st}])) slot[name=indicator] > *,
+      :host([${se}]:not([${st}])) ::slotted([slot=indicator]) {
+        fill: var(--media-live-button-indicator-color, rgb(255, 0, 0));
+        color: var(--media-live-button-indicator-color, rgb(255, 0, 0));
+      }
+
+      :host([${se}]:not([${st}])) {
+        cursor: var(--media-cursor, not-allowed);
+      }
+
+      slot[name=text]{
+        text-transform: uppercase;
+      }
+
+    </style>
+
+    <slot name="indicator"><svg viewBox="0 0 6 12"><circle cx="3" cy="6" r="2"></circle></svg></slot>
+    
+    <slot name="spacer">&nbsp;</slot><slot name="text">${is("live")}</slot>
+  `},ip.customElements.get("media-live-button")||ip.customElements.define("media-live-button",ss);var so=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},sn=(e,t,i)=>(so(e,t,"read from private field"),i?i.call(e):t.get(e)),sl=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},sd=(e,t,i,a)=>(so(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);let su="loadingdelay",sh="noautohide",sc=`
+<svg aria-hidden="true" viewBox="0 0 100 100">
+  <path d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+    <animateTransform
+       attributeName="transform"
+       attributeType="XML"
+       type="rotate"
+       dur="1s"
+       from="0 50 50"
+       to="360 50 50"
+       repeatCount="indefinite" />
+  </path>
+</svg>
+`;class sm extends ip.HTMLElement{constructor(){if(super(),sl(this,eq,void 0),sl(this,eQ,500),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}}static get observedAttributes(){return[tF.MEDIA_CONTROLLER,tq.MEDIA_PAUSED,tq.MEDIA_LOADING,su]}attributeChangedCallback(e,t,i){var a,r,s,o,n;e===su&&t!==i?this.loadingDelay=Number(i):e===tF.MEDIA_CONTROLLER&&(t&&(null==(r=null==(a=sn(this,eq))?void 0:a.unassociateElement)||r.call(a,this),sd(this,eq,null)),i&&this.isConnected&&(sd(this,eq,null==(s=this.getRootNode())?void 0:s.getElementById(i)),null==(n=null==(o=sn(this,eq))?void 0:o.associateElement)||n.call(o,this)))}connectedCallback(){var e,t,i;let a=this.getAttribute(tF.MEDIA_CONTROLLER);a&&(sd(this,eq,null==(e=this.getRootNode())?void 0:e.getElementById(a)),null==(i=null==(t=sn(this,eq))?void 0:t.associateElement)||i.call(t,this))}disconnectedCallback(){var e,t;null==(t=null==(e=sn(this,eq))?void 0:e.unassociateElement)||t.call(e,this),sd(this,eq,null)}get loadingDelay(){return sn(this,eQ)}set loadingDelay(e){sd(this,eQ,e);let{style:t}=iS(this.shadowRoot,":host");t.setProperty("--_loading-indicator-delay",`var(--media-loading-indicator-transition-delay, ${e}ms)`)}get mediaPaused(){return iD(this,tq.MEDIA_PAUSED)}set mediaPaused(e){ix(this,tq.MEDIA_PAUSED,e)}get mediaLoading(){return iD(this,tq.MEDIA_LOADING)}set mediaLoading(e){ix(this,tq.MEDIA_LOADING,e)}get mediaController(){return iP(this,tF.MEDIA_CONTROLLER)}set mediaController(e){iN(this,tF.MEDIA_CONTROLLER,e)}get noAutohide(){return iD(this,sh)}set noAutohide(e){ix(this,sh,e)}}eq=new WeakMap,eQ=new WeakMap,sm.shadowRootOptions={mode:"open"},sm.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        display: var(--media-control-display, var(--media-loading-indicator-display, inline-block));
+        vertical-align: middle;
+        box-sizing: border-box;
+        --_loading-indicator-delay: var(--media-loading-indicator-transition-delay, 500ms);
+      }
+
+      #status {
+        color: rgba(0,0,0,0);
+        width: 0px;
+        height: 0px;
+      }
+
+      :host slot[name=icon] > *,
+      :host ::slotted([slot=icon]) {
+        opacity: var(--media-loading-indicator-opacity, 0);
+        transition: opacity 0.15s;
+      }
+
+      :host([${tq.MEDIA_LOADING}]:not([${tq.MEDIA_PAUSED}])) slot[name=icon] > *,
+      :host([${tq.MEDIA_LOADING}]:not([${tq.MEDIA_PAUSED}])) ::slotted([slot=icon]) {
+        opacity: var(--media-loading-indicator-opacity, 1);
+        transition: opacity 0.15s var(--_loading-indicator-delay);
+      }
+
+      :host #status {
+        visibility: var(--media-loading-indicator-opacity, hidden);
+        transition: visibility 0.15s;
+      }
+
+      :host([${tq.MEDIA_LOADING}]:not([${tq.MEDIA_PAUSED}])) #status {
+        visibility: var(--media-loading-indicator-opacity, visible);
+        transition: visibility 0.15s var(--_loading-indicator-delay);
+      }
+
+      svg, img, ::slotted(svg), ::slotted(img) {
+        width: var(--media-loading-indicator-icon-width);
+        height: var(--media-loading-indicator-icon-height, 100px);
+        fill: var(--media-icon-color, var(--media-primary-color, rgb(238 238 238)));
+        vertical-align: middle;
+      }
+    </style>
+
+    <slot name="icon">${sc}</slot>
+    <div id="status" role="status" aria-live="polite">${is("media loading")}</div>
+  `},ip.customElements.get("media-loading-indicator")||ip.customElements.define("media-loading-indicator",sm);let sp=`<svg aria-hidden="true" viewBox="0 0 24 24">
+  <path d="M16.5 12A4.5 4.5 0 0 0 14 8v2.18l2.45 2.45a4.22 4.22 0 0 0 .05-.63Zm2.5 0a6.84 6.84 0 0 1-.54 2.64L20 16.15A8.8 8.8 0 0 0 21 12a9 9 0 0 0-7-8.77v2.06A7 7 0 0 1 19 12ZM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25A6.92 6.92 0 0 1 14 18.7v2.06A9 9 0 0 0 17.69 19l2 2.05L21 19.73l-9-9L4.27 3ZM12 4 9.91 6.09 12 8.18V4Z"/>
+</svg>`,sv=`<svg aria-hidden="true" viewBox="0 0 24 24">
+  <path d="M3 9v6h4l5 5V4L7 9H3Zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.47 4.47 0 0 0 2.5-4Z"/>
+</svg>`,sE=`<svg aria-hidden="true" viewBox="0 0 24 24">
+  <path d="M3 9v6h4l5 5V4L7 9H3Zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.47 4.47 0 0 0 2.5-4ZM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54Z"/>
+</svg>`,sb=e=>{let t="off"===e.mediaVolumeLevel?is("unmute"):is("mute");e.setAttribute("aria-label",t)};class sg extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_VOLUME_LEVEL]}connectedCallback(){super.connectedCallback(),sb(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_VOLUME_LEVEL&&sb(this)}get mediaVolumeLevel(){return iP(this,tq.MEDIA_VOLUME_LEVEL)}set mediaVolumeLevel(e){iN(this,tq.MEDIA_VOLUME_LEVEL,e)}handleClick(){let e="off"===this.mediaVolumeLevel?tB.MEDIA_UNMUTE_REQUEST:tB.MEDIA_MUTE_REQUEST;this.dispatchEvent(new ip.CustomEvent(e,{composed:!0,bubbles:!0}))}}sg.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host(:not([${tq.MEDIA_VOLUME_LEVEL}])) slot[name=icon] slot:not([name=high]),
+      :host([${tq.MEDIA_VOLUME_LEVEL}=high]) slot[name=icon] slot:not([name=high]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_VOLUME_LEVEL}=off]) slot[name=icon] slot:not([name=off]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_VOLUME_LEVEL}=low]) slot[name=icon] slot:not([name=low]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_VOLUME_LEVEL}=medium]) slot[name=icon] slot:not([name=medium]) {
+        display: none !important;
+      }
+
+      :host(:not([${tq.MEDIA_VOLUME_LEVEL}=off])) slot[name=tooltip-unmute],
+      :host([${tq.MEDIA_VOLUME_LEVEL}=off]) slot[name=tooltip-mute] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="off">${sp}</slot>
+      <slot name="low">${sv}</slot>
+      <slot name="medium">${sv}</slot>
+      <slot name="high">${sE}</slot>
+    </slot>
+  `},sg.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-mute">${is("Mute")}</slot>
+    <slot name="tooltip-unmute">${is("Unmute")}</slot>
+  `},ip.customElements.get("media-mute-button")||ip.customElements.define("media-mute-button",sg);let sf=`<svg aria-hidden="true" viewBox="0 0 28 24">
+  <path d="M24 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Zm-1 16H5V5h18v14Zm-3-8h-7v5h7v-5Z"/>
+</svg>`,sA=e=>{let t=e.mediaIsPip?is("exit picture in picture mode"):is("enter picture in picture mode");e.setAttribute("aria-label",t)};class sy extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_IS_PIP,tq.MEDIA_PIP_UNAVAILABLE]}connectedCallback(){super.connectedCallback(),sA(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_IS_PIP&&sA(this)}get mediaPipUnavailable(){return iP(this,tq.MEDIA_PIP_UNAVAILABLE)}set mediaPipUnavailable(e){iN(this,tq.MEDIA_PIP_UNAVAILABLE,e)}get mediaIsPip(){return iD(this,tq.MEDIA_IS_PIP)}set mediaIsPip(e){ix(this,tq.MEDIA_IS_PIP,e)}handleClick(){let e=this.mediaIsPip?tB.MEDIA_EXIT_PIP_REQUEST:tB.MEDIA_ENTER_PIP_REQUEST;this.dispatchEvent(new ip.CustomEvent(e,{composed:!0,bubbles:!0}))}}sy.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host([${tq.MEDIA_IS_PIP}]) slot[name=icon] slot:not([name=exit]) {
+        display: none !important;
+      }
+
+      :host(:not([${tq.MEDIA_IS_PIP}])) slot[name=icon] slot:not([name=enter]) {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_IS_PIP}]) slot[name=tooltip-enter],
+      :host(:not([${tq.MEDIA_IS_PIP}])) slot[name=tooltip-exit] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="enter">${sf}</slot>
+      <slot name="exit">${sf}</slot>
+    </slot>
+  `},sy.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-enter">${is("Enter picture in picture mode")}</slot>
+    <slot name="tooltip-exit">${is("Exit picture in picture mode")}</slot>
+  `},ip.customElements.get("media-pip-button")||ip.customElements.define("media-pip-button",sy);var sw=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot read from private field");return i?i.call(e):t.get(e)};let sI="rates",sk=[1,1.2,1.5,1.7,2];class sT extends rm{constructor(){var e;super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eK,new i7(this,sI,{defaultValue:sk})),this.container=this.shadowRoot.querySelector('slot[name="icon"]'),this.container.innerHTML=`${null!=(e=this.mediaPlaybackRate)?e:1}x`}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_PLAYBACK_RATE,sI]}attributeChangedCallback(e,t,i){if(super.attributeChangedCallback(e,t,i),e===sI&&(sw(this,eK).value=i),e===tq.MEDIA_PLAYBACK_RATE){let e=i?+i:NaN,t=Number.isNaN(e)?1:e;this.container.innerHTML=`${t}x`,this.setAttribute("aria-label",is("Playback rate {playbackRate}",{playbackRate:t}))}}get rates(){return sw(this,eK)}set rates(e){e?Array.isArray(e)?sw(this,eK).value=e.join(" "):"string"==typeof e&&(sw(this,eK).value=e):sw(this,eK).value=""}get mediaPlaybackRate(){return iR(this,tq.MEDIA_PLAYBACK_RATE,1)}set mediaPlaybackRate(e){iC(this,tq.MEDIA_PLAYBACK_RATE,e)}handleClick(){var e,t;let i=Array.from(sw(this,eK).values(),e=>+e).sort((e,t)=>e-t),a=null!=(t=null!=(e=i.find(e=>e>this.mediaPlaybackRate))?e:i[0])?t:1,r=new ip.CustomEvent(tB.MEDIA_PLAYBACK_RATE_REQUEST,{composed:!0,bubbles:!0,detail:a});this.dispatchEvent(r)}}eK=new WeakMap,sT.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host {
+        min-width: 5ch;
+        padding: var(--media-button-padding, var(--media-control-padding, 10px 5px));
+      }
+    </style>
+    <slot name="icon">${e.mediaplaybackrate||1}x</slot>
+  `},sT.getTooltipContentHTML=function(){return is("Playback rate")},ip.customElements.get("media-playback-rate-button")||ip.customElements.define("media-playback-rate-button",sT);let s_=`<svg aria-hidden="true" viewBox="0 0 24 24">
+  <path d="m6 21 15-9L6 3v18Z"/>
+</svg>`,sM=`<svg aria-hidden="true" viewBox="0 0 24 24">
+  <path d="M6 20h4V4H6v16Zm8-16v16h4V4h-4Z"/>
+</svg>`,sS=e=>{let t=e.mediaPaused?is("play"):is("pause");e.setAttribute("aria-label",t)};class sL extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_PAUSED,tq.MEDIA_ENDED]}connectedCallback(){super.connectedCallback(),sS(this)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),(e===tq.MEDIA_PAUSED||e===tq.MEDIA_LANG)&&sS(this)}get mediaPaused(){return iD(this,tq.MEDIA_PAUSED)}set mediaPaused(e){ix(this,tq.MEDIA_PAUSED,e)}handleClick(){let e=this.mediaPaused?tB.MEDIA_PLAY_REQUEST:tB.MEDIA_PAUSE_REQUEST;this.dispatchEvent(new ip.CustomEvent(e,{composed:!0,bubbles:!0}))}}sL.getSlotTemplateHTML=function(e){return`
+    <style>
+      :host([${tq.MEDIA_PAUSED}]) slot[name=pause],
+      :host(:not([${tq.MEDIA_PAUSED}])) slot[name=play] {
+        display: none !important;
+      }
+
+      :host([${tq.MEDIA_PAUSED}]) slot[name=tooltip-pause],
+      :host(:not([${tq.MEDIA_PAUSED}])) slot[name=tooltip-play] {
+        display: none;
+      }
+    </style>
+
+    <slot name="icon">
+      <slot name="play">${s_}</slot>
+      <slot name="pause">${sM}</slot>
+    </slot>
+  `},sL.getTooltipContentHTML=function(){return`
+    <slot name="tooltip-play">${is("Play")}</slot>
+    <slot name="tooltip-pause">${is("Pause")}</slot>
+  `},ip.customElements.get("media-play-button")||ip.customElements.define("media-play-button",sL);let sR="placeholdersrc";class sC extends ip.HTMLElement{static get observedAttributes(){return[sR,"src"]}constructor(){if(super(),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}this.image=this.shadowRoot.querySelector("#image")}attributeChangedCallback(e,t,i){if("src"===e&&(null==i?this.image.removeAttribute("src"):this.image.setAttribute("src",i)),e===sR)if(null==i)this.image.style.removeProperty("background-image");else{var a;a=this.image,a.style["background-image"]=`url('${i}')`}}get placeholderSrc(){return iP(this,sR)}set placeholderSrc(e){iN(this,"src",e)}get src(){return iP(this,"src")}set src(e){iN(this,"src",e)}}sC.shadowRootOptions={mode:"open"},sC.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        pointer-events: none;
+        display: var(--media-poster-image-display, inline-block);
+        box-sizing: border-box;
+      }
+
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        min-width: 100%;
+        min-height: 100%;
+        background-repeat: no-repeat;
+        background-position: var(--media-poster-image-background-position, var(--media-object-position, center));
+        background-size: var(--media-poster-image-background-size, var(--media-object-fit, contain));
+        object-fit: var(--media-object-fit, contain);
+        object-position: var(--media-object-position, center);
+      }
+    </style>
+
+    <img part="poster img" aria-hidden="true" id="image"/>
+  `},ip.customElements.get("media-poster-image")||ip.customElements.define("media-poster-image",sC);var sD=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)};class sx extends rj{constructor(){super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,ez,void 0),((e,t,i,a)=>(sD(e,t,"write to private field"),a?a.call(e,i):t.set(e,i)))(this,ez,this.shadowRoot.querySelector("slot"))}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_PREVIEW_CHAPTER,tq.MEDIA_LANG]}attributeChangedCallback(e,t,i){if(super.attributeChangedCallback(e,t,i),(e===tq.MEDIA_PREVIEW_CHAPTER||e===tq.MEDIA_LANG)&&i!==t&&null!=i){var a,r;if((sD(this,a=ez,"read from private field"),r?r.call(this):a.get(this)).textContent=i,""!==i){let e=is("chapter: {chapterName}",{chapterName:i});this.setAttribute("aria-valuetext",e)}else this.removeAttribute("aria-valuetext")}}get mediaPreviewChapter(){return iP(this,tq.MEDIA_PREVIEW_CHAPTER)}set mediaPreviewChapter(e){iN(this,tq.MEDIA_PREVIEW_CHAPTER,e)}}ez=new WeakMap,ip.customElements.get("media-preview-chapter-display")||ip.customElements.define("media-preview-chapter-display",sx);var sP=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},sN=(e,t,i)=>(sP(e,t,"read from private field"),i?i.call(e):t.get(e)),sU=(e,t,i,a)=>(sP(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);class sO extends ip.HTMLElement{constructor(){if(super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eZ,void 0),!this.shadowRoot){this.attachShadow(this.constructor.shadowRootOptions);const e=iw(this.attributes);this.shadowRoot.innerHTML=this.constructor.getTemplateHTML(e)}}static get observedAttributes(){return[tF.MEDIA_CONTROLLER,tq.MEDIA_PREVIEW_IMAGE,tq.MEDIA_PREVIEW_COORDS]}connectedCallback(){var e,t,i;let a=this.getAttribute(tF.MEDIA_CONTROLLER);a&&(sU(this,eZ,null==(e=this.getRootNode())?void 0:e.getElementById(a)),null==(i=null==(t=sN(this,eZ))?void 0:t.associateElement)||i.call(t,this))}disconnectedCallback(){var e,t;null==(t=null==(e=sN(this,eZ))?void 0:e.unassociateElement)||t.call(e,this),sU(this,eZ,null)}attributeChangedCallback(e,t,i){var a,r,s,o,n;[tq.MEDIA_PREVIEW_IMAGE,tq.MEDIA_PREVIEW_COORDS].includes(e)&&this.update(),e===tF.MEDIA_CONTROLLER&&(t&&(null==(r=null==(a=sN(this,eZ))?void 0:a.unassociateElement)||r.call(a,this),sU(this,eZ,null)),i&&this.isConnected&&(sU(this,eZ,null==(s=this.getRootNode())?void 0:s.getElementById(i)),null==(n=null==(o=sN(this,eZ))?void 0:o.associateElement)||n.call(o,this)))}get mediaPreviewImage(){return iP(this,tq.MEDIA_PREVIEW_IMAGE)}set mediaPreviewImage(e){iN(this,tq.MEDIA_PREVIEW_IMAGE,e)}get mediaPreviewCoords(){let e=this.getAttribute(tq.MEDIA_PREVIEW_COORDS);if(e)return e.split(/\s+/).map(e=>+e)}set mediaPreviewCoords(e){e?this.setAttribute(tq.MEDIA_PREVIEW_COORDS,e.join(" ")):this.removeAttribute(tq.MEDIA_PREVIEW_COORDS)}update(){let e=this.mediaPreviewCoords,t=this.mediaPreviewImage;if(!(e&&t))return;let[i,a,r,s]=e,o=t.split("#")[0],{maxWidth:n,maxHeight:l,minWidth:d,minHeight:u}=getComputedStyle(this),h=Math.min(parseInt(n)/r,parseInt(l)/s),c=Math.max(parseInt(d)/r,parseInt(u)/s),m=h<1,p=m?h:c>1?c:1,{style:v}=iS(this.shadowRoot,":host"),E=iS(this.shadowRoot,"img").style,b=this.shadowRoot.querySelector("img"),g=m?"min":"max";v.setProperty(`${g}-width`,"initial","important"),v.setProperty(`${g}-height`,"initial","important"),v.width=`${r*p}px`,v.height=`${s*p}px`;let f=()=>{E.width=`${this.imgWidth*p}px`,E.height=`${this.imgHeight*p}px`,E.display="block"};b.src!==o&&(b.onload=()=>{this.imgWidth=b.naturalWidth,this.imgHeight=b.naturalHeight,f()},b.src=o,f()),f(),E.transform=`translate(-${i*p}px, -${a*p}px)`}}eZ=new WeakMap,sO.shadowRootOptions={mode:"open"},sO.getTemplateHTML=function(e){return`
+    <style>
+      :host {
+        box-sizing: border-box;
+        display: var(--media-control-display, var(--media-preview-thumbnail-display, inline-block));
+        overflow: hidden;
+      }
+
+      img {
+        display: none;
+        position: relative;
+      }
+    </style>
+    <img crossorigin loading="eager" decoding="async">
+  `},ip.customElements.get("media-preview-thumbnail")||ip.customElements.define("media-preview-thumbnail",sO);var sH=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},sW=(e,t,i)=>(sH(e,t,"read from private field"),i?i.call(e):t.get(e));class s$ extends rj{constructor(){super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eY,void 0),((e,t,i,a)=>(sH(e,t,"write to private field"),a?a.call(e,i):t.set(e,i)))(this,eY,this.shadowRoot.querySelector("slot")),sW(this,eY).textContent=ie(0)}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_PREVIEW_TIME]}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_PREVIEW_TIME&&null!=i&&(sW(this,eY).textContent=ie(parseFloat(i)))}get mediaPreviewTime(){return iR(this,tq.MEDIA_PREVIEW_TIME)}set mediaPreviewTime(e){iC(this,tq.MEDIA_PREVIEW_TIME,e)}}eY=new WeakMap,ip.customElements.get("media-preview-time-display")||ip.customElements.define("media-preview-time-display",s$);let sV="seekoffset";class sB extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_CURRENT_TIME,sV]}connectedCallback(){super.connectedCallback(),this.seekOffset=iR(this,sV,30)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===sV&&(this.seekOffset=iR(this,sV,30))}get seekOffset(){return iR(this,sV,30)}set seekOffset(e){iC(this,sV,e),this.setAttribute("aria-label",is("seek back {seekOffset} seconds",{seekOffset:this.seekOffset})),iI(ik(this,"icon"),this.seekOffset)}get mediaCurrentTime(){return iR(this,tq.MEDIA_CURRENT_TIME,0)}set mediaCurrentTime(e){iC(this,tq.MEDIA_CURRENT_TIME,e)}handleClick(){let e=Math.max(this.mediaCurrentTime-this.seekOffset,0),t=new ip.CustomEvent(tB.MEDIA_SEEK_REQUEST,{composed:!0,bubbles:!0,detail:e});this.dispatchEvent(t)}}sB.getSlotTemplateHTML=function(e,t){let i;return`
+    <slot name="icon">${i=t.seekOffset,`
+  <svg aria-hidden="true" viewBox="0 0 20 24">
+    <defs>
+      <style>.text{font-size:8px;font-family:Arial-BoldMT, Arial;font-weight:700;}</style>
+    </defs>
+    <text class="text value" transform="translate(2.18 19.87)">${i}</text>
+    <path d="M10 6V3L4.37 7 10 10.94V8a5.54 5.54 0 0 1 1.9 10.48v2.12A7.5 7.5 0 0 0 10 6Z"/>
+  </svg>`}</slot>
+  `},sB.getTooltipContentHTML=function(){return is("Seek backward")},ip.customElements.get("media-seek-backward-button")||ip.customElements.define("media-seek-backward-button",sB);let sF="seekoffset";class sG extends rm{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_CURRENT_TIME,sF]}connectedCallback(){super.connectedCallback(),this.seekOffset=iR(this,sF,30)}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===sF&&(this.seekOffset=iR(this,sF,30))}get seekOffset(){return iR(this,sF,30)}set seekOffset(e){iC(this,sF,e),this.setAttribute("aria-label",is("seek forward {seekOffset} seconds",{seekOffset:this.seekOffset})),iI(ik(this,"icon"),this.seekOffset)}get mediaCurrentTime(){return iR(this,tq.MEDIA_CURRENT_TIME,0)}set mediaCurrentTime(e){iC(this,tq.MEDIA_CURRENT_TIME,e)}handleClick(){let e=this.mediaCurrentTime+this.seekOffset,t=new ip.CustomEvent(tB.MEDIA_SEEK_REQUEST,{composed:!0,bubbles:!0,detail:e});this.dispatchEvent(t)}}sG.getSlotTemplateHTML=function(e,t){let i;return`
+    <slot name="icon">${i=t.seekOffset,`
+  <svg aria-hidden="true" viewBox="0 0 20 24">
+    <defs>
+      <style>.text{font-size:8px;font-family:Arial-BoldMT, Arial;font-weight:700;}</style>
+    </defs>
+    <text class="text value" transform="translate(8.9 19.87)">${i}</text>
+    <path d="M10 6V3l5.61 4L10 10.94V8a5.54 5.54 0 0 0-1.9 10.48v2.12A7.5 7.5 0 0 1 10 6Z"/>
+  </svg>`}</slot>
+  `},sG.getTooltipContentHTML=function(){return is("Seek forward")},ip.customElements.get("media-seek-forward-button")||ip.customElements.define("media-seek-forward-button",sG);var sj=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},sq=(e,t,i)=>(sj(e,t,"read from private field"),i?i.call(e):t.get(e));let sQ={REMAINING:"remaining",SHOW_DURATION:"showduration",NO_TOGGLE:"notoggle"},sK=[...Object.values(sQ),tq.MEDIA_CURRENT_TIME,tq.MEDIA_DURATION,tq.MEDIA_SEEKABLE],sz=["Enter"," "],sZ="&nbsp;/&nbsp;",sY=(e,{timesSep:t=sZ}={})=>{var i,a;let r=null!=(i=e.mediaCurrentTime)?i:0,[,s]=null!=(a=e.mediaSeekable)?a:[],o=0;Number.isFinite(e.mediaDuration)?o=e.mediaDuration:Number.isFinite(s)&&(o=s);let n=e.remaining?ie(0-(o-r)):ie(r);return e.showDuration?`${n}${t}${ie(o)}`:n};class sX extends rj{constructor(){super(),((e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)})(this,eX,void 0),((e,t,i,a)=>(sj(e,t,"write to private field"),a?a.call(e,i):t.set(e,i)))(this,eX,this.shadowRoot.querySelector("slot")),sq(this,eX).innerHTML=`${sY(this)}`}static get observedAttributes(){return[...super.observedAttributes,...sK,"disabled"]}connectedCallback(){let{style:e}=iS(this.shadowRoot,":host(:hover:not([notoggle]))");e.setProperty("cursor","var(--media-cursor, pointer)"),e.setProperty("background","var(--media-control-hover-background, rgba(50 50 70 / .7))"),this.hasAttribute("disabled")||this.enable(),this.setAttribute("role","progressbar"),this.setAttribute("aria-label",is("playback time"));let t=e=>{let{key:i}=e;sz.includes(i)?this.toggleTimeDisplay():this.removeEventListener("keyup",t)};this.addEventListener("keydown",e=>{let{metaKey:i,altKey:a,key:r}=e;i||a||!sz.includes(r)?this.removeEventListener("keyup",t):this.addEventListener("keyup",t)}),this.addEventListener("click",this.toggleTimeDisplay),super.connectedCallback()}toggleTimeDisplay(){this.noToggle||(this.hasAttribute("remaining")?this.removeAttribute("remaining"):this.setAttribute("remaining",""))}disconnectedCallback(){this.disable(),super.disconnectedCallback()}attributeChangedCallback(e,t,i){sK.includes(e)?this.update():"disabled"===e&&i!==t&&(null==i?this.enable():this.disable()),super.attributeChangedCallback(e,t,i)}enable(){this.tabIndex=0}disable(){this.tabIndex=-1}get remaining(){return iD(this,sQ.REMAINING)}set remaining(e){ix(this,sQ.REMAINING,e)}get showDuration(){return iD(this,sQ.SHOW_DURATION)}set showDuration(e){ix(this,sQ.SHOW_DURATION,e)}get noToggle(){return iD(this,sQ.NO_TOGGLE)}set noToggle(e){ix(this,sQ.NO_TOGGLE,e)}get mediaDuration(){return iR(this,tq.MEDIA_DURATION)}set mediaDuration(e){iC(this,tq.MEDIA_DURATION,e)}get mediaCurrentTime(){return iR(this,tq.MEDIA_CURRENT_TIME)}set mediaCurrentTime(e){iC(this,tq.MEDIA_CURRENT_TIME,e)}get mediaSeekable(){let e=this.getAttribute(tq.MEDIA_SEEKABLE);if(e)return e.split(":").map(e=>+e)}set mediaSeekable(e){null==e?this.removeAttribute(tq.MEDIA_SEEKABLE):this.setAttribute(tq.MEDIA_SEEKABLE,e.join(":"))}update(){let e=sY(this);(e=>{var t;let i=e.mediaCurrentTime,[,a]=null!=(t=e.mediaSeekable)?t:[],r=null;if(Number.isFinite(e.mediaDuration)?r=e.mediaDuration:Number.isFinite(a)&&(r=a),null==i||null===r)return e.setAttribute("aria-valuetext","video not loaded, unknown time.");let s=e.remaining?t9(0-(r-i)):t9(i);if(!e.showDuration)return e.setAttribute("aria-valuetext",s);let o=t9(r),n=`${s} of ${o}`;e.setAttribute("aria-valuetext",n)})(this),e!==sq(this,eX).innerHTML&&(sq(this,eX).innerHTML=e)}}eX=new WeakMap,sX.getSlotTemplateHTML=function(e,t){return`
+    <slot>${sY(t)}</slot>
+  `},ip.customElements.get("media-time-display")||ip.customElements.define("media-time-display",sX);var sJ=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},s0=(e,t,i)=>(sJ(e,t,"read from private field"),i?i.call(e):t.get(e)),s1=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},s2=(e,t,i,a)=>(sJ(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i);class s3{constructor(e,t,i){s1(this,eJ,void 0),s1(this,e0,void 0),s1(this,e1,void 0),s1(this,e2,void 0),s1(this,e3,void 0),s1(this,e5,void 0),s1(this,e4,void 0),s1(this,e7,void 0),s1(this,e8,0),s1(this,e6,(e=performance.now())=>{s2(this,e8,requestAnimationFrame(s0(this,e6))),s2(this,e2,performance.now()-s0(this,e1));let t=1e3/this.fps;if(s0(this,e2)>t){let i,a,r,s;s2(this,e1,e-s0(this,e2)%t);let o=1e3/((e-s0(this,e0))/++(i=this,a=e3,{set _(value){s2(i,a,value,r)},get _(){return s0(i,a,s)}})._),n=(e-s0(this,e5))/1e3/this.duration,l=s0(this,e4)+n*this.playbackRate;l-s0(this,eJ).valueAsNumber>0?s2(this,e7,this.playbackRate/this.duration/o):(s2(this,e7,.995*s0(this,e7)),l=s0(this,eJ).valueAsNumber+s0(this,e7)),this.callback(l)}}),s2(this,eJ,e),this.callback=t,this.fps=i}start(){0===s0(this,e8)&&(s2(this,e1,performance.now()),s2(this,e0,s0(this,e1)),s2(this,e3,0),s0(this,e6).call(this))}stop(){0!==s0(this,e8)&&(cancelAnimationFrame(s0(this,e8)),s2(this,e8,0))}update({start:e,duration:t,playbackRate:i}){let a=e-s0(this,eJ).valueAsNumber,r=Math.abs(t-this.duration);(a>0||a<-.03||r>=.5)&&this.callback(e),s2(this,e4,e),s2(this,e5,performance.now()),this.duration=t,this.playbackRate=i}}eJ=new WeakMap,e0=new WeakMap,e1=new WeakMap,e2=new WeakMap,e3=new WeakMap,e5=new WeakMap,e4=new WeakMap,e7=new WeakMap,e8=new WeakMap,e6=new WeakMap;var s5=(e,t,i)=>{if(!t.has(e))throw TypeError("Cannot "+i)},s4=(e,t,i)=>(s5(e,t,"read from private field"),i?i.call(e):t.get(e)),s7=(e,t,i)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,i)},s8=(e,t,i,a)=>(s5(e,t,"write to private field"),a?a.call(e,i):t.set(e,i),i),s6=(e,t,i)=>(s5(e,t,"access private method"),i);let s9=(e,t=e.mediaCurrentTime)=>{let i=Number.isFinite(e.mediaSeekableStart)?e.mediaSeekableStart:0,a=Number.isFinite(e.mediaDuration)?e.mediaDuration:e.mediaSeekableEnd;return Number.isNaN(a)?0:Math.max(0,Math.min((t-i)/(a-i),1))},oe=(e,t=e.range.valueAsNumber)=>{let i=Number.isFinite(e.mediaSeekableStart)?e.mediaSeekableStart:0,a=Number.isFinite(e.mediaDuration)?e.mediaDuration:e.mediaSeekableEnd;return Number.isNaN(a)?0:t*(a-i)+i};class ot extends rO{constructor(){super(),s7(this,td),s7(this,th),s7(this,tp),s7(this,tE),s7(this,tg),s7(this,tA),s7(this,tw),s7(this,tk),s7(this,e9,void 0),s7(this,te,void 0),s7(this,tt,void 0),s7(this,ti,void 0),s7(this,ta,void 0),s7(this,tr,void 0),s7(this,ts,void 0),s7(this,to,void 0),s7(this,tn,void 0),s7(this,tl,void 0),s7(this,tm,e=>{!this.dragging&&(t7(e)&&(this.range.valueAsNumber=e),s4(this,tl)||this.updateBar())}),this.shadowRoot.querySelector("#track").insertAdjacentHTML("afterbegin",'<div id="buffered" part="buffered"></div>'),s8(this,tt,this.shadowRoot.querySelectorAll('[part~="box"]')),s8(this,ta,this.shadowRoot.querySelector('[part~="preview-box"]')),s8(this,tr,this.shadowRoot.querySelector('[part~="current-box"]'));const e=getComputedStyle(this);s8(this,ts,parseInt(e.getPropertyValue("--media-box-padding-left"))),s8(this,to,parseInt(e.getPropertyValue("--media-box-padding-right"))),s8(this,te,new s3(this.range,s4(this,tm),60))}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_PAUSED,tq.MEDIA_DURATION,tq.MEDIA_SEEKABLE,tq.MEDIA_CURRENT_TIME,tq.MEDIA_PREVIEW_IMAGE,tq.MEDIA_PREVIEW_TIME,tq.MEDIA_PREVIEW_CHAPTER,tq.MEDIA_BUFFERED,tq.MEDIA_PLAYBACK_RATE,tq.MEDIA_LOADING,tq.MEDIA_ENDED]}connectedCallback(){var e;super.connectedCallback(),this.range.setAttribute("aria-label",is("seek")),s6(this,td,tu).call(this),s8(this,e9,this.getRootNode()),null==(e=s4(this,e9))||e.addEventListener("transitionstart",this)}disconnectedCallback(){var e;super.disconnectedCallback(),s6(this,td,tu).call(this),null==(e=s4(this,e9))||e.removeEventListener("transitionstart",this),s8(this,e9,null)}attributeChangedCallback(e,t,i){if(super.attributeChangedCallback(e,t,i),t!=i){if(e===tq.MEDIA_CURRENT_TIME||e===tq.MEDIA_PAUSED||e===tq.MEDIA_ENDED||e===tq.MEDIA_LOADING||e===tq.MEDIA_DURATION||e===tq.MEDIA_SEEKABLE){let e,t,i,a;s4(this,te).update({start:s9(this),duration:this.mediaSeekableEnd-this.mediaSeekableStart,playbackRate:this.mediaPlaybackRate}),s6(this,td,tu).call(this),e=this.range,t=t9(+oe(this)),i=t9(+this.mediaSeekableEnd),a=t&&i?`${t} of ${i}`:"video not loaded, unknown time.",e.setAttribute("aria-valuetext",a)}else e===tq.MEDIA_BUFFERED&&this.updateBufferedBar();(e===tq.MEDIA_DURATION||e===tq.MEDIA_SEEKABLE)&&(this.mediaChaptersCues=s4(this,tn),this.updateBar())}}get mediaChaptersCues(){return s4(this,tn)}set mediaChaptersCues(e){var t;s8(this,tn,e),this.updateSegments(null==(t=s4(this,tn))?void 0:t.map(e=>({start:s9(this,e.startTime),end:s9(this,e.endTime)})))}get mediaPaused(){return iD(this,tq.MEDIA_PAUSED)}set mediaPaused(e){ix(this,tq.MEDIA_PAUSED,e)}get mediaLoading(){return iD(this,tq.MEDIA_LOADING)}set mediaLoading(e){ix(this,tq.MEDIA_LOADING,e)}get mediaDuration(){return iR(this,tq.MEDIA_DURATION)}set mediaDuration(e){iC(this,tq.MEDIA_DURATION,e)}get mediaCurrentTime(){return iR(this,tq.MEDIA_CURRENT_TIME)}set mediaCurrentTime(e){iC(this,tq.MEDIA_CURRENT_TIME,e)}get mediaPlaybackRate(){return iR(this,tq.MEDIA_PLAYBACK_RATE,1)}set mediaPlaybackRate(e){iC(this,tq.MEDIA_PLAYBACK_RATE,e)}get mediaBuffered(){let e=this.getAttribute(tq.MEDIA_BUFFERED);return e?e.split(" ").map(e=>e.split(":").map(e=>+e)):[]}set mediaBuffered(e){if(!e)return void this.removeAttribute(tq.MEDIA_BUFFERED);let t=e.map(e=>e.join(":")).join(" ");this.setAttribute(tq.MEDIA_BUFFERED,t)}get mediaSeekable(){let e=this.getAttribute(tq.MEDIA_SEEKABLE);if(e)return e.split(":").map(e=>+e)}set mediaSeekable(e){null==e?this.removeAttribute(tq.MEDIA_SEEKABLE):this.setAttribute(tq.MEDIA_SEEKABLE,e.join(":"))}get mediaSeekableEnd(){var e;let[,t=this.mediaDuration]=null!=(e=this.mediaSeekable)?e:[];return t}get mediaSeekableStart(){var e;let[t=0]=null!=(e=this.mediaSeekable)?e:[];return t}get mediaPreviewImage(){return iP(this,tq.MEDIA_PREVIEW_IMAGE)}set mediaPreviewImage(e){iN(this,tq.MEDIA_PREVIEW_IMAGE,e)}get mediaPreviewTime(){return iR(this,tq.MEDIA_PREVIEW_TIME)}set mediaPreviewTime(e){iC(this,tq.MEDIA_PREVIEW_TIME,e)}get mediaEnded(){return iD(this,tq.MEDIA_ENDED)}set mediaEnded(e){ix(this,tq.MEDIA_ENDED,e)}updateBar(){super.updateBar(),this.updateBufferedBar(),this.updateCurrentBox()}updateBufferedBar(){var e;let t,i=this.mediaBuffered;if(!i.length)return;if(this.mediaEnded)t=1;else{let a=this.mediaCurrentTime,[,r=this.mediaSeekableStart]=null!=(e=i.find(([e,t])=>e<=a&&a<=t))?e:[];t=s9(this,r)}let{style:a}=iS(this.shadowRoot,"#buffered");a.setProperty("width",`${100*t}%`)}updateCurrentBox(){if(!this.shadowRoot.querySelector('slot[name="current"]').assignedElements().length)return;let e=iS(this.shadowRoot,"#current-rail"),t=iS(this.shadowRoot,'[part~="current-box"]'),i=s6(this,tp,tv).call(this,s4(this,tr)),a=s6(this,tE,tb).call(this,i,this.range.valueAsNumber),r=s6(this,tg,tf).call(this,i,this.range.valueAsNumber);e.style.transform=`translateX(${a})`,e.style.setProperty("--_range-width",`${i.range.width}`),t.style.setProperty("--_box-shift",`${r}`),t.style.setProperty("--_box-width",`${i.box.width}px`),t.style.setProperty("visibility","initial")}handleEvent(e){switch(super.handleEvent(e),e.type){case"input":s6(this,tk,tT).call(this);break;case"pointermove":s6(this,tA,ty).call(this,e);break;case"pointerup":s4(this,tl)&&s8(this,tl,!1);break;case"pointerdown":s8(this,tl,!0);break;case"pointerleave":s6(this,tw,tI).call(this,null);break;case"transitionstart":iT(e.target,this)&&setTimeout(()=>s6(this,td,tu).call(this),0)}}}e9=new WeakMap,te=new WeakMap,tt=new WeakMap,ti=new WeakMap,ta=new WeakMap,tr=new WeakMap,ts=new WeakMap,to=new WeakMap,tn=new WeakMap,tl=new WeakMap,td=new WeakSet,tu=function(){s6(this,th,tc).call(this)?s4(this,te).start():s4(this,te).stop()},th=new WeakSet,tc=function(){return this.isConnected&&!this.mediaPaused&&!this.mediaLoading&&!this.mediaEnded&&this.mediaSeekableEnd>0&&iM(this)},tm=new WeakMap,tp=new WeakSet,tv=function(e){var t;let i=(null!=(t=this.getAttribute("bounds")?i_(this,`#${this.getAttribute("bounds")}`):this.parentElement)?t:this).getBoundingClientRect(),a=this.range.getBoundingClientRect(),r=e.offsetWidth,s=-(a.left-i.left-r/2),o=i.right-a.left-r/2;return{box:{width:r,min:s,max:o},bounds:i,range:a}},tE=new WeakSet,tb=function(e,t){let i=`${100*t}%`,{width:a,min:r,max:s}=e.box;if(!a)return i;if(!Number.isNaN(r)){let e=`calc(1 / var(--_range-width) * 100 * ${r}% + var(--media-box-padding-left))`;i=`max(${e}, ${i})`}if(!Number.isNaN(s)){let e=`calc(1 / var(--_range-width) * 100 * ${s}% - var(--media-box-padding-right))`;i=`min(${i}, ${e})`}return i},tg=new WeakSet,tf=function(e,t){let{width:i,min:a,max:r}=e.box,s=t*e.range.width;if(s<a+s4(this,ts)){let t=e.range.left-e.bounds.left-s4(this,ts);return`${s-i/2+t}px`}if(s>r-s4(this,to)){let t=e.bounds.right-e.range.right-s4(this,to);return`${s+i/2-t-e.range.width}px`}return 0},tA=new WeakSet,ty=function(e){let t=[...s4(this,tt)].some(t=>e.composedPath().includes(t));if(!this.dragging&&(t||!e.composedPath().includes(this)))return void s6(this,tw,tI).call(this,null);let i=this.mediaSeekableEnd;if(!i)return;let a=iS(this.shadowRoot,"#preview-rail"),r=iS(this.shadowRoot,'[part~="preview-box"]'),s=s6(this,tp,tv).call(this,s4(this,ta)),o=(e.clientX-s.range.left)/s.range.width;o=Math.max(0,Math.min(1,o));let n=s6(this,tE,tb).call(this,s,o),l=s6(this,tg,tf).call(this,s,o);a.style.transform=`translateX(${n})`,a.style.setProperty("--_range-width",`${s.range.width}`),r.style.setProperty("--_box-shift",`${l}`),r.style.setProperty("--_box-width",`${s.box.width}px`),1>Math.abs(Math.round(s4(this,ti))-Math.round(o*i))&&o>.01&&o<.99||(s8(this,ti,o*i),s6(this,tw,tI).call(this,s4(this,ti)))},tw=new WeakSet,tI=function(e){this.dispatchEvent(new ip.CustomEvent(tB.MEDIA_PREVIEW_REQUEST,{composed:!0,bubbles:!0,detail:e}))},tk=new WeakSet,tT=function(){s4(this,te).stop();let e=oe(this);this.dispatchEvent(new ip.CustomEvent(tB.MEDIA_SEEK_REQUEST,{composed:!0,bubbles:!0,detail:e}))},ot.shadowRootOptions={mode:"open"},ot.getTemplateHTML=function(e){return`
+    ${rO.getTemplateHTML(e)}
+    <style>
+      :host {
+        --media-box-border-radius: 4px;
+        --media-box-padding-left: 10px;
+        --media-box-padding-right: 10px;
+        --media-preview-border-radius: var(--media-box-border-radius);
+        --media-box-arrow-offset: var(--media-box-border-radius);
+        --_control-background: var(--media-control-background, var(--media-secondary-color, rgb(20 20 30 / .7)));
+        --_preview-background: var(--media-preview-background, var(--_control-background));
+
+        
+        contain: layout;
+      }
+
+      #buffered {
+        background: var(--media-time-range-buffered-color, rgb(255 255 255 / .4));
+        position: absolute;
+        height: 100%;
+        will-change: width;
+      }
+
+      #preview-rail,
+      #current-rail {
+        width: 100%;
+        position: absolute;
+        left: 0;
+        bottom: 100%;
+        pointer-events: none;
+        will-change: transform;
+      }
+
+      [part~="box"] {
+        width: min-content;
+        
+        position: absolute;
+        bottom: 100%;
+        flex-direction: column;
+        align-items: center;
+        transform: translateX(-50%);
+      }
+
+      [part~="current-box"] {
+        display: var(--media-current-box-display, var(--media-box-display, flex));
+        margin: var(--media-current-box-margin, var(--media-box-margin, 0 0 5px));
+        visibility: hidden;
+      }
+
+      [part~="preview-box"] {
+        display: var(--media-preview-box-display, var(--media-box-display, flex));
+        margin: var(--media-preview-box-margin, var(--media-box-margin, 0 0 5px));
+        transition-property: var(--media-preview-transition-property, visibility, opacity);
+        transition-duration: var(--media-preview-transition-duration-out, .25s);
+        transition-delay: var(--media-preview-transition-delay-out, 0s);
+        visibility: hidden;
+        opacity: 0;
+      }
+
+      :host(:is([${tq.MEDIA_PREVIEW_IMAGE}], [${tq.MEDIA_PREVIEW_TIME}])[dragging]) [part~="preview-box"] {
+        transition-duration: var(--media-preview-transition-duration-in, .5s);
+        transition-delay: var(--media-preview-transition-delay-in, .25s);
+        visibility: visible;
+        opacity: 1;
+      }
+
+      @media (hover: hover) {
+        :host(:is([${tq.MEDIA_PREVIEW_IMAGE}], [${tq.MEDIA_PREVIEW_TIME}]):hover) [part~="preview-box"] {
+          transition-duration: var(--media-preview-transition-duration-in, .5s);
+          transition-delay: var(--media-preview-transition-delay-in, .25s);
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
+      media-preview-thumbnail,
+      ::slotted(media-preview-thumbnail) {
+        visibility: hidden;
+        
+        transition: visibility 0s .25s;
+        transition-delay: calc(var(--media-preview-transition-delay-out, 0s) + var(--media-preview-transition-duration-out, .25s));
+        background: var(--media-preview-thumbnail-background, var(--_preview-background));
+        box-shadow: var(--media-preview-thumbnail-box-shadow, 0 0 4px rgb(0 0 0 / .2));
+        max-width: var(--media-preview-thumbnail-max-width, 180px);
+        max-height: var(--media-preview-thumbnail-max-height, 160px);
+        min-width: var(--media-preview-thumbnail-min-width, 120px);
+        min-height: var(--media-preview-thumbnail-min-height, 80px);
+        border: var(--media-preview-thumbnail-border);
+        border-radius: var(--media-preview-thumbnail-border-radius,
+          var(--media-preview-border-radius) var(--media-preview-border-radius) 0 0);
+      }
+
+      :host([${tq.MEDIA_PREVIEW_IMAGE}][dragging]) media-preview-thumbnail,
+      :host([${tq.MEDIA_PREVIEW_IMAGE}][dragging]) ::slotted(media-preview-thumbnail) {
+        transition-delay: var(--media-preview-transition-delay-in, .25s);
+        visibility: visible;
+      }
+
+      @media (hover: hover) {
+        :host([${tq.MEDIA_PREVIEW_IMAGE}]:hover) media-preview-thumbnail,
+        :host([${tq.MEDIA_PREVIEW_IMAGE}]:hover) ::slotted(media-preview-thumbnail) {
+          transition-delay: var(--media-preview-transition-delay-in, .25s);
+          visibility: visible;
+        }
+
+        :host([${tq.MEDIA_PREVIEW_TIME}]:hover) {
+          --media-time-range-hover-display: block;
+        }
+      }
+
+      media-preview-chapter-display,
+      ::slotted(media-preview-chapter-display) {
+        font-size: var(--media-font-size, 13px);
+        line-height: 17px;
+        min-width: 0;
+        visibility: hidden;
+        
+        transition: min-width 0s, border-radius 0s, margin 0s, padding 0s, visibility 0s;
+        transition-delay: calc(var(--media-preview-transition-delay-out, 0s) + var(--media-preview-transition-duration-out, .25s));
+        background: var(--media-preview-chapter-background, var(--_preview-background));
+        border-radius: var(--media-preview-chapter-border-radius,
+          var(--media-preview-border-radius) var(--media-preview-border-radius)
+          var(--media-preview-border-radius) var(--media-preview-border-radius));
+        padding: var(--media-preview-chapter-padding, 3.5px 9px);
+        margin: var(--media-preview-chapter-margin, 0 0 5px);
+        text-shadow: var(--media-preview-chapter-text-shadow, 0 0 4px rgb(0 0 0 / .75));
+      }
+
+      :host([${tq.MEDIA_PREVIEW_IMAGE}]) media-preview-chapter-display,
+      :host([${tq.MEDIA_PREVIEW_IMAGE}]) ::slotted(media-preview-chapter-display) {
+        transition-delay: var(--media-preview-transition-delay-in, .25s);
+        border-radius: var(--media-preview-chapter-border-radius, 0);
+        padding: var(--media-preview-chapter-padding, 3.5px 9px 0);
+        margin: var(--media-preview-chapter-margin, 0);
+        min-width: 100%;
+      }
+
+      media-preview-chapter-display[${tq.MEDIA_PREVIEW_CHAPTER}],
+      ::slotted(media-preview-chapter-display[${tq.MEDIA_PREVIEW_CHAPTER}]) {
+        visibility: visible;
+      }
+
+      media-preview-chapter-display:not([aria-valuetext]),
+      ::slotted(media-preview-chapter-display:not([aria-valuetext])) {
+        display: none;
+      }
+
+      media-preview-time-display,
+      ::slotted(media-preview-time-display),
+      media-time-display,
+      ::slotted(media-time-display) {
+        font-size: var(--media-font-size, 13px);
+        line-height: 17px;
+        min-width: 0;
+        
+        transition: min-width 0s, border-radius 0s;
+        transition-delay: calc(var(--media-preview-transition-delay-out, 0s) + var(--media-preview-transition-duration-out, .25s));
+        background: var(--media-preview-time-background, var(--_preview-background));
+        border-radius: var(--media-preview-time-border-radius,
+          var(--media-preview-border-radius) var(--media-preview-border-radius)
+          var(--media-preview-border-radius) var(--media-preview-border-radius));
+        padding: var(--media-preview-time-padding, 3.5px 9px);
+        margin: var(--media-preview-time-margin, 0);
+        text-shadow: var(--media-preview-time-text-shadow, 0 0 4px rgb(0 0 0 / .75));
+        transform: translateX(min(
+          max(calc(50% - var(--_box-width) / 2),
+          calc(var(--_box-shift, 0))),
+          calc(var(--_box-width) / 2 - 50%)
+        ));
+      }
+
+      :host([${tq.MEDIA_PREVIEW_IMAGE}]) media-preview-time-display,
+      :host([${tq.MEDIA_PREVIEW_IMAGE}]) ::slotted(media-preview-time-display) {
+        transition-delay: var(--media-preview-transition-delay-in, .25s);
+        border-radius: var(--media-preview-time-border-radius,
+          0 0 var(--media-preview-border-radius) var(--media-preview-border-radius));
+        min-width: 100%;
+      }
+
+      :host([${tq.MEDIA_PREVIEW_TIME}]:hover) {
+        --media-time-range-hover-display: block;
+      }
+
+      [part~="arrow"],
+      ::slotted([part~="arrow"]) {
+        display: var(--media-box-arrow-display, inline-block);
+        transform: translateX(min(
+          max(calc(50% - var(--_box-width) / 2 + var(--media-box-arrow-offset)),
+          calc(var(--_box-shift, 0))),
+          calc(var(--_box-width) / 2 - 50% - var(--media-box-arrow-offset))
+        ));
+        
+        border-color: transparent;
+        border-top-color: var(--media-box-arrow-background, var(--_control-background));
+        border-width: var(--media-box-arrow-border-width,
+          var(--media-box-arrow-height, 5px) var(--media-box-arrow-width, 6px) 0);
+        border-style: solid;
+        justify-content: center;
+        height: 0;
+      }
+    </style>
+    <div id="preview-rail">
+      <slot name="preview" part="box preview-box">
+        <media-preview-thumbnail>
+          <template shadowrootmode="${sO.shadowRootOptions.mode}">
+            ${sO.getTemplateHTML({})}
+          </template>
+        </media-preview-thumbnail>
+        <media-preview-chapter-display></media-preview-chapter-display>
+        <media-preview-time-display></media-preview-time-display>
+        <slot name="preview-arrow"><div part="arrow"></div></slot>
+      </slot>
+    </div>
+    <div id="current-rail">
+      <slot name="current" part="box current-box">
+        
+      </slot>
+    </div>
+  `},ip.customElements.get("media-time-range")||ip.customElements.define("media-time-range",ot);class oi extends rO{static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_VOLUME,tq.MEDIA_MUTED,tq.MEDIA_VOLUME_UNAVAILABLE]}constructor(){super(),this.range.addEventListener("input",()=>{let e=this.range.value,t=new ip.CustomEvent(tB.MEDIA_VOLUME_REQUEST,{composed:!0,bubbles:!0,detail:e});this.dispatchEvent(t)})}connectedCallback(){super.connectedCallback(),this.range.setAttribute("aria-label",is("volume"))}attributeChangedCallback(e,t,i){if(super.attributeChangedCallback(e,t,i),e===tq.MEDIA_VOLUME||e===tq.MEDIA_MUTED){let e;this.range.valueAsNumber=this.mediaMuted?0:this.mediaVolume,this.range.setAttribute("aria-valuetext",(e=this.range.valueAsNumber,`${Math.round(100*e)}%`)),this.updateBar()}}get mediaVolume(){return iR(this,tq.MEDIA_VOLUME,1)}set mediaVolume(e){iC(this,tq.MEDIA_VOLUME,e)}get mediaMuted(){return iD(this,tq.MEDIA_MUTED)}set mediaMuted(e){ix(this,tq.MEDIA_MUTED,e)}get mediaVolumeUnavailable(){return iP(this,tq.MEDIA_VOLUME_UNAVAILABLE)}set mediaVolumeUnavailable(e){iN(this,tq.MEDIA_VOLUME_UNAVAILABLE,e)}}ip.customElements.get("media-volume-range")||ip.customElements.define("media-volume-range",oi);class oa extends rm{constructor(){super(...arguments),this.container=null}static get observedAttributes(){return[...super.observedAttributes,tq.MEDIA_LOOP]}connectedCallback(){var e;super.connectedCallback(),this.container=(null==(e=this.shadowRoot)?void 0:e.querySelector("#icon"))||null,this.container&&(this.container.textContent=is("Loop"))}attributeChangedCallback(e,t,i){super.attributeChangedCallback(e,t,i),e===tq.MEDIA_LOOP&&this.container&&this.setAttribute("aria-checked",this.mediaLoop?"true":"false")}get mediaLoop(){return iD(this,tq.MEDIA_LOOP)}set mediaLoop(e){ix(this,tq.MEDIA_LOOP,e)}handleClick(){let e=!this.mediaLoop,t=new ip.CustomEvent(tB.MEDIA_LOOP_REQUEST,{composed:!0,bubbles:!0,detail:e});this.dispatchEvent(t)}}function or(e){return"boolean"==typeof e?e?"":void 0:"function"==typeof e?void 0:Array.isArray(e)&&e.every(e=>"string"==typeof e||"number"==typeof e||"boolean"==typeof e)?e.join(" "):"object"!=typeof e||null===e?e:void 0}oa.getSlotTemplateHTML=function(e){return`
+      <style>
+        :host {
+          min-width: 4ch;
+          padding: var(--media-button-padding, var(--media-control-padding, 10px 5px));
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 1rem;
+          font-weight: var(--media-button-font-weight, normal);
+        }
+
+        #checked-indicator {
+          display: none;
+        }
+
+        :host([${tq.MEDIA_LOOP}]) #checked-indicator {
+          display: block;
+        }
+      </style>
+      
+      <span id="icon">
+     </span>
+
+      <div id="checked-indicator">
+        <svg aria-hidden="true" viewBox="0 1 24 24" part="checked-indicator indicator">
+          <path d="m10 15.17 9.193-9.191 1.414 1.414-10.606 10.606-6.364-6.364 1.414-1.414 4.95 4.95Z"/>
+        </svg>
+      </div>
+    `},oa.getTooltipContentHTML=function(){return is("Loop")},ip.customElements.get("media-loop-button")||ip.customElements.define("media-loop-button",oa),t$({tagName:"media-gesture-receiver",elementClass:iW,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-container",elementClass:i1,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});let os=t$({tagName:"media-controller",elementClass:a2,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});t$({tagName:"media-tooltip",elementClass:rs,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-chrome-button",elementClass:rm,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-airplay-button",elementClass:rE,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-captions-button",elementClass:rA,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-cast-button",elementClass:rk,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-chrome-dialog",elementClass:rC,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-chrome-range",elementClass:rO,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});let oo=t$({tagName:"media-control-bar",elementClass:rV,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});t$({tagName:"media-text-display",elementClass:rj,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-duration-display",elementClass:rK,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-error-dialog",elementClass:r1,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-keyboard-shortcuts-dialog",elementClass:r5,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});let on=t$({tagName:"media-fullscreen-button",elementClass:r9,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});t$({tagName:"media-live-button",elementClass:ss,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-loading-indicator",elementClass:sm,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});let ol=t$({tagName:"media-mute-button",elementClass:sg,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});t$({tagName:"media-pip-button",elementClass:sy,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-playback-rate-button",elementClass:sT,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});let od=t$({tagName:"media-play-button",elementClass:sL,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});t$({tagName:"media-poster-image",elementClass:sC,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-preview-chapter-display",elementClass:sx,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-preview-thumbnail",elementClass:sO,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-preview-time-display",elementClass:s$,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-seek-backward-button",elementClass:sB,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-seek-forward-button",elementClass:sG,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});let ou=t$({tagName:"media-time-display",elementClass:sX,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),oh=t$({tagName:"media-time-range",elementClass:ot,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}});function oc(e){let t,i,a,r,s,o=(0,tM.c)(15),{src:n,className:l,keyPrefix:d,loop:u,width:h,height:c}=e,m=void 0===d?"":d,p=(0,tN.useRef)(null),[v,E]=(0,tN.useState)(!1),b=h&&c?`${h} / ${c}`:"16 / 9";return(o[0]===Symbol.for("react.memo_cache_sentinel")?(t=()=>{if("undefined"==typeof IntersectionObserver)return void E(!0);let e=p.current;if(!e)return;let t=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&(E(!0),t.disconnect())})},{rootMargin:"200px",threshold:0});return t.observe(e),()=>{t.disconnect()}},o[0]=t):t=o[0],o[1]!==n?(i=[n],o[1]=n,o[2]=i):i=o[2],(0,tN.useEffect)(t,i),n)?(o[3]!==b?(a={aspectRatio:b},o[3]=b,o[4]=a):a=o[4],o[5]!==b||o[6]!==l||o[7]!==v||o[8]!==m||o[9]!==u||o[10]!==n?(r=v?(0,t_.jsxs)(os,{className:l,style:{aspectRatio:b},children:[(0,t_.jsx)("video",{slot:"media",src:n,preload:"auto",autoPlay:!0,playsInline:!0,muted:!0,crossOrigin:"",tabIndex:-1,loop:u}),(0,t_.jsxs)(oo,{className:"media-control-bar",children:[(0,t_.jsx)(ou,{showDuration:!1,className:"media-control-bar-button"},`${m}time-display`),(0,t_.jsx)(oh,{className:"media-control-bar-time-range"},`${m}time-range`),(0,t_.jsxs)(od,{noTooltip:!0,className:"media-control-bar-button",children:[(0,t_.jsx)("span",{slot:"play",children:(0,t_.jsx)(tD,{size:16})}),(0,t_.jsx)("span",{slot:"pause",children:(0,t_.jsx)(tC,{size:16})})]},`${m}play-button`),(0,t_.jsxs)(ol,{noTooltip:!0,className:"media-control-bar-button",children:[(0,t_.jsx)("span",{slot:"off",children:(0,t_.jsx)(tP,{size:16})}),(0,t_.jsx)("span",{slot:"high",children:(0,t_.jsx)(tx,{size:16})}),(0,t_.jsx)("span",{slot:"medium",children:(0,t_.jsx)(tx,{size:16})}),(0,t_.jsx)("span",{slot:"low",children:(0,t_.jsx)(tx,{size:16})})]},`${m}mute-button`),(0,t_.jsxs)(on,{noTooltip:!0,className:"media-control-bar-button",children:[(0,t_.jsx)("span",{slot:"enter",children:(0,t_.jsx)(tL,{size:16})}),(0,t_.jsx)("span",{slot:"exit",children:(0,t_.jsx)(tR,{size:16})})]},`${m}fullscreen-button`)]})]},`${m}media-controller`):(0,t_.jsx)("div",{className:l,style:{aspectRatio:b,backgroundColor:"var(--theme-bg-sec, #1a1a1a)"}}),o[5]=b,o[6]=l,o[7]=v,o[8]=m,o[9]=u,o[10]=n,o[11]=r):r=o[11],o[12]!==a||o[13]!==r?(s=(0,t_.jsx)("div",{ref:p,style:a,children:r}),o[12]=a,o[13]=r,o[14]=s):s=o[14],s):null}function om(e){let t,i,a,r=(0,tM.c)(12),{src:s,caption:o,className:n,keyPrefix:l,loop:d,width:u,height:h}=e,c=`media-border-container media-controller w-full ${void 0===n?"":n}`;return r[0]!==h||r[1]!==l||r[2]!==d||r[3]!==s||r[4]!==c||r[5]!==u?(t=(0,t_.jsx)(oc,{src:s,className:c,keyPrefix:l,loop:d,width:u,height:h}),r[0]=h,r[1]=l,r[2]=d,r[3]=s,r[4]=c,r[5]=u,r[6]=t):t=r[6],r[7]!==o?(i=o&&(0,t_.jsx)("figcaption",{children:o}),r[7]=o,r[8]=i):i=r[8],r[9]!==t||r[10]!==i?(a=(0,t_.jsxs)("figure",{className:"my-8",children:[t,i]}),r[9]=t,r[10]=i,r[11]=a):a=r[11],a}t$({tagName:"media-volume-range",elementClass:oi,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),t$({tagName:"media-loop-button",elementClass:oa,react:tN.default,toAttributeValue:or,defaultProps:{suppressHydrationWarning:!0}}),e.s(["Video",()=>oc,"default",()=>om],180185)}]);

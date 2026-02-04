@@ -349,3 +349,250 @@ It enables enterprises to **gain visibility, assess risk, and respond** to unaut
 3️⃣ **拆成产品级 Roadmap（MVP / Phase 2 / Phase 3）**
 
 你这个方向，已经非常像一个**下一代 Endpoint AI Security 产品了**。
+
+
+
+明白 👍
+下面我将**严格、逐条、不扩展、不跳级**，**完全按照你给定的大纲结构**来重写这份 **Shadow MCP Server Detection – Work Scope 文档**。
+内容会保持**企业可实施性 + 技术可审计性**，但**不引入任何额外章节或顺序调整**。
+
+---
+
+# Shadow MCP Server Detection
+
+## Work Scope Document
+
+---
+
+## 1. Define System Boundaries and Context
+
+### 1.1 Create a System Context Diagram
+
+The Shadow MCP Server Detection System is designed to operate within an enterprise-managed endpoint environment to detect unauthorized MCP servers running on personal PCs.
+
+The system consists of two core components:
+
+* **Endpoint Client (Detection Agent)**:
+  Installed on employee PCs, responsible for local detection of MCP servers through file scanning, process inspection, and network traffic analysis.
+
+* **Central Management Server (Management Portal)**:
+  Operated by IT administrators, responsible for MCP server registration management, client monitoring, alerting, and audit logging.
+
+**External entities interacting with the system include:**
+
+* Employees (end users)
+* AI agents running on endpoints
+* MCP clients and MCP servers
+* Enterprise identity and access management systems (optional)
+* Security monitoring systems (SIEM/SOAR, optional)
+
+The system **does not** modify MCP behavior, interfere with LLM inference, or block traffic by default. Its primary responsibility is **visibility, identification, and reporting** of Shadow MCP servers.
+
+---
+
+### 1.2 Define Inputs and Outputs
+
+#### Inputs
+
+The system consumes the following inputs:
+
+1. **File System Inputs**
+
+   * MCP configuration files such as `mcp.json`
+   * MCP-related directories (e.g. `.mcp/`)
+   * Tool- or framework-specific MCP manifests
+
+2. **Process and Runtime Inputs**
+
+   * Operating system process lists
+   * Process parent–child relationships
+   * Standard input/output (stdio) pipe bindings
+   * Command-line arguments and execution paths
+
+3. **Network Inputs**
+
+   * Network packet metadata
+   * Flow-level information (source/destination, ports, protocol)
+   * TLS handshake metadata for encrypted traffic
+
+4. **Management Inputs**
+
+   * Authorized MCP server registry maintained in the management portal
+   * User and device identity information
+
+---
+
+#### Outputs
+
+The system produces the following outputs:
+
+1. **Detected MCP Server Records**
+
+   * Metadata describing each detected MCP server instance
+   * Detection method(s) used
+   * Confidence level
+
+2. **Shadow MCP Classification Results**
+
+   * Determination of whether a detected MCP server is registered or unregistered
+
+3. **Alerts and Notifications**
+
+   * Real-time alerts to IT administrators for Shadow MCP server usage
+
+4. **Audit and Reporting Data**
+
+   * Historical logs for investigation and compliance purposes
+
+---
+
+### 1.3 Identify Integration Scope
+
+This system integrates with the following components and technologies:
+
+#### Integrated Systems
+
+* AI agents running on employee PCs
+* MCP clients invoking MCP servers
+* MCP servers implemented via stdio or network interfaces
+* Enterprise management and monitoring infrastructure
+
+#### Integration Methods
+
+* **File Discovery**
+  Used to identify MCP configuration files and local MCP definitions.
+
+* **Process Inspection**
+  Used to detect stdio-based MCP server implementations through process trees and IPC characteristics.
+
+* **Packet / Flow Analysis**
+  Used to identify network-based MCP servers via protocol behavior and traffic patterns.
+
+No direct integration with LLM model internals is required.
+
+---
+
+## 2. Decompose Functional and Non-functional Requirements
+
+### 2.1 Functional Requirements
+
+The system shall provide the following core functional capabilities.
+
+---
+
+#### FR-1 MCP Server Detection on Endpoint PCs
+
+The endpoint client shall detect MCP servers using three complementary techniques.
+
+**FR-1.1 MCP Configuration File Detection**
+
+* Scan local file systems for known MCP configuration patterns (e.g. `mcp.json`)
+* Parse configuration content to extract MCP server definitions
+* Record server metadata such as command, transport type, and execution context
+
+---
+
+**FR-1.2 stdio-based MCP Process Detection**
+
+* Monitor running processes and process trees
+* Identify MCP servers implemented as subprocesses of AI agents
+* Detect stdio-based communication patterns consistent with MCP usage
+* Correlate parent AI agent processes with child MCP server processes
+
+---
+
+**FR-1.3 Network-based MCP Server Detection**
+
+* Monitor local network activity to identify MCP server behavior
+* For plaintext traffic:
+
+  * Inspect payloads for MCP protocol and JSON-RPC characteristics
+* For encrypted traffic:
+
+  * Use flow-based analysis (connection duration, request/response symmetry)
+  * Correlate network sockets with owning processes
+  * Leverage TLS handshake metadata and fingerprinting where available
+
+---
+
+#### FR-2 MCP Server Registration Verification
+
+* For each detected MCP server, the client or server shall verify registration status against the management portal
+* Matching may be based on:
+
+  * Configuration fingerprint
+  * Binary hash
+  * Endpoint and protocol characteristics
+* MCP servers not found in the registry shall be classified as **Shadow MCP Servers**
+
+---
+
+#### FR-3 Client Reporting and Telemetry
+
+* Endpoint clients shall securely report detection results to the management server
+* Reports shall include:
+
+  * MCP server metadata
+  * Detection method
+  * Timestamp
+  * User and device identity
+
+---
+
+#### FR-4 Centralized Monitoring and Alerting
+
+The management server shall:
+
+* Maintain a real-time view of connected clients
+* Aggregate MCP server detection data
+* Trigger alerts upon detection of Shadow MCP servers
+* Provide audit logs and historical reports for administrators
+
+---
+
+### 2.2 Non-Functional Requirements
+
+#### Performance
+
+* Endpoint detection shall operate with minimal CPU and memory overhead
+* Detection activities shall not noticeably impact user workflows
+
+---
+
+#### Availability
+
+* Endpoint clients shall continue operating during temporary network outages
+* Management server shall support high availability deployment models
+
+---
+
+#### Security
+
+* All client–server communication shall be encrypted
+* Endpoint agents shall follow least-privilege principles
+* Detection mechanisms shall minimize exposure of sensitive user data
+
+---
+
+#### Scalability
+
+* The system shall support enterprise-scale deployments (thousands to tens of thousands of endpoints)
+* Management server components shall be horizontally scalable
+
+---
+
+#### Compliance and Privacy
+
+* Data collection shall be limited to what is necessary for MCP detection
+* Raw content inspection shall be minimized or avoided where possible
+* Audit logs shall support compliance and internal security reviews
+
+---
+
+如果你需要，下一步我可以在**不破坏这个大纲结构**的前提下，继续帮你做：
+
+* ✅ **把每个 FR 拆成可实现的技术子任务（工程视角）**
+* ✅ **补一份 detection coverage matrix（config / stdio / network × 明文 / 加密）**
+* ✅ **改写成可直接用于安全评审或招标的正式英文版本**
+
+你可以直接告诉我：**“下一步做哪一个”**。

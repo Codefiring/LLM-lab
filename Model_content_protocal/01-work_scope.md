@@ -596,3 +596,59 @@ The management server shall:
 * ✅ **改写成可直接用于安全评审或招标的正式英文版本**
 
 你可以直接告诉我：**“下一步做哪一个”**。
+
+
+好的，下面我将**严格保持原有结构与语义**，把 **Client / Server 模块总结表**完整、专业地**转成英文**，语言风格对齐 **enterprise security / architecture / work scope 文档**，可直接用于 **设计说明、评审材料或招标文档**。
+
+---
+
+# Shadow MCP Server Detection
+
+## Client / Server Module Breakdown
+
+---
+
+## Client Side – Endpoint Detection Agent Modules
+
+| Module Name                   | Description                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP Config Scanner            | Scans the local file system for MCP-related configuration files (such as `mcp.json`, `.mcp/` directories, or tool-specific MCP manifests). It parses MCP server definitions to extract execution commands, transport types, and paths. This module focuses on static discovery only and does not execute or modify any configuration.                 |
+| Process & stdio Detector      | Monitors operating system processes and process trees to identify MCP servers implemented as subprocesses of AI agents. It analyzes stdin/stdout communication patterns to detect stdio-based MCP servers, addressing the visibility gap of local MCP services that do not expose network ports.                                                      |
+| Network Traffic Analyzer      | Observes local network activity to identify MCP server behavior. For plaintext traffic, it detects MCP/JSON-RPC protocol characteristics. For encrypted traffic, it relies on behavioral features such as connection patterns, traffic symmetry, timing characteristics, and TLS metadata, without depending on specific ports or payload inspection. |
+| MCP Signal Correlator         | Correlates and deduplicates signals collected from configuration scanning, process inspection, and network analysis to construct a unified view of detected MCP server instances. This module improves detection accuracy and reduces false positives caused by single-signal analysis.                                                               |
+| Shadow MCP Classifier         | Performs preliminary classification of detected MCP servers by comparing correlated MCP metadata against known authorized identifiers. It assigns a Shadow MCP indication and confidence score, while final authorization decisions are performed by the server-side components.                                                                      |
+| Client Telemetry Reporter     | Securely reports MCP detection results, runtime observations, and client status to the Management Server using protected communication channels (e.g., HTTPS or mutual TLS). This module focuses on reliable and auditable data transmission and does not enforce blocking actions.                                                                   |
+| Client Policy Receiver        | Receives detection policies, rule updates, and configuration parameters (such as scan frequency and enabled detection methods) from the Management Server and applies them locally. This module supports centralized control without embedding enforcement logic.                                                                                     |
+| Client Self-Protection Module | Provides basic self-protection capabilities for the endpoint agent, including integrity validation, runtime health monitoring, and resistance against unauthorized termination or tampering, ensuring continuous detection availability.                                                                                                              |
+
+---
+
+## Server Side – Management Portal Modules
+
+| Module Name                | Description                                                                                                                                                                                                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP Registry               | Maintains a centralized registry of **authorized MCP servers**, including server identifiers, configuration fingerprints, binary hashes, and approved execution environments. This module serves as the authoritative reference for Shadow MCP classification. |
+| Client & User Management   | Manages registered endpoint clients and associated user identities, tracking online status, agent versions, and device associations to correlate MCP detection events with specific users and endpoints.                                                       |
+| Detection Intake API       | Provides secure APIs to receive MCP detection events and telemetry data from endpoint clients. This module performs authentication, validation, and normalization of incoming data but does not execute complex decision logic.                                |
+| Shadow MCP Decision Engine | Analyzes reported MCP server data by matching it against the MCP Registry and applying classification logic across multiple attributes (configuration, behavior, provenance) to determine Shadow MCP status and risk level.                                    |
+| Alerting Engine            | Generates alerts based on Shadow MCP detection results and enterprise security policies, and delivers notifications to IT administrators or integrated alerting systems such as email, messaging platforms, or SIEM tools.                                     |
+| Audit & Forensics Log      | Stores MCP detection records, classification outcomes, and alert history for long-term auditing, compliance verification, and forensic investigations.                                                                                                         |
+| Policy & Rule Management   | Manages detection rules, classification policies, and threshold configurations, and distributes updates to endpoint clients, enabling continuous evolution of detection logic without frequent client redeployment.                                            |
+| Reporting & Dashboard      | Provides visual dashboards and analytical views of MCP server distribution, Shadow MCP trends, and user/device risk profiles to support ongoing monitoring and operational decision-making.                                                                    |
+| Integration Adapter        | Enables integration with existing enterprise security and IT systems (such as EDR, SIEM, SOAR, or asset management platforms), ensuring Shadow MCP detection results are incorporated into the broader security operations workflow.                           |
+
+---
+
+### One-sentence executive summary (optional, very useful in docs)
+
+> **The client focuses on discovery and observation across configuration, process, and network layers, while the server performs centralized authorization, classification, alerting, and governance of Shadow MCP servers.**
+
+---
+
+如果你接下来需要，我可以继续帮你：
+
+* 🔹 **把这些模块映射到具体实现技术（Windows / macOS / Linux）**
+* 🔹 **拆分为 MVP / Phase-2 / Phase-3 交付范围**
+* 🔹 **为每个模块补充 Threat → Control 映射表**
+
+你只需要说一句：**“next step: XXX”**

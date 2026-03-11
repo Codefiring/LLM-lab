@@ -1,6 +1,57 @@
-
-弱电箱  -->  书房
-    
-
-
-书房
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.23",
+    "lastTouchedAt": "2026-02-25T07:39:39.775Z"
+  },
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://192.168.42.1:11434/v1",
+        "apiKey": "ollama-local",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen3:8b",
+            "name": "Qwen3 8B",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ollama/qwen3:8b"
+      },
+      "models": {
+        "ollama": {}
+      }
+    }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "gateway": {
+    "mode": "local",
+    "customBindHost": "0.0.0.0",
+    "auth": {
+      "mode": "token",
+      "token": "14372451422aa17f0010242991e2dfd270fab82f71d8f4ff"
+    }
+  }
+}

@@ -816,3 +816,417 @@ curl http://localhost:9000/api/data \
 1. **基于 FastAPI 的 mock OAuth server**
 2. **一个 client_credentials 完整演示**
 3. **一个 MCP client 和 MCP server 如何接这个 mock OAuth 的最小样例**
+
+
+
+
+可以。你这个 mcp client 需要的其实是一个更像 **OAuth2 client_credentials token endpoint** 的本地服务，也就是：
+
+* 接收 `client_id`
+* 接收 `client_secret`
+* 提供 `/oauth/token`
+* 支持可选 `scope`
+* 返回标准一点的 token 响应
+
+下面我把之前的 Python mock server 改成适配你这个参数形式。
+
+---
+
+## 改造后的最小 Python OAuth Server
+
+先安装依赖：
+
+```bash
+pip install flask
+```
+
+保存为 `mock_oauth_server.py`：
+
+```python
+from flask import Flask, jsonify, request
+import time
+import secrets
+
+app = Flask(__name__)
+
+# 你本地联调时允许的 client_id / client_secret
+VALID_CLIENTS = {
+    "your-client-id": {
+        "client_secret": "your-client-secret",
+        "allowed_scopes": {"mcp:read", "mcp:write"},
+    },
+    "test-client": {
+        "client_secret": "test-secret",
+        "allowed_scopes": {"mcp:read"},
+    },
+}
+
+# 简单内存 token 存储，便于调试 / introspect
+ISSUED_TOKENS = {}
+
+
+def build_token_response(access_token: str, expires_in: int, scope: str):
+    return {
+        "access_token": access_token,
+        "token_type": "Bearer",
+        "expires_in": expires_in,
+        "scope": scope,
+    }
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"})
+
+
+@app.route("/oauth/token", methods=["POST"])
+def oauth_token():
+    """
+    模拟 OAuth 2.0 token endpoint
+    支持:
+      - grant_type=client_credentials
+      - client_id
+      - client_secret
+      - scope (可选)
+    """
+
+    content_type = request.headers.get("Content-Type", "")
+
+    if "application/x-www-form-urlencoded" in content_type:
+        data = request.form.to_dict(flat=True)
+    else:
+        # 兼容 JSON 传参，方便本地调试
+        data = request.get_json(silent=True) or {}
+
+    grant_type = data.get("grant_type", "")
+    client_id = data.get("client_id", "")
+    client_secret = data.get("client_secret", "")
+    requested_scope = data.get("scope", "").strip()
+
+    print("---- /oauth/token ----")
+    print("Headers:", dict(request.headers))
+    print("Body:", data)
+
+    if grant_type != "client_credentials":
+        return jsonify({
+            "error": "unsupported_grant_type",
+            "error_description": "Only client_credentials is supported by this mock server."
+        }), 400
+
+    client_info = VALID_CLIENTS.get(client_id)
+    if not client_info:
+        return jsonify({
+            "error": "invalid_client",
+            "error_description": "Unknown client_id."
+        }), 401
+
+    if client_secret != client_info["client_secret"]:
+        return jsonify({
+            "error": "invalid_client",
+            "error_description": "Invalid client_secret."
+        }), 401
+
+    allowed_scopes = client_info["allowed_scopes"]
+
+    if requested_scope:
+        requested_scopes = set(requested_scope.split())
+        if not requested_scopes.issubset(allowed_scopes):
+            return jsonify({
+                "error": "invalid_scope",
+                "error_description": f"Requested scope not allowed. Allowed scopes: {' '.join(sorted(allowed_scopes))}"
+            }), 400
+        granted_scope = " ".join(sorted(requested_scopes))
+    else:
+        # 没传 scope 时，给一个默认 scope
+        granted_scope = " ".join(sorted(allowed_scopes))
+
+    expires_in = 3600
+    access_token = f"mock-token-{secrets.token_urlsafe(24)}"
+    expires_at = int(time.time()) + expires_in
+
+    ISSUED_TOKENS[access_token] = {
+        "client_id": client_id,
+        "scope": granted_scope,
+        "expires_at": expires_at,
+        "active": True,
+    }
+
+    return jsonify(build_token_response(
+        access_token=access_token,
+        expires_in=expires_in,
+        scope=granted_scope,
+    ))
+
+
+@app.route("/oauth/introspect", methods=["POST"])
+def introspect():
+    """
+    可选的 token introspection endpoint
+    """
+    content_type = request.headers.get("Content-Type", "")
+
+    if "application/x-www-form-urlencoded" in content_type:
+        data = request.form.to_dict(flat=True)
+    else:
+        data = request.get_json(silent=True) or {}
+
+    token = data.get("token", "")
+    token_info = ISSUED_TOKENS.get(token)
+
+    now = int(time.time())
+
+    if not token_info or not token_info["active"] or token_info["expires_at"] <= now:
+        return jsonify({"active": False})
+
+    return jsonify({
+        "active": True,
+        "client_id": token_info["client_id"],
+        "scope": token_info["scope"],
+        "token_type": "Bearer",
+        "exp": token_info["expires_at"],
+    })
+
+
+@app.route("/protected-resource", methods=["GET"])
+def protected_resource():
+    """
+    一个简单的受保护资源，便于本地测试 Bearer Token
+    """
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "missing_bearer_token"}), 401
+
+    token = auth.removeprefix("Bearer ").strip()
+    token_info = ISSUED_TOKENS.get(token)
+
+    now = int(time.time())
+    if not token_info or not token_info["active"] or token_info["expires_at"] <= now:
+        return jsonify({"error": "invalid_or_expired_token"}), 401
+
+    return jsonify({
+        "message": "authorized",
+        "client_id": token_info["client_id"],
+        "scope": token_info["scope"],
+    })
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
+```
+
+---
+
+## 你的 mcp client 参数应该怎么填
+
+如果这个服务跑在本机 `8000` 端口，那么你的参数可以写成：
+
+```bash
+--oauth-client-id your-client-id \
+--oauth-client-secret your-client-secret \
+--oauth-token-url http://127.0.0.1:8000/oauth/token \
+--oauth-scope "mcp:read"
+```
+
+注意这里是：
+
+```bash
+http://127.0.0.1:8000/oauth/token
+```
+
+不是之前的 `/token`，而是改成了更标准的 `/oauth/token`。
+
+---
+
+## 手工测试 token 接口
+
+### 请求示例
+
+```bash
+curl -X POST http://127.0.0.1:8000/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=your-client-id" \
+  -d "client_secret=your-client-secret" \
+  -d "scope=mcp:read"
+```
+
+### 返回示例
+
+```json
+{
+  "access_token": "mock-token-xxxxx",
+  "expires_in": 3600,
+  "scope": "mcp:read",
+  "token_type": "Bearer"
+}
+```
+
+---
+
+## 测试受保护资源
+
+先拿到 token 后，再访问：
+
+```bash
+curl http://127.0.0.1:8000/protected-resource \
+  -H "Authorization: Bearer mock-token-xxxxx"
+```
+
+返回类似：
+
+```json
+{
+  "client_id": "your-client-id",
+  "message": "authorized",
+  "scope": "mcp:read"
+}
+```
+
+---
+
+## 这个版本相比你之前那个版本改了什么
+
+主要是这几处：
+
+### 1. token 路径改成了更标准的 OAuth endpoint
+
+从：
+
+```python
+@app.route("/token", methods=["POST"])
+```
+
+改成：
+
+```python
+@app.route("/oauth/token", methods=["POST"])
+```
+
+### 2. 支持 `client_credentials`
+
+会校验：
+
+* `grant_type=client_credentials`
+* `client_id`
+* `client_secret`
+
+### 3. 支持 `scope`
+
+你传：
+
+```bash
+--oauth-scope "mcp:read"
+```
+
+服务端会检查这个 scope 是否在允许列表里。
+
+### 4. token 不再是固定字符串
+
+现在每次签发一个新的 mock token，方便更像真实服务。
+
+### 5. 增加了 `/protected-resource`
+
+便于你本地完整测试：
+
+* client 拿 token
+* client 带 token 调用资源
+* server 验证 token
+
+---
+
+## 如果你的 mcp client 还支持 Basic Auth 方式传 client_id/client_secret
+
+有些 OAuth client 在请求 token endpoint 时，不是把 `client_id` 和 `client_secret` 放在表单里，而是放到 HTTP Basic Auth 头里。
+
+也就是请求头类似：
+
+```http
+Authorization: Basic base64(client_id:client_secret)
+```
+
+如果你担心你的 mcp client 是这种实现，可以把 `/oauth/token` 再增强一下，兼容两种方式。下面是兼容版核心逻辑，你可以直接替换原来的取值部分。
+
+把这段：
+
+```python
+grant_type = data.get("grant_type", "")
+client_id = data.get("client_id", "")
+client_secret = data.get("client_secret", "")
+requested_scope = data.get("scope", "").strip()
+```
+
+替换成：
+
+```python
+import base64
+
+grant_type = data.get("grant_type", "")
+client_id = data.get("client_id", "")
+client_secret = data.get("client_secret", "")
+requested_scope = data.get("scope", "").strip()
+
+auth_header = request.headers.get("Authorization", "")
+if auth_header.startswith("Basic "):
+    try:
+        raw = auth_header[len("Basic "):].strip()
+        decoded = base64.b64decode(raw).decode("utf-8")
+        basic_client_id, basic_client_secret = decoded.split(":", 1)
+
+        if not client_id:
+            client_id = basic_client_id
+        if not client_secret:
+            client_secret = basic_client_secret
+    except Exception:
+        return jsonify({
+            "error": "invalid_client",
+            "error_description": "Malformed Basic authorization header."
+        }), 401
+```
+
+这样无论你的 client：
+
+* 用 form 传 `client_id/client_secret`
+* 还是用 Basic Auth 传
+
+这个 mock server 都能接。
+
+---
+
+## 更接近真实 OAuth 的建议
+
+如果你只是给 mcp client 做本地联调，这个 Flask 版本够用了。
+但要注意它仍然只是 **mock server**，不是完整 OAuth 服务器，因为它还没有：
+
+* JWT 签名
+* JWKS endpoint
+* refresh token
+* authorization code flow
+* 用户登录页
+* PKCE
+
+所以它适合的定位是：
+
+* 验证 mcp client 能否请求 token
+* 验证 client_id/client_secret/token_url/scope 配置
+* 验证 bearer token 调用链路
+
+---
+
+## 你可以直接用的启动方式
+
+```bash
+python mock_oauth_server.py
+```
+
+然后把 mcp client 指向：
+
+```bash
+--oauth-client-id your-client-id \
+--oauth-client-secret your-client-secret \
+--oauth-token-url http://127.0.0.1:8000/oauth/token \
+--oauth-scope "mcp:read"
+```
+
+---
+
+如果你愿意，我下一条可以直接继续给你一版 **FastAPI 实现**，或者直接补成一个 **同时支持 form + Basic Auth + JWT mock token 的版本**。

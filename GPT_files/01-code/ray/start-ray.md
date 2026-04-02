@@ -1,251 +1,313 @@
-
 下面给你一个可直接用的 **Bash 脚本**，在 `109.105.132.52` 这台 server 上执行即可。
 
-这个脚本会自动完成：
+它会自动完成这些事情：
 
-1. 登录跳板节点 `202.20.183.100`
-2. 再登录对应 GPU 节点
-3. 设置 `export TMOUT=0`
-4. 创建或重建 `tmux` 会话 `ray`
-5. 在第一个 GPU 上启动 `ray head`
-6. 自动获取第一个 GPU 的内网 IP
-7. 在第二个 GPU 上启动 `ray worker`
-8. 最后打印查看日志的方法
-
-我按你的场景把 bastion、环境名、tmux 名称、ray 端口都写成了默认值，也可以改。
+1. 用第一个账号登录到 `202.20.183.100`
+2. 再进入第一个 GPU 节点
+3. 设置 `TMOUT=0`
+4. 在该 GPU 节点上创建 `tmux` 会话 `ray`
+5. 激活 `envs/vllm-qwen/bin/activate`
+6. 启动 Ray head
+7. 自动获取 head 节点 IP
+8. 用第二个账号登录到 `202.20.183.100`
+9. 再进入第二个 GPU 节点
+10. 设置 `TMOUT=0`
+11. 在该 GPU 节点上创建 `tmux` 会话 `ray`
+12. 激活环境并启动 Ray worker，连接到 head
 
 ---
 
-### 脚本：`start_ray_cluster.sh`
+## 脚本
+
+保存为 `start_ray_cluster.sh`：
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
-#######################################
-# 默认配置
-#######################################
-BASTION_USER_DEFAULT="hxiang.huang"
-BASTION_HOST_DEFAULT="202.20.183.100"
-TMUX_SESSION="ray"
-VENV_ACTIVATE="source envs/vllm-qwen/bin/activate"
-RAY_PORT="6379"
+# =========================
+# 用法:
+#   ./start_ray_cluster.sh <head_login_user> <head_gpu_node> <worker_login_user> <worker_gpu_node>
+#
+# 例子:
+#   ./start_ray_cluster.sh hxiang.huang hgpu4017 meng01.huang hgpu4033
+# =========================
 
-#######################################
-# 用法
-#######################################
-usage() {
-  cat <<EOF
-用法:
-  $0 <user1> <gpu1> <user2> <gpu2> [bastion_user] [bastion_host]
-
-参数说明:
-  user1         第一个账户 id（通常是 head 节点账户）
-  gpu1          第一个 GPU 编号，例如 hgpu4017
-  user2         第二个账户 id（通常是 worker 节点账户）
-  gpu2          第二个 GPU 编号，例如 hgpu4033
-  bastion_user  跳板机用户名，默认: ${BASTION_USER_DEFAULT}
-  bastion_host  跳板机地址，默认: ${BASTION_HOST_DEFAULT}
-
-示例:
-  $0 hxiang.huang hgpu4017 hxiang.huang hgpu4033
-EOF
-}
-
-#######################################
-# 参数检查
-#######################################
-if [[ $# -lt 4 ]]; then
-  usage
+if [[ $# -ne 4 ]]; then
+  echo "Usage: $0 <head_login_user> <head_gpu_node> <worker_login_user> <worker_gpu_node>"
   exit 1
 fi
 
-USER1="$1"
-GPU1="$2"
-USER2="$3"
-GPU2="$4"
-BASTION_USER="${5:-$BASTION_USER_DEFAULT}"
-BASTION_HOST="${6:-$BASTION_HOST_DEFAULT}"
+HEAD_LOGIN_USER="$1"
+HEAD_GPU_NODE="$2"
+WORKER_LOGIN_USER="$3"
+WORKER_GPU_NODE="$4"
 
-#######################################
-# 工具函数
-#######################################
+LOGIN_HOST="202.20.183.100"
+ENV_ACTIVATE="source envs/vllm-qwen/bin/activate"
+TMUX_SESSION="ray"
+RAY_PORT="6379"
+
 log() {
   echo "[$(date '+%F %T')] $*"
 }
 
-# 在 bastion 上再 ssh 到 gpu 节点执行命令
-run_on_gpu() {
-  local remote_user="$1"
+# 在 login 节点再 ssh 到 gpu 节点执行命令
+run_nested_ssh() {
+  local login_user="$1"
   local gpu_node="$2"
   local remote_cmd="$3"
 
-  ssh -tt "${BASTION_USER}@${BASTION_HOST}" bash -lc "'
-    export TMOUT=0
-    ssh -tt ${remote_user}@${gpu_node} bash -lc '\"'\"'
-      export TMOUT=0
-      ${remote_cmd}
-    '\"'\"'
-  '"
+  ssh -T "${login_user}@${LOGIN_HOST}" bash <<EOF
+export TMOUT=0
+ssh -T "${gpu_node}" bash <<'INNER_EOF'
+export TMOUT=0
+set -euo pipefail
+${remote_cmd}
+INNER_EOF
+EOF
 }
 
-# 在指定 GPU 上启动 tmux + 命令
-start_tmux_job() {
-  local remote_user="$1"
+# 检查 tmux 是否存在
+check_tmux() {
+  local login_user="$1"
   local gpu_node="$2"
-  local job_cmd="$3"
 
-  run_on_gpu "${remote_user}" "${gpu_node}" "
-    if tmux has-session -t ${TMUX_SESSION} 2>/dev/null; then
-      tmux kill-session -t ${TMUX_SESSION}
-    fi
-
-    tmux new-session -d -s ${TMUX_SESSION}
-    tmux send-keys -t ${TMUX_SESSION} 'export TMOUT=0' C-m
-    tmux send-keys -t ${TMUX_SESSION} '${VENV_ACTIVATE}' C-m
-    tmux send-keys -t ${TMUX_SESSION} 'ray stop -f >/dev/null 2>&1 || true' C-m
-    tmux send-keys -t ${TMUX_SESSION} '${job_cmd}' C-m
-  "
-}
-
-#######################################
-# 1) 获取 head 节点 IP
-#######################################
-log "获取 head 节点 ${GPU1} 的内网 IP ..."
-HEAD_IP=$(
-  ssh -tt "${BASTION_USER}@${BASTION_HOST}" bash -lc "'
-    export TMOUT=0
-    ssh -tt ${USER1}@${GPU1} bash -lc '\"'\"'
-      export TMOUT=0
-      hostname -I | awk '\"'\"'{print \$1}'\"'\"'
-    '\"'\"'
-  '" 2>/dev/null | tr -d '\r' | tail -n 1 | xargs
-)
-
-if [[ -z "${HEAD_IP}" ]]; then
-  echo "错误：无法获取 ${GPU1} 的 IP"
+  log "Checking tmux on ${gpu_node} ..."
+  run_nested_ssh "${login_user}" "${gpu_node}" '
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "ERROR: tmux not found on $(hostname)"
   exit 1
 fi
+echo "tmux ok on $(hostname)"
+'
+}
 
-log "head 节点 IP: ${HEAD_IP}"
+# 启动 head 节点
+start_ray_head() {
+  local login_user="$1"
+  local gpu_node="$2"
 
-#######################################
-# 2) 启动 head 节点
-#######################################
-log "在 ${GPU1} 上启动 Ray head ..."
-start_tmux_job "${USER1}" "${GPU1}" "ray start --block --head --port=${RAY_PORT}"
+  log "Starting Ray head on ${gpu_node} ..."
+  run_nested_ssh "${login_user}" "${gpu_node}" "
+# 如已有同名会话，先删掉
+if tmux has-session -t ${TMUX_SESSION} 2>/dev/null; then
+  tmux kill-session -t ${TMUX_SESSION}
+fi
 
-# 等几秒，给 ray head 启动时间
-sleep 8
+# 清理旧 ray
+if command -v ray >/dev/null 2>&1; then
+  ray stop -f >/dev/null 2>&1 || true
+fi
 
-#######################################
-# 3) 启动 worker 节点
-#######################################
-log "在 ${GPU2} 上启动 Ray worker，连接到 ${HEAD_IP}:${RAY_PORT} ..."
-start_tmux_job "${USER2}" "${GPU2}" "ray start --block --address='${HEAD_IP}:${RAY_PORT}'"
+tmux new-session -d -s ${TMUX_SESSION}
+tmux send-keys -t ${TMUX_SESSION} 'export TMOUT=0' C-m
+tmux send-keys -t ${TMUX_SESSION} '${ENV_ACTIVATE}' C-m
+tmux send-keys -t ${TMUX_SESSION} 'ray start --block --head --port=${RAY_PORT}' C-m
 
-sleep 3
+sleep 5
 
-#######################################
-# 4) 输出检查方式
-#######################################
-cat <<EOF
+echo '===== tmux session created on head ====='
+tmux list-sessions
+echo '===== last head logs ====='
+tmux capture-pane -pt ${TMUX_SESSION} -S -30
+"
+}
+
+# 获取 head 节点 IP
+get_head_ip() {
+  local login_user="$1"
+  local gpu_node="$2"
+
+  run_nested_ssh "${login_user}" "${gpu_node}" '
+IP=$(hostname -I | awk "{print \$1}")
+if [[ -z "${IP}" ]]; then
+  echo "ERROR: failed to get head node IP" >&2
+  exit 1
+fi
+echo "${IP}"
+' | tail -n 1
+}
+
+# 启动 worker 节点
+start_ray_worker() {
+  local login_user="$1"
+  local gpu_node="$2"
+  local head_ip="$3"
+
+  log "Starting Ray worker on ${gpu_node}, connecting to ${head_ip}:${RAY_PORT} ..."
+  run_nested_ssh "${login_user}" "${gpu_node}" "
+# 如已有同名会话，先删掉
+if tmux has-session -t ${TMUX_SESSION} 2>/dev/null; then
+  tmux kill-session -t ${TMUX_SESSION}
+fi
+
+# 清理旧 ray
+if command -v ray >/dev/null 2>&1; then
+  ray stop -f >/dev/null 2>&1 || true
+fi
+
+tmux new-session -d -s ${TMUX_SESSION}
+tmux send-keys -t ${TMUX_SESSION} 'export TMOUT=0' C-m
+tmux send-keys -t ${TMUX_SESSION} '${ENV_ACTIVATE}' C-m
+tmux send-keys -t ${TMUX_SESSION} 'ray start --address=${head_ip}:${RAY_PORT}' C-m
+
+sleep 5
+
+echo '===== tmux session created on worker ====='
+tmux list-sessions
+echo '===== last worker logs ====='
+tmux capture-pane -pt ${TMUX_SESSION} -S -30
+"
+}
+
+# 查看状态
+show_summary() {
+  local head_ip="$1"
+
+  cat <<EOF
 
 ========================================
-Ray 集群启动命令已下发完成
+Ray cluster startup finished
+Head address: ${head_ip}:${RAY_PORT}
 
-Head:
-  用户: ${USER1}
-  节点: ${GPU1}
-  地址: ${HEAD_IP}:${RAY_PORT}
+You can manually check logs with:
 
-Worker:
-  用户: ${USER2}
-  节点: ${GPU2}
+1) Head:
+   ssh ${HEAD_LOGIN_USER}@${LOGIN_HOST}
+   ssh ${HEAD_GPU_NODE}
+   tmux attach -t ${TMUX_SESSION}
 
-查看 head 日志:
-  ssh ${BASTION_USER}@${BASTION_HOST}
-  ssh ${USER1}@${GPU1}
-  tmux attach -t ${TMUX_SESSION}
-
-查看 worker 日志:
-  ssh ${BASTION_USER}@${BASTION_HOST}
-  ssh ${USER2}@${GPU2}
-  tmux attach -t ${TMUX_SESSION}
-
-如果要退出 tmux 但不停止服务:
-  Ctrl+b 然后按 d
+2) Worker:
+   ssh ${WORKER_LOGIN_USER}@${LOGIN_HOST}
+   ssh ${WORKER_GPU_NODE}
+   tmux attach -t ${TMUX_SESSION}
 ========================================
 EOF
+}
+
+main() {
+  check_tmux "${HEAD_LOGIN_USER}" "${HEAD_GPU_NODE}"
+  check_tmux "${WORKER_LOGIN_USER}" "${WORKER_GPU_NODE}"
+
+  start_ray_head "${HEAD_LOGIN_USER}" "${HEAD_GPU_NODE}"
+
+  log "Getting head node IP ..."
+  HEAD_IP="$(get_head_ip "${HEAD_LOGIN_USER}" "${HEAD_GPU_NODE}")"
+  log "Head IP = ${HEAD_IP}"
+
+  start_ray_worker "${WORKER_LOGIN_USER}" "${WORKER_GPU_NODE}" "${HEAD_IP}"
+
+  show_summary "${HEAD_IP}"
+}
+
+main
 ```
 
 ---
 
-### 使用方式
+## 使用方式
 
-先保存：
-
-```bash
-nano start_ray_cluster.sh
-```
-
-把上面的内容贴进去，然后赋权：
+先给执行权限：
 
 ```bash
 chmod +x start_ray_cluster.sh
 ```
 
-执行：
+然后执行：
 
 ```bash
-./start_ray_cluster.sh hxiang.huang hgpu4017 hxiang.huang hgpu4033
-```
-
-如果两个 GPU 对应的是不同账号，也可以这样：
-
-```bash
-./start_ray_cluster.sh userA hgpu4017 userB hgpu4033
+./start_ray_cluster.sh hxiang.huang hgpu4017 meng01.huang hgpu4033
 ```
 
 ---
 
-### 这个脚本的几个处理点
+## 说明
 
-这个版本默认做了几件对你比较实用的事：
+这个脚本默认：
 
-1. **tmux 会话重建**
-   如果已经存在 `ray` 会话，会先 kill 再重建，避免旧的 ray 残留。
+* 中转登录节点固定是：`202.20.183.100`
+* tmux 会话名固定是：`ray`
+* Python 环境激活命令固定是：
 
-2. **先执行 `ray stop -f`**
-   防止之前已有 ray 进程占端口。
+```bash
+source envs/vllm-qwen/bin/activate
+```
 
-3. **自动获取 head 节点 IP**
-   不依赖手工从日志里复制 `ray start --address=...`。
-
-4. **使用 `--block`**
-   这样 ray 进程会一直挂在 tmux 会话里，终端断开也不会退出。
+* Ray head 端口固定是：`6379`
 
 ---
 
-### 更稳一点的建议
+## 它做了哪些容错
 
-如果你的环境里 `hgpu4017` / `hgpu4033` 这种名字只能在跳板机上解析，这个脚本没问题，因为它就是先 ssh 到跳板机，再从跳板机 ssh 到 GPU。
+脚本里已经帮你做了这些处理：
 
-但有两个前提：
-
-* 从跳板机到 GPU 节点也已经配置好免密，或者至少不会卡住要求你交互输密码
-* GPU 节点之间网络互通，worker 能访问 head 的 `${HEAD_IP}:6379`
+* 自动 `export TMOUT=0`
+* 如果已有同名 tmux 会话 `ray`，会先删掉再重建
+* 如果旧的 ray 进程还在，会先 `ray stop -f`
+* 自动获取 head 节点 IP，而不是依赖日志里那条提示命令
+* 启动后会打印最近的 tmux 日志，方便你确认是否成功
 
 ---
 
-### 建议你加一个检查脚本
+## 可能需要注意的点
 
-如果你希望，我还可以继续给你补一个版本，增加这些能力：
+### 1. `ray start --block --head` 会一直阻塞
 
-* 自动检查 `tmux` / `ray` / Python 环境是否存在
-* 自动验证 head 端口是否成功监听
-* 自动在两个节点上启动 vLLM 服务
-* 失败时自动打印是哪一步失败
-* 支持一次传入多台 worker 节点，不止两台
+这是正常的，因为它在 tmux 里跑，所以不会卡住你本地脚本。
 
-我也可以直接给你改成 **更适合生产环境的 Python 版本**，日志和报错会比 Bash 清晰很多。
+### 2. worker 节点这里我用的是：
+
+```bash
+ray start --address=${head_ip}:6379
+```
+
+这和你手动从日志里复制的思路一致，只是这里自动拼出来了。
+
+### 3. `hostname -I | awk '{print $1}'`
+
+这是为了自动获取 head 节点 IP。
+如果你们集群里这个 IP 不是 Ray 实际可达的网卡地址，可能要改成固定网卡，比如：
+
+```bash
+hostname -I | awk '{print $2}'
+```
+
+或者直接手工指定。
+
+---
+
+## 更稳一点的增强版思路
+
+如果你担心自动获取 IP 不准确，可以把脚本改成：
+
+* head 启动后
+* 从 `tmux capture-pane` 里解析 Ray 打印出来的 `--address='x.x.x.x:6379'`
+* 再把这个地址传给 worker
+
+不过通常 `hostname -I` 已经够用了，而且更简单稳定。
+
+---
+
+## 一个更灵活的版本建议
+
+如果你后面还想顺手在 head 节点里继续启动 vLLM 服务，我建议把脚本扩展成：
+
+* `start_head`
+* `start_worker`
+* `start_vllm`
+
+三段式，这样后面更方便接：
+
+```bash
+python -m vllm.entrypoints.openai.api_server ...
+```
+
+---
+
+如果你要，我可以下一条直接帮你再写一个 **增强版脚本**，支持这些能力：
+
+* 支持传入环境路径
+* 支持自定义 Ray 端口
+* 支持 head 启动成功后自动在 tmux 里启动 vLLM
+* 支持查看状态 / 停止集群 的子命令

@@ -1,28 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ==========================================
-# Ray + vLLM cluster control script
-#
-# 功能:
-#   1. 自动通过 `phd list -r` 提取每个账号对应的 GPU 节点名
-#   2. 启动 Ray head / worker
-#   3. 在 head 节点启动 vLLM
-#
-# 子命令:
-#   start-head
-#   start-worker
-#   start-vllm
-#   start-all
-#   status
-#   stop-all
-#
-# 示例:
-#   ./ray_cluster_ctl.sh start-all \
-#       --head-user hxiang.huang \
-#       --worker-user meng01.huang
-# ==========================================
-
 LOGIN_HOST="202.20.183.100"
 DEFAULT_ENV_ACTIVATE="source envs/vllm-qwen/bin/activate"
 DEFAULT_TMUX_RAY="ray"
@@ -31,13 +9,13 @@ DEFAULT_RAY_PORT="6379"
 
 HEAD_USER=""
 WORKER_USER=""
+HEAD_GPU=""
+WORKER_GPU=""
+
 ENV_ACTIVATE="${DEFAULT_ENV_ACTIVATE}"
 TMUX_RAY="${DEFAULT_TMUX_RAY}"
 TMUX_VLLM="${DEFAULT_TMUX_VLLM}"
 RAY_PORT="${DEFAULT_RAY_PORT}"
-
-HEAD_GPU=""
-WORKER_GPU=""
 
 ACTION="${1:-}"
 if [[ -z "${ACTION}" ]]; then
@@ -69,19 +47,12 @@ Options:
   --tmux-vllm <name>         vLLM tmux 会话名，默认 ${DEFAULT_TMUX_VLLM}
 
 Examples:
-  $0 start-head \
-    --head-user hxiang.huang
-
-  $0 start-worker \
-    --head-user hxiang.huang \
-    --worker-user meng01.huang
-
-  $0 start-vllm \
-    --head-user hxiang.huang
-
-  $0 start-all \
-    --head-user hxiang.huang \
-    --worker-user meng01.huang
+  $0 start-all --head-user hxiang.huang --worker-user meng01.huang
+  $0 start-head --head-user hxiang.huang
+  $0 start-worker --head-user hxiang.huang --worker-user meng01.huang
+  $0 start-vllm --head-user hxiang.huang
+  $0 status --head-user hxiang.huang --worker-user meng01.huang
+  $0 stop-all --head-user hxiang.huang --worker-user meng01.huang
 EOF
 }
 
@@ -129,9 +100,6 @@ require_worker() {
   [[ -n "${WORKER_USER}" ]] || die "--worker-user is required"
 }
 
-# -----------------------------
-# 基础 SSH 执行
-# -----------------------------
 run_login_ssh() {
   local login_user="$1"
   local remote_cmd="$2"
@@ -159,9 +127,6 @@ INNER_EOF
 EOF
 }
 
-# -----------------------------
-# 自动提取 GPU 节点
-# -----------------------------
 detect_gpu_node() {
   local login_user="$1"
 
@@ -175,20 +140,18 @@ if ! command -v phd >/dev/null 2>&1; then
   exit 1
 fi
 
-# 示例输出:
-# 22233616 Running hgpu4012
-# 这里提取最后一列中形如 hgpuXXXX 的节点名
 phd list -r | awk '\''/Running[[:space:]]+hgpu[0-9]+/ {print $NF; exit}'\''
 ' | tail -n 1
   )"
 
   [[ -n "${gpu_node}" ]] || die "failed to detect GPU node for ${login_user}"
-
   echo "${gpu_node}"
 }
 
-ensure_detected_nodes() {
-  if [[ -n "${HEAD_USER}" && -z "${HEAD_GPU}" ]]; then
+init_nodes_once() {
+  require_head
+
+  if [[ -z "${HEAD_GPU}" ]]; then
     HEAD_GPU="$(detect_gpu_node "${HEAD_USER}")"
     log "HEAD GPU node: ${HEAD_GPU}"
   fi
@@ -199,9 +162,6 @@ ensure_detected_nodes() {
   fi
 }
 
-# -----------------------------
-# 远端检查与工具函数
-# -----------------------------
 check_remote_basics() {
   local login_user="$1"
   local gpu_node="$2"
@@ -230,13 +190,7 @@ fi
 EOF
 }
 
-# -----------------------------
-# 获取 head IP
-# -----------------------------
 get_head_ip() {
-  require_head
-  ensure_detected_nodes
-
   run_nested_ssh "${HEAD_USER}" "${HEAD_GPU}" '
 IP=$(hostname -I | awk "{print \$1}")
 if [[ -z "${IP}" ]]; then
@@ -247,13 +201,7 @@ echo "${IP}"
 ' | tail -n 1
 }
 
-# -----------------------------
-# 启动 Ray head
-# -----------------------------
 start_head() {
-  require_head
-  ensure_detected_nodes
-
   log "Starting Ray head on ${HEAD_GPU}"
   check_remote_basics "${HEAD_USER}" "${HEAD_GPU}"
 
@@ -274,13 +222,8 @@ tmux capture-pane -pt ${TMUX_RAY} -S -50
 "
 }
 
-# -----------------------------
-# 启动 Ray worker
-# -----------------------------
 start_worker() {
-  require_head
   require_worker
-  ensure_detected_nodes
 
   local head_ip
   head_ip="$(get_head_ip)"
@@ -306,14 +249,7 @@ tmux capture-pane -pt ${TMUX_RAY} -S -50
 "
 }
 
-# -----------------------------
-# 启动 vLLM
-# 这里直接内置你的启动脚本
-# -----------------------------
 start_vllm() {
-  require_head
-  ensure_detected_nodes
-
   log "Starting vLLM on ${HEAD_GPU}"
   check_remote_basics "${HEAD_USER}" "${HEAD_GPU}"
 
@@ -333,12 +269,7 @@ ${ENV_ACTIVATE}
 # 在这里修改你的 vLLM 启动命令
 # =========================
 
-# 示例 1:
-# vllm serve /data/model \\
-#   --host 0.0.0.0 \\
-#   --port 8000
-
-# 示例 2:
+# 示例:
 # CUDA_VISIBLE_DEVICES=0,1 \\
 # vllm serve /data/Qwen2.5-72B \\
 #   --tensor-parallel-size 2 \\
@@ -346,7 +277,6 @@ ${ENV_ACTIVATE}
 #   --host 0.0.0.0 \\
 #   --port 8000
 
-# ===== 当前默认示例 =====
 vllm serve /data/model \
   --host 0.0.0.0 \
   --port 8000
@@ -366,9 +296,6 @@ tmux capture-pane -pt ${TMUX_VLLM} -S -50
 "
 }
 
-# -----------------------------
-# 状态检查
-# -----------------------------
 status_one_node() {
   local login_user="$1"
   local gpu_node="$2"
@@ -388,8 +315,6 @@ tmux capture-pane -pt ${TMUX_VLLM} -S -30 2>/dev/null || echo 'no vllm session'
 }
 
 status_all() {
-  require_head
-  ensure_detected_nodes
   status_one_node "${HEAD_USER}" "${HEAD_GPU}" "head"
 
   if [[ -n "${WORKER_USER}" ]]; then
@@ -397,9 +322,6 @@ status_all() {
   fi
 }
 
-# -----------------------------
-# 停止
-# -----------------------------
 stop_one_node() {
   local login_user="$1"
   local gpu_node="$2"
@@ -422,8 +344,6 @@ echo 'stopped on' \$(hostname)
 }
 
 stop_all() {
-  require_head
-  ensure_detected_nodes
   stop_one_node "${HEAD_USER}" "${HEAD_GPU}"
 
   if [[ -n "${WORKER_USER}" ]]; then
@@ -431,13 +351,8 @@ stop_all() {
   fi
 }
 
-# -----------------------------
-# 一键启动
-# -----------------------------
 start_all() {
-  require_head
   require_worker
-  ensure_detected_nodes
 
   start_head
   start_worker
@@ -474,24 +389,33 @@ EOF
 
 main() {
   require_cmd ssh
+  require_head
 
   case "${ACTION}" in
     start-head)
+      init_nodes_once
       start_head
       ;;
     start-worker)
+      require_worker
+      init_nodes_once
       start_worker
       ;;
     start-vllm)
+      init_nodes_once
       start_vllm
       ;;
     start-all)
+      require_worker
+      init_nodes_once
       start_all
       ;;
     status)
+      init_nodes_once
       status_all
       ;;
     stop-all)
+      init_nodes_once
       stop_all
       ;;
     *)

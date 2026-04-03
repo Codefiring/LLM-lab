@@ -5,7 +5,10 @@ LOGIN_HOST="202.20.183.100"
 DEFAULT_ENV_ACTIVATE="source envs/vllm-qwen/bin/activate"
 DEFAULT_TMUX_RAY="ray"
 DEFAULT_TMUX_VLLM="vllm"
+DEFAULT_TMUX_FWD="vllm-fwd"
 DEFAULT_RAY_PORT="6379"
+DEFAULT_REMOTE_VLLM_PORT="8888"
+DEFAULT_LOCAL_FORWARD_PORT="8888"
 
 HEAD_USER=""
 WORKER_USER=""
@@ -15,11 +18,14 @@ WORKER_GPU=""
 ENV_ACTIVATE="${DEFAULT_ENV_ACTIVATE}"
 TMUX_RAY="${DEFAULT_TMUX_RAY}"
 TMUX_VLLM="${DEFAULT_TMUX_VLLM}"
+TMUX_FWD="${DEFAULT_TMUX_FWD}"
 RAY_PORT="${DEFAULT_RAY_PORT}"
+REMOTE_VLLM_PORT="${DEFAULT_REMOTE_VLLM_PORT}"
+LOCAL_FORWARD_PORT="${DEFAULT_LOCAL_FORWARD_PORT}"
 
 ACTION="${1:-}"
 if [[ -z "${ACTION}" ]]; then
-  echo "ERROR: missing action"
+  echo "ERROR: missing action" >&2
   exit 1
 fi
 shift || true
@@ -33,31 +39,33 @@ Actions:
   start-head
   start-worker
   start-vllm
+  start-forward
   start-all
   status
+  stop-forward
   stop-all
 
 Options:
-  --head-user <user>         Head 登录账号，例如 hxiang.huang
-  --worker-user <user>       Worker 登录账号，例如 meng01.huang
-  --login-host <host>        登录跳板机，默认 ${LOGIN_HOST}
-  --env-activate <cmd>       环境激活命令，默认: ${DEFAULT_ENV_ACTIVATE}
-  --ray-port <port>          Ray 端口，默认 ${DEFAULT_RAY_PORT}
-  --tmux-ray <name>          Ray tmux 会话名，默认 ${DEFAULT_TMUX_RAY}
-  --tmux-vllm <name>         vLLM tmux 会话名，默认 ${DEFAULT_TMUX_VLLM}
+  --head-user <user>           Head 登录账号，例如 hxiang.huang
+  --worker-user <user>         Worker 登录账号，例如 meng01.huang
+  --login-host <host>          登录跳板机，默认 ${LOGIN_HOST}
+  --env-activate <cmd>         环境激活命令，默认: ${DEFAULT_ENV_ACTIVATE}
+  --ray-port <port>            Ray 端口，默认 ${DEFAULT_RAY_PORT}
+  --tmux-ray <name>            Ray tmux 会话名，默认 ${DEFAULT_TMUX_RAY}
+  --tmux-vllm <name>           vLLM tmux 会话名，默认 ${DEFAULT_TMUX_VLLM}
+  --tmux-fwd <name>            本地端口转发 tmux 会话名，默认 ${DEFAULT_TMUX_FWD}
+  --remote-vllm-port <port>    GPU 节点上 vLLM 端口，默认 ${DEFAULT_REMOTE_VLLM_PORT}
+  --local-forward-port <port>  本地 server 上转发端口，默认 ${DEFAULT_LOCAL_FORWARD_PORT}
 
 Examples:
   $0 start-all --head-user hxiang.huang --worker-user meng01.huang
-  $0 start-head --head-user hxiang.huang
-  $0 start-worker --head-user hxiang.huang --worker-user meng01.huang
-  $0 start-vllm --head-user hxiang.huang
-  $0 status --head-user hxiang.huang --worker-user meng01.huang
-  $0 stop-all --head-user hxiang.huang --worker-user meng01.huang
+  $0 start-forward --head-user hxiang.huang
+  $0 stop-forward --head-user hxiang.huang
 EOF
 }
 
 log() {
-  echo "[$(date '+%F %T')] $*"
+  echo "[$(date '+%F %T')] $*" >&2
 }
 
 die() {
@@ -85,6 +93,12 @@ while [[ $# -gt 0 ]]; do
       TMUX_RAY="${2:-}"; shift 2 ;;
     --tmux-vllm)
       TMUX_VLLM="${2:-}"; shift 2 ;;
+    --tmux-fwd)
+      TMUX_FWD="${2:-}"; shift 2 ;;
+    --remote-vllm-port)
+      REMOTE_VLLM_PORT="${2:-}"; shift 2 ;;
+    --local-forward-port)
+      LOCAL_FORWARD_PORT="${2:-}"; shift 2 ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -130,7 +144,7 @@ EOF
 detect_gpu_node() {
   local login_user="$1"
 
-  log "Detecting GPU node for ${login_user} via phd list -r ..."
+  # log "Detecting GPU node for ${login_user} via phd list -r ..."
 
   local gpu_node
   gpu_node="$(
@@ -141,11 +155,11 @@ if ! command -v phd >/dev/null 2>&1; then
 fi
 
 phd list -r | awk '\''/Running[[:space:]]+hgpu[0-9]+/ {print $NF; exit}'\''
-' | tail -n 1
+' | tail -n 1 | tr -d "[:space:]"
   )"
 
   [[ -n "${gpu_node}" ]] || die "failed to detect GPU node for ${login_user}"
-  echo "${gpu_node}"
+  printf '%s\n' "${gpu_node}"
 }
 
 init_nodes_once() {
@@ -173,13 +187,20 @@ echo "basic check ok on $(hostname)"
 '
 }
 
-kill_tmux_if_exists() {
+kill_tmux_if_exists_remote() {
   local session_name="$1"
   cat <<EOF
 if tmux has-session -t ${session_name} 2>/dev/null; then
   tmux kill-session -t ${session_name}
 fi
 EOF
+}
+
+kill_tmux_if_exists_local() {
+  local session_name="$1"
+  if tmux has-session -t "${session_name}" 2>/dev/null; then
+    tmux kill-session -t "${session_name}"
+  fi
 }
 
 ray_stop_if_exists() {
@@ -206,7 +227,7 @@ start_head() {
   check_remote_basics "${HEAD_USER}" "${HEAD_GPU}"
 
   run_nested_ssh "${HEAD_USER}" "${HEAD_GPU}" "
-$(kill_tmux_if_exists "${TMUX_RAY}")
+$(kill_tmux_if_exists_remote "${TMUX_RAY}")
 $(ray_stop_if_exists)
 
 tmux new-session -d -s ${TMUX_RAY}
@@ -233,7 +254,7 @@ start_worker() {
   check_remote_basics "${WORKER_USER}" "${WORKER_GPU}"
 
   run_nested_ssh "${WORKER_USER}" "${WORKER_GPU}" "
-$(kill_tmux_if_exists "${TMUX_RAY}")
+$(kill_tmux_if_exists_remote "${TMUX_RAY}")
 $(ray_stop_if_exists)
 
 tmux new-session -d -s ${TMUX_RAY}
@@ -254,7 +275,7 @@ start_vllm() {
   check_remote_basics "${HEAD_USER}" "${HEAD_GPU}"
 
   run_nested_ssh "${HEAD_USER}" "${HEAD_GPU}" "
-$(kill_tmux_if_exists "${TMUX_VLLM}")
+$(kill_tmux_if_exists_remote "${TMUX_VLLM}")
 
 cat > /tmp/start_vllm.sh <<EOF_VLLM
 #!/usr/bin/env bash
@@ -267,19 +288,12 @@ ${ENV_ACTIVATE}
 
 # =========================
 # 在这里修改你的 vLLM 启动命令
+# 注意端口和 --remote-vllm-port 保持一致
 # =========================
-
-# 示例:
-# CUDA_VISIBLE_DEVICES=0,1 \\
-# vllm serve /data/Qwen2.5-72B \\
-#   --tensor-parallel-size 2 \\
-#   --gpu-memory-utilization 0.90 \\
-#   --host 0.0.0.0 \\
-#   --port 8000
 
 vllm serve /data/model \
   --host 0.0.0.0 \
-  --port 8000
+  --port ${REMOTE_VLLM_PORT}
 
 EOF_VLLM
 
@@ -294,6 +308,51 @@ tmux list-sessions
 echo '===== vllm logs ====='
 tmux capture-pane -pt ${TMUX_VLLM} -S -50
 "
+}
+
+start_forward() {
+  require_cmd tmux
+  require_cmd ssh
+
+  log "Starting local SSH port forwarding: 127.0.0.1:${LOCAL_FORWARD_PORT} -> ${HEAD_GPU}:${REMOTE_VLLM_PORT} via ${LOGIN_HOST}"
+
+  kill_tmux_if_exists_local "${TMUX_FWD}"
+
+  tmux new-session -d -s "${TMUX_FWD}" \
+    "ssh \
+      -o ExitOnForwardFailure=yes \
+      -o ServerAliveInterval=60 \
+      -o ServerAliveCountMax=3 \
+      -N \
+      -L 127.0.0.1:${LOCAL_FORWARD_PORT}:${HEAD_GPU}:${REMOTE_VLLM_PORT} \
+      ${HEAD_USER}@${LOGIN_HOST}"
+
+  sleep 3
+
+  echo "===== local forward session ====="
+  tmux list-sessions | grep -E \"^${TMUX_FWD}:\" || true
+  echo "===== local forward logs ====="
+  tmux capture-pane -pt "${TMUX_FWD}" -S -20 || true
+
+  log "Port forward ready: http://127.0.0.1:${LOCAL_FORWARD_PORT}"
+}
+
+stop_forward() {
+  log "Stopping local port forward session ${TMUX_FWD}"
+  kill_tmux_if_exists_local "${TMUX_FWD}"
+}
+
+status_local_forward() {
+  echo "===== local forward session ====="
+  if tmux has-session -t "${TMUX_FWD}" 2>/dev/null; then
+    tmux list-sessions | grep -E "^${TMUX_FWD}:" || true
+    echo "===== local forward logs ====="
+    tmux capture-pane -pt "${TMUX_FWD}" -S -20 || true
+    echo "===== local access ====="
+    echo "Use: curl http://127.0.0.1:${LOCAL_FORWARD_PORT}/v1/models"
+  else
+    echo "no local forward session"
+  fi
 }
 
 status_one_node() {
@@ -320,6 +379,8 @@ status_all() {
   if [[ -n "${WORKER_USER}" ]]; then
     status_one_node "${WORKER_USER}" "${WORKER_GPU}" "worker"
   fi
+
+  status_local_forward
 }
 
 stop_one_node() {
@@ -344,6 +405,7 @@ echo 'stopped on' \$(hostname)
 }
 
 stop_all() {
+  stop_forward
   stop_one_node "${HEAD_USER}" "${HEAD_GPU}"
 
   if [[ -n "${WORKER_USER}" ]]; then
@@ -357,6 +419,7 @@ start_all() {
   start_head
   start_worker
   start_vllm
+  start_forward
 
   local head_ip
   head_ip="$(get_head_ip)"
@@ -368,6 +431,12 @@ Done.
 Head node: ${HEAD_GPU}
 Worker node: ${WORKER_GPU}
 Head address: ${head_ip}:${RAY_PORT}
+
+Remote vLLM:
+  ${HEAD_GPU}:${REMOTE_VLLM_PORT}
+
+Local forwarded endpoint on this server:
+  http://127.0.0.1:${LOCAL_FORWARD_PORT}
 
 Check head:
   ssh ${HEAD_USER}@${LOGIN_HOST}
@@ -383,6 +452,12 @@ Check vLLM:
   ssh ${HEAD_USER}@${LOGIN_HOST}
   ssh ${HEAD_GPU}
   tmux attach -t ${TMUX_VLLM}
+
+Check local forward:
+  tmux attach -t ${TMUX_FWD}
+
+Test locally on this server:
+  curl http://127.0.0.1:${LOCAL_FORWARD_PORT}/v1/models
 ========================================
 EOF
 }
@@ -405,6 +480,10 @@ main() {
       init_nodes_once
       start_vllm
       ;;
+    start-forward)
+      init_nodes_once
+      start_forward
+      ;;
     start-all)
       require_worker
       init_nodes_once
@@ -413,6 +492,9 @@ main() {
     status)
       init_nodes_once
       status_all
+      ;;
+    stop-forward)
+      stop_forward
       ;;
     stop-all)
       init_nodes_once

@@ -144,7 +144,7 @@ EOF
 detect_gpu_node() {
   local login_user="$1"
 
-  # log "Detecting GPU node for ${login_user} via phd list -r ..."
+  log "Detecting GPU node for ${login_user} via phd list -r ..."
 
   local gpu_node
   gpu_node="$(
@@ -219,7 +219,7 @@ if [[ -z "${IP}" ]]; then
   exit 1
 fi
 echo "${IP}"
-' | tail -n 1
+' | tail -n 1 | tr -d "[:space:]"
 }
 
 start_head() {
@@ -314,7 +314,10 @@ start_forward() {
   require_cmd tmux
   require_cmd ssh
 
-  log "Starting local SSH port forwarding: 127.0.0.1:${LOCAL_FORWARD_PORT} -> ${HEAD_GPU}:${REMOTE_VLLM_PORT} via ${LOGIN_HOST}"
+  local head_ip
+  head_ip="$(get_head_ip)"
+
+  log "Starting local SSH port forwarding: 127.0.0.1:${LOCAL_FORWARD_PORT} -> ${head_ip}:${REMOTE_VLLM_PORT} via ${LOGIN_HOST}"
 
   kill_tmux_if_exists_local "${TMUX_FWD}"
 
@@ -324,13 +327,13 @@ start_forward() {
       -o ServerAliveInterval=60 \
       -o ServerAliveCountMax=3 \
       -N \
-      -L 127.0.0.1:${LOCAL_FORWARD_PORT}:${HEAD_GPU}:${REMOTE_VLLM_PORT} \
+      -L 127.0.0.1:${LOCAL_FORWARD_PORT}:${head_ip}:${REMOTE_VLLM_PORT} \
       ${HEAD_USER}@${LOGIN_HOST}"
 
   sleep 3
 
   echo "===== local forward session ====="
-  tmux list-sessions | grep -E \"^${TMUX_FWD}:\" || true
+  tmux list-sessions | grep -E "^${TMUX_FWD}:" || true
   echo "===== local forward logs ====="
   tmux capture-pane -pt "${TMUX_FWD}" -S -20 || true
 
@@ -433,7 +436,7 @@ Worker node: ${WORKER_GPU}
 Head address: ${head_ip}:${RAY_PORT}
 
 Remote vLLM:
-  ${HEAD_GPU}:${REMOTE_VLLM_PORT}
+  ${head_ip}:${REMOTE_VLLM_PORT}
 
 Local forwarded endpoint on this server:
   http://127.0.0.1:${LOCAL_FORWARD_PORT}

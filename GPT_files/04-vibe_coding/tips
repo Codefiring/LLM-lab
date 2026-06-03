@@ -1,0 +1,18 @@
+Build an interactive code playground in HTML to help people read and learn the code.
+Features needed:
+- Code editor area (use contenteditable or a simple textarea)
+- "Run" button that executes the code in an iframe
+- Output console area below
+- Reset button
+- Error display with line numbers
+Use a dark IDE-like theme.
+
+
+
+Create an HTML artifact documenting this code architecture. 
+Include:
+- A sidebar navigation
+- Collapsible sections for each module
+- Syntax-highlighted code blocks
+- An SVG flowchart of the data flow
+Use a dark theme with clear visual hierarchy.

@@ -1,0 +1,45 @@
+  /btw 项目里面基于时间选择 commit 来进行分析的具体流程是什么
+
+    reports.ts 的 createReportBodySchema 接收 granularity(day/week)+ 可选 referenceDate。后端 computeWindow(granularity,
+    referenceDate) 算出 [windowStart, windowEnd]:
+    - day: 那一天 00:00–23:59:59
+    - week: 该 ISO 周(周一–周日)
+
+    这两个时间戳作为 windowStart/windowEnd 存进 report_jobs 行(timestamptz)。定时任务同理,由 schedule 的 granularity +
+    触发时刻算窗口。
+
+    2. clone(worker,shared/git)
+
+    cloneRepoForWindow({ cloneUrl, token, windowStart, branch?, ... }):
+    - 用 git clone --single-branch [--branch <b>] --shallow-since=<windowStart> --no-tags
+    - --shallow-since 是关键:只浅克隆从窗口起点 windowStart 往后的提交,大仓也快。代价是早于 windowStart
+    的历史不在克隆里(影响下面的 author 匹配)。
+
+    3. 按 author + 时间窗筛 commit(getCommitsByAuthor)
+
+    两步 git log,都作用在 <branch>(分支选择功能后,默认 HEAD):
+    1. author 存在性探测:git log <ref> -E --author=<regex> --format=%H --max-count=1——判断这个 author
+    在(克隆到的)历史里到底有没有提交,用来区分"author 不存在"和"author 在窗口内没提交"。
+    2. 窗口内查询:git log <ref> -E --author=<regex> --since=<windowStart> --until=<windowEnd> --format=<...>,拿到窗口内该
+    author 的 commit(SHA、作者名/邮箱、日期、message)。
+
+    注意细节:--since/--until 按committer date过滤,而输出用 %aI(author date)——所以 author date 和 committer date
+    都需落在窗口内才会返回(测试 fixture 里两者都设)。
+
+    4. 三种结果分支(pipeline.ts)
+
+    - authorMatched=false → job 失败,"author 在可用历史里找不到"
+    - commits 为空 + authorMatched=true → 标记 completed,但不生成 report 行(状态接口据此显示"nothing to summarise")
+    - 有 commit → 继续
+
+    5. 取 diff → 交给 agent → 渲染
+
+    对每个 commit getCommitDiff(repoPath, sha) 拿真实 diff;agent 读 commit + diff 产出叙事并选 key_changes(只给 {sha,
+    file});pipeline 再用真实 git diff(parseDiff)渲染对比块——agent 不产出代码,保证 grounded。
+
+    一个已知边界
+
+    因为是 --shallow-since 浅克隆,如果某 author 只在 windowStart 之前有提交,克隆里看不到,会被判成 author
+    不匹配——这是浅克隆策略刻意接受的取舍。
+
+    (以上基于本会话读到的 service.ts/pipeline.ts/reports.ts 结构,未重新查看当前文件。)

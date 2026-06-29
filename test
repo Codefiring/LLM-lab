@@ -1,0 +1,102 @@
+   curl -ik --noproxy '*' --max-time 10 \
+      -H "Authorization: Bearer <你的token>" \
+      -H "Accept: application/vnd.github+json" \
+      https://github.samsungds.net/api/v3/user
+
+    各部分对应代码行为
+
+    ┌──────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
+    │                             代码行为                             │                curl 对应                 │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ GET {apiBaseUrl}/user（apiBaseUrl 去尾斜杠后拼 /user）           │ https://github.samsungds.net/api/v3/user │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ authorization: Bearer <token>                                    │ -H "Authorization: Bearer ..."           │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ accept: application/vnd.github+json                              │ -H "Accept: application/vnd.github+json" │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ 10 秒超时（AbortController）                                     │ --max-time 10                            │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ 命中 GITHUB_TLS_INSECURE_HOSTS 白名单时 rejectUnauthorized:false │ -k / --insecure                          │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ undici 不读代理环境变量（直连）                                  │ --noproxy '*'                            │
+    ├──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+    │ 查看状态码/响应头                                                │ -i                                       │
+    └──────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
+
+    判读结果
+
+    - 200 → token 有效（响应体含 login 字段，即 Authenticated as <login>）
+    - 401 → token 无效或过期
+    - 其它非 2xx → Host returned HTTP <状态码>
+    - 连接/证书报错 → Could not reach ...
+
+    排查证书问题
+
+    先不带 -k 跑一次：
+
+    curl -i --noproxy '*' --max-time 10 \
+      -H "Authorization: Bearer <你的token>" \
+      -H "Accept: application/vnd.github+json" \
+      https://github.samsungds.net/api/v3/user
+
+    如果不带 -k 报证书错误（如 self-signed certificate）、带 -k 就成功，说明是自签名证书 —— 需要把 github.samsungds.net 加入部署 .env 的 GITHUB_TLS_INSECURE_HOSTS（例如
+    github.samsung.net,github.samsungds.net）并重建 backend + worker。
+
+    注意：当前部署里配的是 github.samsung.net，与 github.samsungds.net 不是同一主机名，不会命中白名单，所以现在测试该内网地址若是自签名证书会校验失败。
+
+    注意你这次的命令带了 -k。这没法区分证书是否自签名（-k 无论证书有效与否都会通过）。但结合你上一条消息里不带 -k 也通过的事实 ——
+    证书其实是受信任的、不是自签名。这点决定了根因。
+
+    最可能原因：白名单触发了不兼容的 dispatcher
+
+    UND_ERR_INVALID_ARG 是 undici 的 InvalidArgumentError。Node 内置 fetch 收到 dispatcher 选项时会校验它是不是内置 undici 的 Dispatcher 实例，不是就抛
+    UND_ERR_INVALID_ARG。
+
+    项目里 backend 依赖 npm 的 undici 包，而 fetch 用的是 Node 内置 undici —— 两套不同实例。当主机命中 GITHUB_TLS_INSECURE_HOSTS 白名单时，代码会用 npm-undici 造一个
+    Agent 传给内置 fetch 当 dispatcher，内置 fetch 不认这个外来 Agent → UND_ERR_INVALID_ARG。
+
+    也就是说：你很可能为了测试这个内网地址，把 github.samsungds.net 加进了 GITHUB_TLS_INSECURE_HOSTS，于是走到创建自定义 Agent 的分支，反而触发了双 undici 不兼容。
+
+    而且既然不带 -k 都能过，证书本就有效，根本不需要放进白名单。 把 github.samsungds.net 从 GITHUB_TLS_INSECURE_HOSTS 去掉、重建 backend，请求就走普通 fetch（无
+    dispatcher），错误消失。
+
+    另一个可能（若它确实不在白名单）
+
+    如果该主机不在白名单（不会创建 Agent），UND_ERR_INVALID_ARG 更可能来自请求头值非法 —— 最常见是存储的 token 解密后带了非法字符（尾随换行 \n、空格、不可见控制字符或非
+    ASCII）。undici 校验 header 值时遇到这类字符就抛 InvalidArgumentError。这正好解释"curl 通过但网页失败"：curl 里你敲的是干净 token，而 app
+    用的是当初存库的那份，若保存时混入了换行/空格就会触发。解决：重新保存该凭据，确保 token 前后无空白。
+
+    快速区分
+
+    - 加过 github.samsungds.net 到 GITHUB_TLS_INSECURE_HOSTS → 基本就是 dispatcher 不兼容；去掉重建即可（证书有效，无需跳过校验）。
+    - 没加过 → 检查存储 token 是否含尾随空白/换行，重存凭据。
+
+    确切定位需看完整堆栈：报错指向带 dispatcher 的 fetch 调用就是第一种；指向 header 设置就是 token 值问题。
+
+
+修复下面提到的问题
+
+用如下测试可以通过
+         curl -ik --noproxy '*' --max-time 10 \
+      -H "Authorization: Bearer <你的token>" \
+      -H "Accept: application/vnd.github+json" \
+      https://github.samsungds.net/api/v3/user
+
+<problem>
+但是从网页测试报 UND_ERR_INVALID_ARG 
+
+可能的原因
+
+    UND_ERR_INVALID_ARG 是 undici 的 InvalidArgumentError。Node 内置 fetch 收到 dispatcher 选项时会校验它是不是内置 undici 的 Dispatcher 实例，不是就抛
+    UND_ERR_INVALID_ARG。
+
+    项目里 backend 依赖 npm 的 undici 包，而 fetch 用的是 Node 内置 undici —— 两套不同实例。当主机命中 GITHUB_TLS_INSECURE_HOSTS 白名单时，代码会用 npm-undici 造一个
+    Agent 传给内置 fetch 当 dispatcher，内置 fetch 不认这个外来 Agent → UND_ERR_INVALID_ARG。
+
+    为了测试这个内网地址，把 github.samsungds.net 加进了 GITHUB_TLS_INSECURE_HOSTS，于是走到创建自定义 Agent 的分支，反而触发了双 undici 不兼容。
+</problem>
+
+
+
+
+

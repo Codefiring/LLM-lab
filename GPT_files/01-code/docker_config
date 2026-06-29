@@ -1,0 +1,12 @@
+{
+  "proxies":
+  {
+     "default":
+     {
+       "httpProxy": "http://192.168.42.1:17893",
+       "httpsProxy": "http://192.168.42.1:17893",
+       "noProxy": "localhost, 127.0.0.1"
+     }
+  },
+  "credsStore": "desktop"
+}

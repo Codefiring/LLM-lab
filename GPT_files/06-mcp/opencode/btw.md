@@ -255,3 +255,207 @@ MCP-026 被跳过 = **`selectApplicability` 这步 LLM 用了 32s,超过了 12s 
 4. **`concurrent` / `multi_session` / `protocol` / passive 等专门模式不参与 fan-out**,保持各自的单目标/无目标机制。
 
 一句话:**加 `--profile full` 即可对所有适用接口全测**,同时记得把 `--max-calls-per-vulnerability` 和 per-vuln 超时预算调大以容纳多接口的多次 LLM 调用。
+
+
+
+
+根据本对话中已建立的报告渲染逻辑,简短回答:**取决于报告区块**。
+
+## Markdown 报告里
+- **Detected/Summary 表**:只列状态为 **`confirmed` / `suspected`** 的 finding(即真正检测到有问题的)。`not_detected`、`inconclusive`、`skipped`、`not_applicable` 不进这张表。
+- **Findings 明细区**:会逐条输出 finding 的 Status、Reason、Limitations 等,这里能看到非 confirmed 的条目(比如被跳过/未发现的)。
+
+## 关于"接口粒度"
+注意报告是**按漏洞类型(per-vulnerability)**组织的,不是"每个被测接口一行"。也就是说:
+- 一条 finding 对应一个漏洞(如 MCP-026),不是对应单个 tool。
+- 在 `full` profile 的 fan-out 模式下,一个漏洞可能测了多个接口(如 4 个 tool),但结果**聚合成该漏洞的一条 finding**;实际覆盖了多少个接口是写在该 finding 的 **reason 注记**里的(如 `exercised 3/4 candidate interfaces`),而**不是**每个有问题的接口单独成一条。
+- finding 里通常会带 `affectedInterface` / 触发证据(matchedRules、evidence 引用),指向具体是哪个接口/规则命中,但仍挂在这一条漏洞 finding 下。
+
+## 完整数据在 JSON
+- `--output json`(`outputs/<scan-id>/report.json`)包含**所有** finding(不只 confirmed),字段最全。
+- `outputs/<scan-id>/executions.jsonl` 是**逐次执行**的(已脱敏)证据记录,这一层才是真正"每个接口/每次调用"粒度的明细——想看"具体哪个接口被测、命中了什么",这里最细。
+
+**一句话**:被确认有漏洞的会进 Markdown 的检测表,但报告是按漏洞类型聚合的;"哪些接口被测/命中"以注记+证据形式体现,真正的逐接口逐调用明细要看 JSON 报告和 `executions.jsonl`。
+
+(注:以上基于本对话中已讨论的渲染规则;具体字段以当前 report-builder / renderer 源码为准,我无法在此读取确认。)
+
+
+
+能，但要分清“被检测覆盖”和“有专门验证器”两层。
+
+## 适用的验证器
+在已实现的 25 个里，明确把 `resource_template` 列入适用接口的是 **MCP-013 资源投毒（Resource Poisoning，passive）**。它在能力快照上遍历 `resources` 和 `resourceTemplates` 的 name/description，扫 `DIRECTIVE_PATTERNS`，命中即 confirmed。所以**资源模板的元数据投毒是能被检测的**。
+
+> 注意：本对话早先讨论的是一个新的 15 类精简目录（其中 MCP-013 = Resource Poisoning），与“现有 25 类目录”里漏洞编号含义不同。无论哪套，针对资源模板的检测能力都落在“资源投毒”这一类上。
+
+## 覆盖范围与限制
+1. **passive（快照层）能测**：模板的 name、description 里的隐藏指令/外泄祈使句会被 MCP-013 类的验证器命中——这部分确定可用。
+2. **active（实际 read 模板内容）较弱**：大多数 active 验证器（路径穿越、命令注入、密钥泄露等）的适用接口是 `tool`/`resource`，**模板实例化后的读取**不一定在它们的 `applicableInterfaces` 里；要让某个 active 漏洞真正对模板发起调用，得确认该漏洞定义把 `resource_template` 列进 `applicableInterfaces`，否则 applicability 不会把模板选为候选。
+3. **fan-out（full profile）**：full 模式会对**所有适用接口**展开，包括 resource_template——但前提仍是“该漏洞的 applicableInterfaces 包含 resource_template”，且预算/超时够用。
+4. **执行路径**：对模板的读取走 `read_resource`（按 `uriTemplate`/实例化 URI），证据进 `executionRecords`，再交确定性验证器判定。
+
+## 一句话
+**资源模板的元数据类漏洞（投毒）现在能检测**（由资源投毒验证器覆盖）；至于“穿越/注入/泄露”等 active 类是否对模板生效，取决于对应漏洞定义是否把 `resource_template` 写进 `applicableInterfaces`，没写就只会停在快照层而不会主动 read 模板。具体以当前 `definitions.ts` 里各漏洞的 `applicableInterfaces` 为准。
+
+
+
+
+是的，目前所有 validator 都是**确定性、规则判定、不调用 LLM** 的——这是本项目刻意的核心架构原则：agent（LLM）只负责“生成探测用例 + 给出建议性分析”，**无权把结论提升为 confirmed**，最终判定永远来自基于证据的确定性规则（反射护栏、指纹/密钥/指令正则、out-of-band 回调命中等）。
+
+## 把判定改成 LLM 是否可行
+技术上可行，但要分清它**带来什么**、**牺牲什么**。
+
+### 可能提升的“可扩展性”
+- **新增漏洞更快**：写一个判定提示词即可，省去手写正则/证据规则；语义类、上下文相关的漏洞（细微逻辑滥用、模糊的授权问题）更容易表达。
+- **泛化更好**：能命中规则没枚举到的变体（新的注入花样、改写过的指令）。
+
+### 但会牺牲项目当前的关键属性
+1. **确定性 / 可复现**：规则判定对同一证据永远同一结论，报告 diff 稳定；LLM 判定有随机性、跨运行不一致。
+2. **可审计性**：现在每条 confirmed 都能指到具体 matchedRules + 证据；LLM “我觉得是漏洞”难以举证、易假阳/假阴。
+3. **安全边界**：当前设计明确**不让 LLM 自证漏洞**，正是为了防止被测服务器的恶意内容（提示词注入）操纵判定结果——讽刺的是，这个扫描器本身就在检测 prompt injection/tool poisoning，如果判定器吃服务器返回内容又信它，等于把判定器暴露给它要检测的攻击面。
+4. **成本/延迟**：你已经遇到 per-vuln 超时问题（32s 一次调用 / 12s 预算）；再把判定也变成 LLM 调用会成倍放大慢和贵。
+
+## 更稳妥的折中（推荐方向）
+不要用 LLM **替换**确定性判定，而是**分层**：
+- 保留确定性 validator 作为 **confirmed 的唯一来源**（硬证据）。
+- 把 LLM 判定作为**第二信号**，只能产出 `suspected`/建议，喂给现有的 verdict 引擎——这其实正贴合当前已有的 `suspected` 状态和“agent advisory 分析不能单独 confirm”的设计。
+- 这样既拿到 LLM 的泛化/可扩展性，又不破坏确定性、可审计、抗注入的核心保证。
+
+**一句话**：改成 LLM 判定确实能让“加新漏洞”更省事、覆盖更泛，但会牺牲本项目刻意保留的确定性、可审计性和抗提示词注入边界；更好的做法是让 LLM 只贡献 `suspected` 级别的辅助信号，confirmed 仍由确定性证据规则把关。
+
+
+
+这是因为在**执行证据层**，`ExecutionRecord.target.type` 的枚举里**没有** `resource_template` —— 它只有 `tool / resource / prompt / transport`。
+
+所以当对一个资源模板发起实际读取（`read_resource`，用实例化后的 URI）时，那条执行记录只能把 `target.type` 记成 **`resource`**，无法记成 `resource_template`。报告若从执行记录去推断接口类型，就会把模板显示成 `resource`。
+
+对比一下两条路径：
+
+- **快照 / 定义 / 报告覆盖表层**：区分是干净的。`resourceTemplates` 是独立数组（键 `uriTemplate`），`InterfaceKind` 有独立的 `resource_template` 值，`applicableInterfaces` 和报告里的 `type` 也都能写 `resource_template`。
+- **active 执行证据层**：不对称。执行记录的 `target.type` 不含 `resource_template`，模板被实例化成具体 URI 去 read，于是落成 `resource`；模板的正确归属主要靠 **passive 路径的 matchedRules `template:` token**（会归一化到 `resource_template`），而不是靠执行记录的 type。
+
+**根因一句话**：`target.type` 枚举缺 `resource_template`，模板在被真正调用时降级记成了 `resource`。
+
+如果要让它在报告里正确显示为 `resource_template`，需要（这属于需要改代码的方向，不是配置）：在 `ExecutionRecord.target.type` 枚举里加入 `resource_template`，并让执行模板读取时写入该类型，同时报告的接口归属逻辑据此区分——否则 active 证据这一层就会继续把模板归为 `resource`。
+
+
+
+
+下面按「部署 → 启动 → POST 测试 → LLM 配置」四段讲,重点说清 LLM 这块的**当前真实状态**。
+
+## 1. 部署
+
+```bash
+# 拉取代码后安装依赖(新增了 hono / @hono/node-server / tsx)
+pnpm install
+# 校验
+pnpm typecheck && pnpm test
+```
+
+服务是纯 TS + ESM,`pnpm serve` 会用 `tsx` 直接运行 `src/service/server.ts`,无独立构建步骤。生产环境建议:绑定内网接口、前面挂 TLS/反代,不要公网暴露。
+
+## 2. 启动
+
+通过环境变量配置(完整列表见 `docs/http-service.md`):
+
+```bash
+export MCP_SCAN_API_KEY=devsecret          # 必填,否则拒绝启动
+export MCP_SCAN_HOST=127.0.0.1             # 默认
+export MCP_SCAN_PORT=8787                  # 默认
+export MCP_SCAN_TARGET_ALLOWLIST=mcp.internal  # 失败关闭:不配则所有扫描都 403
+# 可选安全开关(只能服务端配,请求体传了会被忽略):
+# export MCP_SCAN_ALLOW_INSECURE_HTTP=true      # 允许 http:// 目标
+# export MCP_SCAN_ALLOW_PRIVATE_NETWORK=true    # 允许内网/环回目标
+# export MCP_SCAN_ALLOW_INTRUSIVE=true          # 允许 intrusive profile
+pnpm serve
+# → [mcp-scan-service] listening on http://127.0.0.1:8787
+```
+
+## 3. POST 测试
+
+```bash
+# 健康检查(免鉴权)
+curl -s http://127.0.0.1:8787/healthz     # {"status":"ok"}
+
+# discovery 扫描(零 LLM,可直接跑)
+curl -s -X POST http://127.0.0.1:8787/scan \
+  -H 'authorization: Bearer devsecret' \
+  -H 'content-type: application/json' \
+  -d '{"targetUrl":"https://mcp.internal/mcp","profile":"discovery"}'
+```
+
+响应码语义:`401` 无/错 token,`403` 目标不在 allowlist 或未开 intrusive,`413` body 过大,`429` 并发满,`503` 主动扫描但没配 LLM 运行时,`502/504` 连目标失败。
+
+## 4. LLM 配置 —— 关键点
+
+**当前默认的 `server.ts` 并没有接入 LLM 运行时**。这是本次实现里刻意留的边界(deferred follow-up)。它带来的直接后果是:
+
+- `profile: "discovery"` 以及被动/协议类校验 → **不需要 LLM,直接可跑**。
+- `profile: "standard" / "full" / "intrusive"` 等**主动检测** → 会返回 **`503`**(“Active scanning is not available: no agent runtime is configured”)。
+
+原因:主动检测由 `AgentRuntime` 接口驱动,而目前唯一的实现是 `createOpencodeAgentRuntime()`(绑定 OpenCode 会话)。架构上已经预留了注入点——`createApp(config, deps)` 的 `deps.createAgentRuntime?`(类型 `AgentRuntimeFactory`),但默认 bootstrap 里**故意没有传**,所以是空的。
+
+要启用带 LLM 的主动扫描,需要在 `src/service/server.ts` 里给 `createApp` 的 deps 补上 `createAgentRuntime`,由服务端持有 LLM/OpenCode 凭据。大致形态:
+
+```ts
+const app = createApp(config, {
+  resolve: /* dns lookup */,
+  createClient: () => new McpSdkV1Client(),
+  createAgentRuntime: async (dir, log, opts) => {
+    const client = createOpencodeClient(/* OpenCode server URL, 服务端持有 */);
+    return createOpencodeAgentRuntime(client, {
+      directory: dir, log,
+      llmCallTimeoutMs: opts?.llmCallTimeoutMs,
+      llmMaxAttempts: opts?.llmMaxAttempts,
+    });
+  },
+});
+```
+
+配好后:LLM 端点/密钥全部只在服务端,请求体里**不接受**任何 LLM 凭据字段(会被 zod 丢弃),同样的 `POST /scan` 换成 `profile: "standard"` 即可跑主动检测。
+
+需要提醒的是:上面这段 OpenCode 客户端的**确切构造方式**(`createOpencodeClient` 需要的 server URL / 参数)要以 `src/adapters/opencode/opencode-agent-runtime.ts` 里的实现为准——把它接进 `server.ts` 本身是一个尚未完成的后续改动,不是当前已交付能力。
+
+一句话总结:**现在开箱即用的是 discovery/被动扫描;主动(LLM)扫描需要你在 `server.ts` 里补一个服务端持有凭据的 `createAgentRuntime` 工厂,否则返回 503。**
+
+
+
+
+
+
+下面是一个带 OAuth 的 `POST /scan` 请求例子。核心原则:**请求体里绝不放 token/client_secret,只放一个服务端环境变量的名字**(`authEnv`),真实凭据由服务端持有。
+
+## 1. 服务端启动时注入 OAuth 配置
+
+```bash
+export MCP_SCAN_API_KEY=devsecret
+export MCP_SCAN_TARGET_ALLOWLIST=mcp.internal
+# 目标 MCP server 的 OAuth(client_credentials)配置,值是 JSON
+export TARGET_OAUTH='{"tokenUrl":"https://idp.internal/oauth/token","clientId":"my-client","clientSecret":"my-secret","scopes":["mcp:read","mcp:write"]}'
+pnpm serve
+```
+
+## 2. 发起请求(只引用变量名)
+
+```bash
+curl -s -X POST http://127.0.0.1:8787/scan \
+  -H 'authorization: Bearer devsecret' \
+  -H 'content-type: application/json' \
+  -d '{
+        "targetUrl": "https://mcp.internal/mcp",
+        "profile": "discovery",
+        "authEnv": "TARGET_OAUTH"
+      }'
+```
+
+服务会读取 `TARGET_OAUTH` 环境变量 → 走 client_credentials 换取 access token → 以 `Authorization: Bearer <token>` 连接目标。
+
+## 需要注意
+
+- **两层鉴权别混淆**:`authorization: Bearer devsecret` 是给**扫描服务本身**的(= `MCP_SCAN_API_KEY`);`authEnv` 引用的才是连**目标 MCP server** 的 OAuth。
+- 需要第二身份(如未授权访问类检测)时,再配一个环境变量并加 `"secondaryAuthEnv": "另一个变量名"`。
+- `TARGET_OAUTH` 里的**确切字段名**(`tokenUrl`/`clientId`/`clientSecret`/`scopes` 等)以 `src/adapters/mcp/auth-provider.ts` 中 `parseAuthEnv` 的 schema 为准——上面是示意值,请对照该文件确认键名。
+- 被引用的环境变量必须在服务端进程里已存在,否则会报 `authentication_required`。
+- 上例用的是 `discovery`(零 LLM,可直接验证 OAuth 是否正确送达)。若要用 `profile: "standard"` 等主动扫描,还需服务端配置好 `createAgentRuntime`,否则返回 `503`。
+
+验证 OAuth 是否真正生效,最直接的办法是让 allowlist 内的被测 MCP server 记录它收到的 `Authorization` 头。

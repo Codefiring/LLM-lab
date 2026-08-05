@@ -1,0 +1,11 @@
+facial landmark detection aims to localize facial landmark points on human faces
+1. serves as high level facial semantics for face analysis or editing 
+2. an essential step for many face-related application
+3. widely related with samsung research and products such as smart phones and security systems 
+
+
+Driver fuzzing aims to automatically discover security flaws in device drivers by generating and mutating driver interaction sequences.
+
+1. Serves as low-level kernel security validation for hardware-facing components
+2. An essential step for product reliability, vulnerability discovery, and crash prevention
+3. Widely related to Samsung research and products such as smartphones, Android kernels, and on-device AI / media subsystems

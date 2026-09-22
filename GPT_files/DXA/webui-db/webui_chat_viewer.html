@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open WebUI 聊天浏览器</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; background: #f4f6f8; color: #202936; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #1d334b; color: white; padding: 18px 24px; }
+    h1 { margin: 0; font-size: 21px; }
+    header p { margin: 5px 0 0; color: #c7d5e2; font-size: 13px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 16px 24px; background: white; border-bottom: 1px solid #dce2e9; }
+    label { display: grid; gap: 5px; font-size: 13px; font-weight: 600; }
+    input, select, button { font: inherit; border-radius: 7px; border: 1px solid #bac5d0; padding: 8px 10px; }
+    input[type=search] { min-width: 230px; }
+    button { cursor: pointer; background: #225c87; color: white; border-color: #225c87; }
+    button:disabled { cursor: default; opacity: .45; }
+    main { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 16px; padding: 16px 24px; height: calc(100vh - 166px); min-height: 420px; }
+    section { background: white; border: 1px solid #dce2e9; border-radius: 10px; min-height: 0; display: flex; flex-direction: column; }
+    .section-head { padding: 12px 16px; border-bottom: 1px solid #e6ebef; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .muted { color: #657384; font-size: 13px; }
+    #list, #conversation { overflow: auto; min-height: 0; }
+    .chat-item { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #edf0f3; border-radius: 0; background: white; color: inherit; padding: 13px 16px; }
+    .chat-item:hover, .chat-item.selected { background: #eaf3fa; }
+    .chat-item strong { display: block; overflow-wrap: anywhere; margin-bottom: 5px; }
+    .chat-item span { display: block; color: #657384; font-size: 12px; }
+    .pager { border-top: 1px solid #e6ebef; padding: 9px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pager button { padding: 5px 9px; }
+    #conversation { padding: 18px; }
+    .message { margin-bottom: 18px; max-width: 960px; }
+    .role { font-size: 12px; font-weight: 700; color: #476982; margin-bottom: 5px; }
+    .bubble { white-space: pre-wrap; overflow-wrap: anywhere; background: #f2f5f8; border-radius: 10px; padding: 12px 14px; line-height: 1.55; }
+    .message.user .bubble { background: #e9f2fd; }
+    .error { color: #a62929; }
+    @media (max-width: 750px) { main { grid-template-columns: 1fr; height: auto; } section { min-height: 260px; max-height: 55vh; } }
+  </style>
+</head>
+<body>
+  <header><h1>Open WebUI 聊天浏览器</h1><p>本机只读查看 · 可按用户、关键词、创建日期和归档状态筛选</p></header>
+  <form class="filters" id="filters">
+    <label>用户<select id="user"><option value="">全部用户</option></select></label>
+    <label>关键词<input id="keyword" type="search" placeholder="标题或消息内容"></label>
+    <label>开始日期<input id="from" type="date"></label>
+    <label>结束日期<input id="to" type="date"></label>
+    <label>归档<select id="archived"><option value="all">全部</option><option value="no">未归档</option><option value="yes">已归档</option></select></label>
+    <button type="submit">查询</button>
+  </form>
+  <main>
+    <section>
+      <div class="section-head"><strong>聊天列表</strong><span class="muted" id="count"></span></div>
+      <div id="list"></div>
+      <div class="pager"><button id="prev" type="button">上一页</button><span class="muted" id="page"></span><button id="next" type="button">下一页</button></div>
+    </section>
+    <section>
+      <div class="section-head"><strong id="title">选择一段聊天</strong><span class="muted" id="owner"></span></div>
+      <div id="conversation" class="muted">从左侧选择聊天查看消息。</div>
+    </section>
+  </main>
+  <script src="/viewer.js"></script>
+</body>
+</html>

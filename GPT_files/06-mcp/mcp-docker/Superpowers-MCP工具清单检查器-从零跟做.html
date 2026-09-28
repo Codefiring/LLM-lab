@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Superpowers 个人开发入门｜从零完成一个小项目</title><style>
+:root{--bg:#0b1020;--panel:#151c30;--line:#303a55;--text:#edf2fb;--muted:#a9b7d0;--a:#84e0c2;--b:#8ea9ff;--warn:#ffd38c}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% -10%,#26385c 0,transparent 38%),var(--bg);color:var(--text);font:16px/1.8 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}a{color:var(--a)}.wrap{max-width:1100px;margin:auto;padding:0 25px}.hero{padding:76px 0 45px}.eyebrow{font-weight:700;color:var(--a);letter-spacing:.12em;font-size:13px}h1{font-size:clamp(36px,6vw,66px);line-height:1.16;margin:15px 0 20px;letter-spacing:-.04em}h2{font-size:29px;line-height:1.3;margin:0 0 20px}h3{font-size:19px;margin:0 0 8px}.lead{font-size:20px;color:#c7d3e5;max-width:730px}.meta{display:flex;gap:10px;flex-wrap:wrap;margin:27px 0}.pill{border:1px solid var(--line);border-radius:30px;padding:5px 13px;color:var(--muted);font-size:13px}.layout{display:grid;grid-template-columns:205px minmax(0,1fr);gap:34px}.nav{position:sticky;top:24px;height:max-content;border-left:1px solid var(--line);padding-left:16px}.nav a{display:block;padding:5px 0;text-decoration:none;color:var(--muted);font-size:14px}.nav a:hover{color:var(--a)}main section{padding:29px 0 49px;border-bottom:1px solid var(--line)}.callout,.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 23px}.callout{border-left:4px solid var(--a)}.warning{border-left-color:var(--warn)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.step{display:flex;align-items:flex-start;gap:17px;margin:20px 0}.num{flex:none;display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:#233b43;color:var(--a);font-weight:800}p{margin:8px 0 15px;color:#d4deec}li{margin:7px 0;color:#d4deec}strong{color:#fff}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.89em;color:#b7e9da}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d1426;border:1px solid #334059;border-radius:12px;padding:16px 18px;line-height:1.65;margin:13px 0 22px}pre code{color:#dce9f6}.label{font-size:12px;font-weight:800;color:var(--b);letter-spacing:.08em;text-transform:uppercase}.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:22px 0}.flow span{border-radius:9px;background:#24314a;padding:7px 12px;font-weight:700}.flow i{color:var(--a);font-style:normal}.checklist{list-style:none;padding:0}.checklist li{background:#151c30;border:1px solid var(--line);padding:10px 14px;border-radius:9px}.checklist li:before{content:"□";margin-right:10px;color:var(--a);font-size:21px;vertical-align:middle}.small{font-size:14px;color:var(--muted)}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:600px}th,td{border-bottom:1px solid var(--line);text-align:left;vertical-align:top;padding:10px 12px}th{color:var(--a);background:#1b2840}details{border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:12px 0;background:var(--panel)}summary{cursor:pointer;font-weight:700}pre{tab-size:4}footer{padding:35px 0 65px;color:var(--muted)}@media(max-width:770px){.layout{display:block}.nav{position:static;border:0;border-bottom:1px solid var(--line);padding:0 0 12px;margin-bottom:18px}.nav a{display:inline-block;margin-right:12px}.grid{grid-template-columns:1fr}.hero{padding-top:48px}}@media print{body{background:white;color:#172030}.nav{display:none}.layout{display:block}.card,.callout,pre,.checklist li{background:#f4f6fa;color:#172030}p,li,strong,h1,h2,h3{color:#172030}main section{break-inside:avoid}}
+</style></head><body><header class="hero wrap"><div class="eyebrow">AI CODING · 个人开发入门</div><h1>用 Superpowers<br>从零完成一个小项目</h1><p class="lead">一份给已有基础 AI Coding 经验的开发者的简易教程。从空目录出发，跟做一个 MCP 工具清单静态检查器，走通需求、设计、计划、实现和验收。</p><div class="meta"><span class="pill">适用：Claude Code + Superpowers</span><span class="pill">练习约 90–150 分钟</span><span class="pill">单人上手</span></div></header><div class="wrap layout"><nav class="nav" aria-label="章节导航"><a href="#goal">01 目的与路线</a><a href="#setup">02 安装</a><a href="#project">03 项目与输入样本</a><a href="#design">04 规则与设计</a><a href="#plan">05 实施计划</a><a href="#execute">06 跟做开发</a><a href="#verify">07 验收报告</a><a href="#pitfalls">08 常见问题</a><a href="#sources">参考资料</a></nav><main>
+<section id="goal"><h2>01 · 这次要做出的东西</h2><p>你手里没有现成代码仓库。我们从空目录开始，做一个可运行的小工具：读取一份 <strong>MCP 工具清单 JSON</strong>，找出缺失描述、工具名重复、输入 Schema 不是对象的情况，并生成 JSON 报告。</p><div class="flow"><span>空目录</span><i>→</i><span>定义规则</span><i>→</i><span>审阅计划</span><i>→</i><span>写测试</span><i>→</i><span>写程序</span><i>→</i><span>验收报告</span></div><p>这个项目足够具体，可以检验 Superpowers 是否真正按设计、计划、测试和验证推进；检查结果仅是<strong>清单质量提示</strong>，不等于发现安全漏洞。</p><div class="callout"><strong>交付物</strong><p><code>audit.py</code>：命令行程序；<code>examples/tools.json</code>：练习输入；<code>tests/test_audit.py</code>：自动化测试；<code>report.json</code>：运行后生成的报告；<code>README.md</code>：运行说明。</p></div></section>
+<section id="setup"><h2>02 · 准备环境与安装插件</h2><p>需要 Python 3.10+、Git、能读写本地目录的 Claude Code。你们已有的内部模型接入继续沿用；本教程只关注 Superpowers 开发流程。先分别运行 <code>python --version</code>、<code>git --version</code> 检查环境，Windows 可将后续 Python 命令改成 <code>py</code>。</p><div class="label">Claude Code 中的安装命令</div><pre><code>/plugin install superpowers@claude-plugins-official</code></pre><p>安装完成后开启新会话。若企业环境无法访问插件市场，按组织允许的方式安装。打开新会话后，向它提出建一个小应用的任务，观察它是否先讨论需求和设计，而非直接输出大量代码。</p><p class="small">技能流程和安装命令依据官方仓库 2026 年 9 月 28 日的文档；具体界面和自动调用方式以已安装版本为准。</p></section>
+<section id="project"><h2>03 · 从空目录创建练习项目</h2><p>你只需准备一个空目录和 Git 初始提交。源码、测试和样例文件都在后面的 Superpowers 流程中创建。</p><div class="label">终端操作</div><pre><code>mkdir mcp-tool-audit-lab
+cd mcp-tool-audit-lab
+git init
+git commit --allow-empty -m "Initialize empty audit project"
+claude</code></pre><p>若 Git 报缺少身份，先按平时方式设置用户名和邮箱。这里的 <code>--allow-empty</code> 是空提交，不会预置任何代码。</p><h3>给练习提供一份确定的输入</h3><p>下面是稍后要让 Claude 创建的 <code>examples/tools.json</code> 的<strong>精确内容</strong>。它是一份教学用工具清单，不需要连接任何 MCP 服务器，也不会执行里面的工具。</p><div class="label">examples/tools.json · 在设计确认后由 Claude 创建</div><pre><code>{
+  "server": "demo-files",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read a text file",
+      "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}}
+    },
+    {
+      "name": "delete_file",
+      "description": "",
+      "inputSchema": {"type": "array"}
+    },
+    {
+      "name": "delete_file",
+      "description": "Delete a file",
+      "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}}
+    }
+  ]
+}</code></pre><p>样本特意设置了 3 个问题：第 2 个工具缺少描述、其输入 Schema 的 <code>type</code> 不是 <code>object</code>、第 3 个工具与第 2 个同名。先有固定输入和固定结果，后面才能判断开发是否符合需求。</p></section>
+<section id="design"><h2>04 · 用 Brainstorming 确认规则</h2><p>在空目录中启动 Claude Code 后，先发需求。让它讨论规则与边界，并<strong>在你确认前不写程序</strong>。</p><div class="label">提示词 A · 启动项目</div><pre><code>当前目录只有一个空 Git 提交。请使用 Superpowers 的 brainstorming 流程，
+从零做一个 Python 命令行工具：读取 MCP 工具清单 JSON，执行静态检查，
+输出机器可读的 JSON 报告。请先梳理输入格式、检查规则、输出格式、
+错误处理和测试策略；我确认设计后再创建源码和样例。</code></pre><p>它会提出设计问题。请用下面这组具体约束回答，避免“检查工具安全性”这种难以验收的宽泛任务。</p><div class="label">提示词 B · 明确范围与验收口径</div><pre><code>本练习的设计约束：
+1. 只用 Python 3.10+ 标准库，不联网，不启动 MCP Server，不调用任何工具。
+2. 输入是 JSON 文件：顶层对象有 server 字符串与 tools 数组；
+   每个工具是对象，包含 name、description、inputSchema。
+3. 对 tools 按数组顺序检查，仅做三条规则：
+   MISSING_DESCRIPTION：description 不是非空字符串，或仅有空白。
+   DUPLICATE_NAME：当前工具的 name 与前面某工具重复；只标记后出现的项。
+   INVALID_INPUT_SCHEMA：inputSchema 不是对象，或 type 不等于 "object"。
+4. 每个发现记录 rule、tool、index（从 0 开始），固定顺序：
+   对每个工具依次检查上述三条规则，再检查下一个工具。
+5. 命令为 python audit.py examples/tools.json --output report.json。
+   输出 JSON 包含 server、tool_count、finding_count、findings。
+   允许有发现时退出码仍为 0；输入文件不存在或 JSON 不合法时退出码 2，
+   向 stderr 给出可读错误，不生成报告。
+6. 请创建 examples/tools.json，内容采用我在教程中给出的三工具样本。
+7. 本次不做真实协议交互、漏洞判定、风险评级、图形界面或数据库。
+请先整理设计供我确认，不要直接编码。</code></pre><p>将上节的 JSON 样本粘贴给 Claude。重点检查它是否正确区分“重复项只报后出现者”和“同一个工具可以有多个发现”。确认后回复：<code>设计确认，可以写实施计划。</code></p><div class="callout warning"><strong>边界要说清</strong><p><code>inputSchema.type == "object"</code> 是本练习自定义的质量检查规则，并不等于对全部 JSON Schema 或 MCP 协议做完整合规验证。不要把报告称作漏洞扫描报告。</p></div></section>
+<section id="plan"><h2>05 · 审阅一份能执行的计划</h2><div class="label">提示词 C · 请求 Writing Plans</div><pre><code>设计确认。请使用 superpowers:writing-plans 为这个空仓库写实施计划。
+逐项说明新建哪些文件、每项测试的数据与断言、运行命令和预期结果。
+先给我审阅计划；我确认前不要实现。</code></pre><div class="tablewrap"><table><thead><tr><th>计划任务</th><th>应看到的内容</th><th>验证点</th></tr></thead><tbody><tr><td>1. 输入与数据结构</td><td>创建样本 JSON、建立 <code>audit.py</code> 的最小入口、添加读取测试</td><td>能读取三条工具；坏 JSON 显示错误</td></tr><tr><td>2. 三条检查规则</td><td>逐条测试缺描述、重名、Schema；再测试同一项多个发现</td><td>本例按固定顺序恰好产生 3 个发现</td></tr><tr><td>3. CLI 与报告</td><td>测试 <code>--output</code>、字段、退出码、stderr</td><td>报告稳定可读，坏输入不生成文件</td></tr><tr><td>4. 文档与收尾</td><td>README 使用说明、全量测试、手工验收、diff 检查</td><td>没有额外依赖或联网逻辑</td></tr></tbody></table></div><p>审阅重点：计划是否写明具体文件与断言；是否将三个发现的<strong>顺序</strong>写清；是否包含无效 JSON 和不存在文件的失败路径。若它计划“再接入真正的 MCP Server”或“添加安全评分”，请它删掉。本例只需一条本地数据流。</p><p>审阅后明确回复：<code>计划确认，请按计划实施。</code> 官方流程通常要求你看过计划再运行，不把“设计确认”自动视为“计划确认”。</p></section>
+<section id="execute"><h2>06 · 跟着开发过程看证据</h2><div class="label">提示词 D · 让它实施</div><pre><code>计划确认，请按 Superpowers 流程实施。
+每个检查规则先写会失败的测试并运行，确认失败原因正确；
+再写最小代码使测试通过。完成后运行全部测试，并给出实际输出。
+若测试因语法、导入或环境错误失败，先修复测试本身。</code></pre><p>你应看到几次清楚的“红 → 绿”：例如尚未实现 <code>DUPLICATE_NAME</code> 时，重复名称测试因缺少该发现而失败；实现规则后通过；原有测试仍通过。空仓库初期的导入错误只有在建立最小入口过程中有意义，不能替代每条业务规则的失败测试。</p><h3>本样本的准确期望结果</h3><p>所有工具按顺序扫描，每个工具按“缺描述 → 重名 → Schema”判断。第 0 个工具无发现；第 1 个触发缺描述和无效 Schema；第 2 个触发重名。因此报告中的 <code>findings</code> 应是：</p><div class="label">report.json · 核心内容</div><pre><code>{
+  "server": "demo-files",
+  "tool_count": 3,
+  "finding_count": 3,
+  "findings": [
+    {"rule": "MISSING_DESCRIPTION", "tool": "delete_file", "index": 1},
+    {"rule": "INVALID_INPUT_SCHEMA", "tool": "delete_file", "index": 1},
+    {"rule": "DUPLICATE_NAME", "tool": "delete_file", "index": 2}
+  ]
+}</code></pre><p>测试至少应包含：这个样本的 3 个发现和顺序；无问题数据的空发现；仅空白字符的描述；重复名称只标记后项；Schema 缺失或 <code>type</code> 错误；文件不存在与 JSON 格式错误；有发现时退出码为 0。让 Claude 用临时目录写测试文件，避免污染练习目录。</p><details><summary>如果实现卡住，查看一个最小算法轮廓</summary><pre><code>seen = set()
+findings = []
+for index, tool in enumerate(tools):
+    name = tool.get("name")
+    if not isinstance(tool.get("description"), str) or not tool["description"].strip():
+        findings.append({"rule": "MISSING_DESCRIPTION", "tool": name, "index": index})
+    if name in seen:
+        findings.append({"rule": "DUPLICATE_NAME", "tool": name, "index": index})
+    seen.add(name)
+    schema = tool.get("inputSchema")
+    if not isinstance(schema, dict) or schema.get("type") != "object":
+        findings.append({"rule": "INVALID_INPUT_SCHEMA", "tool": name, "index": index})</code></pre></details><p class="small">算法片段只用于解释设计，不处理顶层结构、参数解析和文件错误；完整实现仍应遵循你已确认的计划与测试。</p></section>
+<section id="verify"><h2>07 · 自己验收这个具体项目</h2><p>实现结束后，在项目目录运行下面的命令。这里检查的是真实生成的报告文件，而不是 Claude 口头描述的结果。</p><div class="label">命令行验收</div><pre><code>python -m unittest discover -s tests -v
+python audit.py examples/tools.json --output report.json
+python -m json.tool report.json
+git diff --check
+git status --short</code></pre><p>查看 <code>report.json</code>，其 <code>server</code> 应为 <code>demo-files</code>、<code>tool_count</code> 为 3、<code>finding_count</code> 为 3；三个发现的规则与索引必须与上节一致。运行 <code>python audit.py does-not-exist.json --output missing-report.json</code>，应看到清楚的错误，退出码为 2，且不出现 <code>missing-report.json</code>。</p><div class="label">提示词 E · 让它报告实际执行记录</div><pre><code>请只报告实际执行的命令和结果：测试用例数、示例报告的
+finding_count 和三条规则顺序、坏输入的退出码、改动文件。
+列出尚未验证的情况，检查 git diff --check 与最终变更。</code></pre><ul class="checklist"><li>从空目录生成了 <code>audit.py</code>、样本、测试与 README</li><li>本例得到 3 个发现，顺序和 index 都正确</li><li>正常输入退出码 0，错误输入退出码 2 且不产生报告</li><li>看到每条规则先失败再通过的测试证据</li><li>没有联网、执行工具、风险评级或额外依赖</li></ul></section>
+<section id="pitfalls"><h2>08 · 本练习常见偏差</h2><div class="grid"><div class="card"><h3>把质量检查说成漏洞扫描</h3><p>这三条规则只评价清单字段，不能证明攻击可行性，也不能替代动态验证。</p></div><div class="card"><h3>发现数量对、顺序错</h3><p>只看 <code>finding_count=3</code> 还不够；同一工具可能有两个发现，必须检查规则、工具名、索引与顺序。</p></div><div class="card"><h3>意外扩展项目</h3><p>让它回到本地 JSON 的输入与输出，先完成一个能可靠运行的 CLI，再决定是否扩展真实 MCP 接入。</p></div><div class="card"><h3>红灯原因不对</h3><p>SyntaxError、测试导入错误或样本路径错误要先修复；真正的“红灯”应由尚未实现的业务行为引起。</p></div></div><p>如果没有触发技能，重启会话并检查插件安装；必要时明确写“使用 <code>superpowers:brainstorming</code>”。</p></section>
+<section id="sources"><h2>参考资料</h2><p><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">Superpowers 官方仓库：安装与开发流程</a> · <a href="https://github.com/obra/superpowers/blob/main/skills/writing-plans/SKILL.md" target="_blank" rel="noopener">Writing Plans 技能说明</a></p><p class="small">依据 2026 年 9 月 28 日官方文档编写。待办工具、设计决定、提示词与预期输出均为本教程构造的练习材料。</p></section>
+</main></div><footer class="wrap">Superpowers 个人开发入门 · 浏览器打开即可阅读 · 可打印保存为 PDF</footer></body></html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MCP Server Security Testing Workflow</title>
+<style>
+:root{color-scheme:light;--ink:#17253b;--muted:#58677d;--connector:#53647b;--bg:#f5f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+.page{max-width:1560px;margin:0 auto;padding:52px 34px 62px}.heading{text-align:center;margin-bottom:35px}.eyebrow{font-size:12px;letter-spacing:.19em;text-transform:uppercase;font-weight:800;color:#56739b;margin-bottom:10px}h1{margin:0;font-size:clamp(26px,3.1vw,42px);font-weight:760;letter-spacing:-.04em;line-height:1.2}.subtitle{font-size:15px;color:var(--muted);margin:13px 0 0}.board{background:white;border:1px solid #e2e8f0;border-radius:22px;box-shadow:0 18px 55px rgba(35,55,85,.07);padding:24px;overflow-x:auto}.board svg{width:100%;min-width:1000px;height:auto;display:block}svg text{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}.title{font-size:23px;font-weight:760;letter-spacing:-.5px;fill:#17253b}.body{font-size:17px;font-weight:440;fill:#485a70}.arrow-text{font-size:14px;font-weight:660;fill:#465b76}.hint{font-size:13px;font-weight:460;fill:#77879b}.flow{fill:none;stroke:var(--connector);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrow)}.card{stroke-width:1.8}.number{font-size:13px;font-weight:750}.footer{margin:16px 0 0;text-align:center;color:#8190a3;font-size:12px}
+@media(max-width:750px){.page{padding:26px 12px}.heading{margin-bottom:22px}.subtitle{font-size:13px}.board{padding:10px;border-radius:13px}}
+@media print{body{background:white}.page{max-width:none;padding:0}.heading{margin:12px 0 20px}.board{border:0;box-shadow:none;padding:0;overflow:visible}.board svg{min-width:0}.footer{display:none}@page{size:landscape;margin:12mm}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="heading"><div class="eyebrow">System architecture</div><h1>MCP Server Security Testing Workflow</h1><p class="subtitle">Static findings and a deployed MCP server converge in dynamic validation.</p></header>
+<div class="board">
+<svg viewBox="0 0 1450 690" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="diagramTitle diagramDesc">
+<title id="diagramTitle">MCP Server Security Testing Workflow</title>
+<desc id="diagramDesc">MCP Server Code goes to Static Scan and MCP Deploy System in parallel. Static Scan results feed Dynamic Scan, and the deployed running MCP server feeds Dynamic Scan. Dynamic Scan generates test cases and outputs a Report.</desc>
+<defs>
+<marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#53647b"/></marker>
+<filter id="shadow" x="-15%" y="-30%" width="130%" height="165%"><feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#22344b" flood-opacity=".045"/></filter>
+</defs>
+<!-- connectors: all drawn first to keep behind cards -->
+<path class="flow" d="M270 247 H365"/>
+<path class="flow" d="M685 247 H784"/>
+<path class="flow" d="M1110 247 H1200"/>
+<path class="flow" d="M143 348 V555 H372"/>
+<path class="flow" d="M838 555 H950 V348"/>
+<!-- source -->
+<rect class="card" x="24" y="135" width="246" height="213" rx="17" fill="#eff6ff" stroke="#75a8e8" filter="url(#shadow)"/>
+<rect x="48" y="155" width="75" height="24" rx="12" fill="#d9eafe"/><text x="85" y="172" text-anchor="middle" class="number" fill="#226bb9">INPUT</text>
+<g transform="translate(111 203)" fill="none" stroke="#3178bb" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0 h34 l17 17 v48 h-51 z"/><path d="M34 0 v17 h17"/><path d="M19 31 l-7 7 7 7 M33 31 l7 7 -7 7"/></g>
+<text x="147" y="294" text-anchor="middle" class="title">MCP Server</text><text x="147" y="323" text-anchor="middle" class="title">Code</text>
+<!-- static -->
+<rect class="card" x="365" y="135" width="320" height="213" rx="17" fill="#effbf3" stroke="#80c99a" filter="url(#shadow)"/>
+<rect x="387" y="155" width="84" height="24" rx="12" fill="#d9f3e2"/><text x="429" y="172" text-anchor="middle" class="number" fill="#25844a">ANALYZE</text>
+<g transform="translate(391 209)" fill="none" stroke="#299459" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0 h29 l13 13 v47 h-42 z"/><path d="M29 0 v13 h13 M9 27 h20 M9 38 h14"/><circle cx="39" cy="46" r="10" fill="#effbf3"/><path d="M46 53 l11 11"/></g>
+<text x="459" y="239" class="title">Static Scan</text>
+<text x="391" y="292" class="body">Code analysis</text><text x="391" y="321" class="body">Vulnerability discovery</text>
+<!-- dynamic -->
+<rect class="card" x="784" y="135" width="326" height="213" rx="17" fill="#fff6ee" stroke="#efb078" filter="url(#shadow)"/>
+<rect x="806" y="155" width="89" height="24" rx="12" fill="#ffead7"/><text x="850" y="172" text-anchor="middle" class="number" fill="#bb6d2b">VALIDATE</text>
+<g transform="translate(813 205)" fill="none" stroke="#dc8534" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="22" r="17"/><circle cx="22" cy="22" r="6"/><path d="M22 0 v-9 M22 44 v9 M0 22 h-9 M44 22 h9 M6 6 l-6 -6 M38 38 l6 6 M38 6 l6 -6 M6 38 l-6 6"/></g>
+<text x="874" y="239" class="title">Dynamic Scan</text>
+<text x="811" y="281" class="body">Generate test cases</text><text x="811" y="308" class="body">Test running MCP server</text><text x="811" y="335" class="body">Verify vulnerabilities</text>
+<!-- report -->
+<rect class="card" x="1200" y="135" width="224" height="213" rx="17" fill="#f6f0ff" stroke="#b09ce3" filter="url(#shadow)"/>
+<rect x="1222" y="155" width="80" height="24" rx="12" fill="#e9defe"/><text x="1262" y="172" text-anchor="middle" class="number" fill="#7356b3">OUTPUT</text>
+<g transform="translate(1223 206)" fill="none" stroke="#8163bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0 h29 l12 12 v54 h-41 z"/><path d="M29 0 v12 h12 M10 48 v7 M20 36 v19 M30 42 v13"/></g>
+<text x="1281" y="239" class="title">Report</text>
+<text x="1222" y="281" class="body" style="font-size:15px">Combined results</text><text x="1222" y="309" class="body" style="font-size:15px">Evidence &amp; risks</text><text x="1222" y="337" class="body" style="font-size:15px">Recommendations</text>
+<!-- deployment -->
+<rect class="card" x="372" y="453" width="466" height="204" rx="17" fill="#eff6ff" stroke="#75a8e8" filter="url(#shadow)"/>
+<rect x="395" y="473" width="100" height="24" rx="12" fill="#d9eafe"/><text x="445" y="490" text-anchor="middle" class="number" fill="#226bb9">DEPLOY</text>
+<g transform="translate(400 529)" fill="none" stroke="#3178bb" stroke-width="3"><rect x="0" y="0" width="52" height="22" rx="5"/><rect x="0" y="30" width="52" height="22" rx="5"/><circle cx="11" cy="11" r="2.5" fill="#3178bb"/><circle cx="11" cy="41" r="2.5" fill="#3178bb"/></g>
+<text x="475" y="548" class="title">MCP Deploy System</text>
+<text x="475" y="585" class="body">Build environment</text><text x="475" y="611" class="body">Install dependencies</text><text x="475" y="637" class="body">Start MCP server</text>
+<!-- connection captions -->
+<text x="317" y="219" text-anchor="middle" class="arrow-text">Source</text><text x="317" y="237" text-anchor="middle" class="arrow-text">code</text>
+<text x="735" y="209" text-anchor="middle" class="arrow-text">Static scan</text><text x="735" y="228" text-anchor="middle" class="arrow-text">results</text>
+<text x="263" y="530" text-anchor="middle" class="arrow-text">Deploy</text>
+<text x="969" y="397" class="arrow-text">Running MCP server</text><text x="969" y="416" class="hint">Endpoint · config · credentials</text>
+</svg>
+</div>
+<p class="footer">Source code → Static Scan → Dynamic Scan → Report &nbsp; | &nbsp; Source code → MCP Deploy System → Dynamic Scan</p>
+</div>
+</body>
+</html>
